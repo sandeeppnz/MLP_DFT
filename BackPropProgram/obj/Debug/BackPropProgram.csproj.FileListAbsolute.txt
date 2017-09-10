@@ -1,0 +1,6 @@
+d:\ANN_Project_AUT_Sem3\Microsoft\BackPropProgram\BackPropProgram\bin\Debug\BackPropProgram.exe.config
+d:\ANN_Project_AUT_Sem3\Microsoft\BackPropProgram\BackPropProgram\bin\Debug\BackPropProgram.exe
+d:\ANN_Project_AUT_Sem3\Microsoft\BackPropProgram\BackPropProgram\bin\Debug\BackPropProgram.pdb
+d:\ANN_Project_AUT_Sem3\Microsoft\BackPropProgram\BackPropProgram\obj\Debug\BackPropProgram.csprojResolveAssemblyReference.cache
+d:\ANN_Project_AUT_Sem3\Microsoft\BackPropProgram\BackPropProgram\obj\Debug\BackPropProgram.exe
+d:\ANN_Project_AUT_Sem3\Microsoft\BackPropProgram\BackPropProgram\obj\Debug\BackPropProgram.pdb
