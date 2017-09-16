@@ -163,46 +163,49 @@ namespace BackPropProgram
             Console.WriteLine("Setting momentum  = " + momentum.ToString("F2"));
 
             Console.WriteLine("\nStarting training");
-            double[] weights = nn.Train(trainData, maxEpochs, learnRate, momentum);
+            #region MLP
+            //double[] weights = nn.Train(trainData, maxEpochs, learnRate, momentum);
 
 
 
-            Console.WriteLine("Done");
-            Console.WriteLine("\nFinal neural network model weights and biases:\n");
-            ShowVector(weights, 2, 10, true);
+            //Console.WriteLine("Done");
+            //Console.WriteLine("\nFinal neural network model weights and biases:\n");
+            //ShowVector(weights, 2, 10, true);
 
-            double[] inputNodeTotalWeightsArray = ShowVectorWInputMy(weights, 2);
+            //double[] inputNodeTotalWeightsArray = ShowVectorWInputMy(weights, 2);
 
-            double[] rankArray = null;
-            if (ISFEATURESELECTION)
-            {
-                rankArray = GenerateRankArrayMy(inputNodeTotalWeightsArray);
-                weights = UpdateWeightsArrayByRankMy(weights, rankArray);
-                inputNodeTotalWeightsArray = ShowVectorWInputMy(weights, 2);
-                nn.SetWeights(weights);
-            }
+            //double[] rankArray = null;
+            //if (ISFEATURESELECTION)
+            //{
+            //    rankArray = GenerateRankArrayMy(inputNodeTotalWeightsArray);
+            //    weights = UpdateWeightsArrayByRankMy(weights, rankArray);
+            //    inputNodeTotalWeightsArray = ShowVectorWInputMy(weights, 2);
+            //    nn.SetWeights(weights);
+            //}
 
-            double trainAcc = nn.Accuracy(trainData, rankArray);
-            Console.WriteLine("\nFinal accuracy on training data = " + trainAcc.ToString("F4"));
+            //double trainAcc = nn.Accuracy(trainData, rankArray);
+            //Console.WriteLine("\nFinal accuracy on training data = " + trainAcc.ToString("F4"));
 
-            bool[,] inputTable = GenerateTruthTableMy(NUMINPUT);
-            bool[] answer1 = new bool[inputTable.GetLength(0)];
+            //bool[,] inputTable = GenerateTruthTableMy(NUMINPUT);
+            //bool[] answer1 = new bool[inputTable.GetLength(0)];
 
-            if (ISFEATURESELECTION)
-            {
-                inputTable = SetIrrelevantVariablesMy(inputTable, rankArray);
-            }
+            //if (ISFEATURESELECTION)
+            //{
+            //    inputTable = SetIrrelevantVariablesMy(inputTable, rankArray);
+            //}
 
-            double testAcc = nn.Accuracy(testData, rankArray);
-            Console.WriteLine("Final accuracy on test data     = " + testAcc.ToString("F4"));
+            //double testAcc = nn.Accuracy(testData, rankArray);
+            //Console.WriteLine("Final accuracy on test data     = " + testAcc.ToString("F4"));
 
-            var redundantSchema = nn.GetUniqueRedudantSchemaMy(trainData, rankArray); //unique combinations
-            var convertedArray = nn.MakeArrayBasedSchemaMy(redundantSchema);
+            //var redundantSchema = nn.GetUniqueRedudantSchemaMy(trainData, rankArray); //unique combinations
+            //var convertedArray = nn.MakeArrayBasedSchemaMy(redundantSchema);
 
             List<string> yZero = new List<string>();
             List<string> yOne = new List<string>();
 
-            nn.CalculateAccuracyAndAppendYValMy(trainData, rankArray, out yZero, out yOne);
+            //nn.CalculateAccuracyAndAppendYValMy(trainData, rankArray, out yZero, out yOne);
+            #endregion
+
 
             //1*1
             //yZero = new List<string>()
@@ -241,7 +244,7 @@ namespace BackPropProgram
             //    "011"
             //};
 
-            //sample
+            ////sample
             yZero = new List<string>()
             {
                 "001",
@@ -265,10 +268,27 @@ namespace BackPropProgram
             var SxClusterLabel_ClassZero = nn.SetWildcard(yZero, yOne);
             var SxClusterLabel_ClassOne = nn.SetWildcard(yOne, yZero);
 
+            //SxClusterLabel_ClassOne = new List<string> {
+            //    "*1*",
+            //    "1**",
+            //    "**0",
+            //    "**0",
+            //};
+            //SxClusterLabel_ClassOne = new List<string> {
+            //    "*10",
+            //    "**1",
+            //    "1*1",
+            //};
 
 
-            
-            int NUMINPUT_Temp = 3;
+
+
+            var redundantIndexList = nn.FindRedundantAttributeFromPatterns(SxClusterLabel_ClassOne);
+
+
+
+
+            int NUMINPUT_Temp = 7;
             bool[,] sjVectorArray = GenerateTruthTableMy(NUMINPUT_Temp);
             List<string> sjVectorList = new List<string>();
             int arrayLength = (int) Math.Pow(2, (double) NUMINPUT_Temp);
@@ -290,7 +310,7 @@ namespace BackPropProgram
 
             Dictionary<string, double> coeffArray = new Dictionary<string, double>();
 
-            
+
             foreach (string j in sjVectorList)
             {
                 double coeff = getCoefficientValue(j, SxClusterLabel_ClassOne);
@@ -303,9 +323,14 @@ namespace BackPropProgram
 
 
 
+
+
             Console.WriteLine("\nEnd back-propagation demo\n");
             Console.ReadLine();
         }
+
+
+
 
 
         public static double getCoefficientValue(String j, List<string> patterns)
@@ -315,7 +340,7 @@ namespace BackPropProgram
 
             foreach (string x in patterns)
             {
-                double dotProduct = DFT.CalculateDotProduct(j,x);
+                double dotProduct = DFT.CalculateDotProduct(j, x);
                 if (dotProduct != 0)
                 {
                     coefficientValue = coefficientValue + (dotProduct / denominator);

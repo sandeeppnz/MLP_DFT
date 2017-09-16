@@ -560,6 +560,50 @@ namespace BackPropProgram
             }
         }
 
+        /// <summary>
+        /// Optimisation:
+        /// If each pattern has a recurring wildcharacter in same position, the position correpsonding to the attribute can be considered a redundant feature
+        /// e.g. if the 2nd attribute is redudant, and the following patterns are derived initially
+        /// (**0,0*1,1*1), then w(*1*) = 0 but w(*1*) is not zero 
+        /// </summary>
+        /// <param name="fullPatternList"></param>
+        /// <returns> Returns redundant attributes (i.e. attributes that have a wild card character) in each pattern
+        /// </returns>
+        public List<int> FindRedundantAttributeFromPatterns(List<string> fullPatternList)
+        {
+            string p1 = fullPatternList[0];
+            List<int> redundantIndexList = new List<int>();
+            List<int> redudantIdenxLocalList = null;
+
+            for (int i = 1; i < fullPatternList.Count(); i++)
+            {
+                string s = fullPatternList[i];
+                redudantIdenxLocalList = new List<int>();
+
+                for (int j = 0; j < s.Length; j++)
+                {
+                    if ((p1[j] == '*') && (s[j] == '*'))
+                    {
+                        redudantIdenxLocalList.Add(j + 1);
+
+                    }
+                }
+
+                if (i != 1) // the global list will be empty in the beginning
+                {
+                    redundantIndexList = redundantIndexList.Intersect(redudantIdenxLocalList).ToList();
+                }
+                else
+                {
+                    redundantIndexList = redudantIdenxLocalList;
+                }
+
+
+
+            }
+            return redundantIndexList;
+        }
+
 
 
         public List<string> SetWildcard(List<string> yArray, List<string> yArrayOther)
