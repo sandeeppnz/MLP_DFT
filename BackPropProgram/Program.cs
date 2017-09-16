@@ -163,47 +163,56 @@ namespace BackPropProgram
             Console.WriteLine("Setting momentum  = " + momentum.ToString("F2"));
 
             Console.WriteLine("\nStarting training");
-            #region MLP
-            //double[] weights = nn.Train(trainData, maxEpochs, learnRate, momentum);
-
-
-
-            //Console.WriteLine("Done");
-            //Console.WriteLine("\nFinal neural network model weights and biases:\n");
-            //ShowVector(weights, 2, 10, true);
-
-            //double[] inputNodeTotalWeightsArray = ShowVectorWInputMy(weights, 2);
-
-            //double[] rankArray = null;
-            //if (ISFEATURESELECTION)
-            //{
-            //    rankArray = GenerateRankArrayMy(inputNodeTotalWeightsArray);
-            //    weights = UpdateWeightsArrayByRankMy(weights, rankArray);
-            //    inputNodeTotalWeightsArray = ShowVectorWInputMy(weights, 2);
-            //    nn.SetWeights(weights);
-            //}
-
-            //double trainAcc = nn.Accuracy(trainData, rankArray);
-            //Console.WriteLine("\nFinal accuracy on training data = " + trainAcc.ToString("F4"));
-
-            //bool[,] inputTable = GenerateTruthTableMy(NUMINPUT);
-            //bool[] answer1 = new bool[inputTable.GetLength(0)];
-
-            //if (ISFEATURESELECTION)
-            //{
-            //    inputTable = SetIrrelevantVariablesMy(inputTable, rankArray);
-            //}
-
-            //double testAcc = nn.Accuracy(testData, rankArray);
-            //Console.WriteLine("Final accuracy on test data     = " + testAcc.ToString("F4"));
-
-            //var redundantSchema = nn.GetUniqueRedudantSchemaMy(trainData, rankArray); //unique combinations
-            //var convertedArray = nn.MakeArrayBasedSchemaMy(redundantSchema);
 
             List<string> yZero = new List<string>();
             List<string> yOne = new List<string>();
 
-            //nn.CalculateAccuracyAndAppendYValMy(trainData, rankArray, out yZero, out yOne);
+
+            #region MLP
+            double[] weights = nn.Train(trainData, maxEpochs, learnRate, momentum);
+
+
+
+            Console.WriteLine("Done");
+            Console.WriteLine("\nFinal neural network model weights and biases:\n");
+            ShowVector(weights, 2, 10, true);
+
+            double[] inputNodeTotalWeightsArray = ShowVectorWInputMy(weights, 2);
+
+            double[] rankArray = null;
+            if (ISFEATURESELECTION)
+            {
+                rankArray = GenerateRankArrayMy(inputNodeTotalWeightsArray);
+                weights = UpdateWeightsArrayByRankMy(weights, rankArray);
+                inputNodeTotalWeightsArray = ShowVectorWInputMy(weights, 2);
+                nn.SetWeights(weights);
+            }
+
+            double trainAcc = nn.Accuracy(trainData, rankArray);
+            Console.WriteLine("\nFinal accuracy on training data = " + trainAcc.ToString("F4"));
+
+            bool[,] inputTable = GenerateTruthTableMy(NUMINPUT);
+            bool[] answer1 = new bool[inputTable.GetLength(0)];
+
+            if (ISFEATURESELECTION)
+            {
+                inputTable = SetIrrelevantVariablesMy(inputTable, rankArray);
+            }
+
+            double testAcc = nn.Accuracy(testData, rankArray);
+            Console.WriteLine("Final accuracy on test data     = " + testAcc.ToString("F4"));
+
+            var redundantSchema = nn.GetUniqueRedudantSchemaMy(trainData, rankArray); //unique combinations
+            var convertedArray = nn.MakeArrayBasedSchemaMy(redundantSchema);
+
+
+            nn.CalculateAccuracyAndAppendYValMy(trainData, rankArray, out yZero, out yOne);
+            #region write to csv
+            WriteToCSV(NUMINPUT,yZero,"0");
+            WriteToCSV(NUMINPUT, yOne,"1");
+
+            #endregion
+
             #endregion
 
 
@@ -244,24 +253,24 @@ namespace BackPropProgram
             //    "011"
             //};
 
-            ////sample
-            yZero = new List<string>()
-            {
-                "001",
-                "011",
-            };
+            //////sample
+            //yZero = new List<string>()
+            //{
+            //    "001",
+            //    "011",
+            //};
 
-            //011, **0, 1 * 1
-            yOne = new List<string>()
-            {
-                "000",
-                "100",
-                "110",
-                "010",
+            ////011, **0, 1 * 1
+            //yOne = new List<string>()
+            //{
+            //    "000",
+            //    "100",
+            //    "110",
+            //    "010",
 
-                "101",
-                "111",
-            };
+            //    "101",
+            //    "111",
+            //};
 
 
 
@@ -329,9 +338,41 @@ namespace BackPropProgram
             Console.ReadLine();
         }
 
+        private static void WriteToCSV(int numCols, List<string> instanceArray, string classLabel)
+        {
+            StreamWriter sw = new StreamWriter(@"D:\MLP.csv", true);
+
+            foreach (var s in instanceArray)
+            {
+                sw.Write(s.ToString());
+                sw.Write(",");
+                sw.Write(classLabel);
+                sw.Write(",");
+                sw.Write(",");
+                for (int j = 0; j < numCols; j++)
+                {
+
+                    sw.Write(s[j].ToString());
+                    sw.Write(",");
+                }
+                sw.Write(classLabel);
+                sw.Write("\r\n");
+            }
 
 
 
+
+            //for (int i = 0; i < NUMINPUT; i++)
+            //{
+            //        sw.Write(i.ToString());
+            //        sw.Write(",");
+            //}
+            //sw.Write(",");
+
+
+            sw.Flush();
+            sw.Close();
+        }
 
         public static double getCoefficientValue(String j, List<string> patterns)
         {
