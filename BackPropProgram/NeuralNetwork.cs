@@ -597,9 +597,6 @@ namespace BackPropProgram
                 {
                     redundantIndexList = redudantIdenxLocalList;
                 }
-
-
-
             }
             return redundantIndexList;
         }

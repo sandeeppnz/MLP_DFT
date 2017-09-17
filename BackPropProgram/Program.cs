@@ -288,11 +288,8 @@ namespace BackPropProgram
             //    "**1",
             //    "1*1",
             //};
-
-
-
-
-            var redundantIndexList = nn.FindRedundantAttributeFromPatterns(SxClusterLabel_ClassOne);
+            
+            var redundantAttibuteIndexList = nn.FindRedundantAttributeFromPatterns(SxClusterLabel_ClassOne);
 
 
 
@@ -498,52 +495,52 @@ namespace BackPropProgram
         //} // MakeAllData
         #endregion
 
-        public static string getBinaryString(int number, out int numberOfOnes)
-        {
-            numberOfOnes = 0;
-            string binaryString = "";
-            if (number == 0)
-            {
-                binaryString = "0";
-            }
-            while (number > 0)
-            {
-                int value = number % 2;
-                if (value == 1)
-                {
-                    numberOfOnes++;
-                }
-                binaryString = binaryString + value.ToString();
-                number = number / 2;
-            }
+        //public static string getBinaryString(int number, out int numberOfOnes)
+        //{
+        //    numberOfOnes = 0;
+        //    string binaryString = "";
+        //    if (number == 0)
+        //    {
+        //        binaryString = "0";
+        //    }
+        //    while (number > 0)
+        //    {
+        //        int value = number % 2;
+        //        if (value == 1)
+        //        {
+        //            numberOfOnes++;
+        //        }
+        //        binaryString = binaryString + value.ToString();
+        //        number = number / 2;
+        //    }
 
-            //TODO: redefine size
-            while (binaryString.Length < 3)
-            {
-                binaryString = binaryString + "0";
-            }
+        //    //TODO: redefine size
+        //    while (binaryString.Length < 3)
+        //    {
+        //        binaryString = binaryString + "0";
+        //    }
 
-            char[] charArray = binaryString.ToArray();
-            Array.Reverse(charArray);
-            binaryString = new string(charArray);
-            return binaryString;
-        }
-
-
-
-        private static void SortForClusters(List<string> list)
-        {
-            /*
-             * Sort according to the fx val, then the string
-             * Clustering algorithm 
-             * 
-             */
-
-            var ascendingOrder = list.OrderBy(i => i);
+        //    char[] charArray = binaryString.ToArray();
+        //    Array.Reverse(charArray);
+        //    binaryString = new string(charArray);
+        //    return binaryString;
+        //}
 
 
 
-        }
+        //private static void SortForClusters(List<string> list)
+        //{
+        //    /*
+        //     * Sort according to the fx val, then the string
+        //     * Clustering algorithm 
+        //     * 
+        //     */
+
+        //    var ascendingOrder = list.OrderBy(i => i);
+
+
+
+        //}
 
 
 
