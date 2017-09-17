@@ -248,24 +248,25 @@ namespace BackPropProgram
             //    "011"
             //};
 
-            //////sample
-            //yZero = new List<string>()
-            //{
-            //    "001",
-            //    "011",
-            //};
+            ////sample
+            //0*1
+            yZero = new List<string>()
+            {
+                "001",
+                "011",
+            };
 
-            ////011, **0, 1 * 1
-            //yOne = new List<string>()
-            //{
-            //    "000",
-            //    "100",
-            //    "110",
-            //    "010",
+            //**0, 1 * 1
+            yOne = new List<string>()
+            {
+                "000",
+                "100",
+                "110",
+                "010",
 
-            //    "101",
-            //    "111",
-            //};
+                "101",
+                "111",
+            };
 
 
 
@@ -283,13 +284,33 @@ namespace BackPropProgram
             //    "**1",
             //    "1*1",
             //};
-            
+
+            var patternVerfication_fx_classZero = new Dictionary<string, double>();
+            var patternVerfication_fx_classOne = new Dictionary<string, double>();
+            //Class 0
+            foreach (string schemaInstance in yZero)
+            {
+                double coeff = get_fx_ByWildCardPattern(schemaInstance, SxClusterLabel_ClassZero, "0");
+                patternVerfication_fx_classZero[schemaInstance] = coeff;
+            }
+            //Class 1
+            foreach (string schemaInstance in yOne)
+            {
+                double coeff = get_fx_ByWildCardPattern(schemaInstance, SxClusterLabel_ClassOne, "1");
+                patternVerfication_fx_classOne[schemaInstance] = coeff;
+            }
+
+
+
+
+
             var redundantAttibuteIndexList = nn.FindRedundantAttributeFromPatterns(SxClusterLabel_ClassOne);
 
 
 
 
-            int NUMINPUT_Temp = 7;
+            //TODO: change to common input
+            int NUMINPUT_Temp = 3; 
             bool[,] sjVectorArray = GenerateTruthTableMy(NUMINPUT_Temp);
             List<string> sjVectorList = new List<string>();
             int arrayLength = (int) Math.Pow(2, (double) NUMINPUT_Temp);
@@ -318,8 +339,8 @@ namespace BackPropProgram
             }
 
 
-            
-            
+
+
 
 
             // Calculate Inverse DFT for each sXVectvor
@@ -328,10 +349,10 @@ namespace BackPropProgram
             var invDFT_fx_classZero = new Dictionary<string, double>();
             var invDFT_fx_classOne = new Dictionary<string, double>();
 
-            //Class 1
+            //Class 0
             foreach (string x in yZero)
             {
-                double coeff = getInvDftValue(x, sjVectorList, coeffArray);
+                double coeff = get_fx_ByInvDFT(x, sjVectorList, coeffArray);
                 invDFT_fx_classZero[x] = coeff;
             }
 
@@ -339,15 +360,19 @@ namespace BackPropProgram
             //Class 1
             foreach (string x in yOne)
             {
-                double coeff = getInvDftValue(x, sjVectorList, coeffArray);
+                double coeff = get_fx_ByInvDFT(x, sjVectorList, coeffArray);
                 invDFT_fx_classOne[x] = coeff;
             }
 
 
 
             #region write to csv
-            WriteToCSV(NUMINPUT, yZero, "0", invDFT_fx_classZero);
-            WriteToCSV(NUMINPUT, yOne, "1", invDFT_fx_classOne);
+            //WriteToCSV(NUMINPUT, yZero, "0", invDFT_fx_classZero, patternVerfication_fx_classZero);
+            //WriteToCSV(NUMINPUT, yOne, "1", invDFT_fx_classOne, patternVerfication_fx_classOne);
+
+            //TODO: change to common input
+            WriteToCSV(3, yZero, "0", invDFT_fx_classZero, patternVerfication_fx_classZero);
+            WriteToCSV(3, yOne, "1", invDFT_fx_classOne, patternVerfication_fx_classOne);
 
             #endregion
 
@@ -358,7 +383,8 @@ namespace BackPropProgram
             Console.ReadLine();
         }
 
-        private static void WriteToCSV(int numCols, List<string> instanceArray, string classFromMLP, Dictionary<string,double> invDFT_fx)
+        private static void WriteToCSV(int numCols, List<string> instanceArray, string classFromMLP, 
+            Dictionary<string, double> invDFT_fx, Dictionary<string, double> patternVerfication_fx)
         {
             StreamWriter sw = new StreamWriter(@"D:\MLP.csv", true);
 
@@ -381,6 +407,13 @@ namespace BackPropProgram
 
                 double fx = invDFT_fx[s];
                 sw.Write(fx);
+                sw.Write(",");
+                sw.Write(",");
+
+                fx = patternVerfication_fx[s];
+                sw.Write(fx);
+
+
 
                 sw.Write("\r\n");
             }
@@ -400,7 +433,7 @@ namespace BackPropProgram
             sw.Close();
         }
 
-        public static double getInvDftValue(string xVector, List<string> jPatterns, Dictionary<string,double> coeffArray)
+        public static double get_fx_ByInvDFT(string xVector, List<string> jPatterns, Dictionary<string, double> coeffArray)
         {
             double fx = 0.0;
 
@@ -415,6 +448,63 @@ namespace BackPropProgram
             return fx;
 
         }
+
+        /// <summary>
+        /// Check the each schema and return the fx value from based on the pattern it can be accomdated to
+        /// </summary>
+        /// <param name="schemaInstance"></param>
+        /// <param name="patternList"></param>
+        /// <returns></returns>
+        public static double get_fx_ByWildCardPattern(string schemaInstance, List<string> patternList, string classLabel)
+        {
+            double fx = -1;
+            foreach (string pattern in patternList)
+            {
+                if (pattern.Equals(schemaInstance))
+                {
+                    return double.Parse(classLabel.ToString());
+                }
+                else
+                {
+                    //it would contain wild character
+                    bool isMatch = true; //resetting for each pattern
+
+                    for (int j = 0; j < pattern.Length; j++)
+                    {
+
+                        if (pattern[j] != '*' && pattern[j] != schemaInstance[j])
+                        {
+                            isMatch = false;
+                        }
+                        else
+                        {
+                            if (pattern[j] == '*')
+                            {
+                                // can be matched
+                            }
+                            else if (pattern[j] != schemaInstance[j])
+                            {
+                                isMatch = false;
+                                return fx;
+                            }
+                            else
+                            {
+                                //pattern[j] == schemaInstance[j]
+                            }
+                        }
+                    }
+
+                    if (isMatch)
+                    {
+                        return double.Parse(classLabel.ToString());
+                    }
+                }
+            }
+            return fx;
+
+        }
+
+
 
 
         public static double getCoefficientValue(string j, List<string> patterns)
