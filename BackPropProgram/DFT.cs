@@ -9,23 +9,28 @@ namespace BackPropProgram
     public class DFT
     {
 
-        public static double getCoefficientValue(String coefficient, Dictionary<String, SchemaStatistics> Patterns)
-        {
-            double denominator = Math.Pow(2, coefficient.Length);
-            double dCoefficientValue = 0.0;
-            foreach (KeyValuePair<string, SchemaStatistics> pattern in Patterns)
-            {
-                //if (pattern.Value.Label == true) //skipping the leaf nodes labeled 0 (false)
-                //{
-                double dDotProduct = (double) CalculateDotProduct(coefficient, pattern.Key);
-                if (dDotProduct != 0)
-                {
-                    dCoefficientValue = dCoefficientValue + (dDotProduct / denominator);
-                }
-                //}
-            }
-            return dCoefficientValue;
-        }
+        //public static double CalculateInverseDFT(Dictionary<string, double> coeffArray, )
+        //{
+
+        //}
+
+        //public static double getCoefficientValue(String coefficient, Dictionary<String, SchemaStatistics> Patterns)
+        //{
+        //    double denominator = Math.Pow(2, coefficient.Length);
+        //    double dCoefficientValue = 0.0;
+        //    foreach (KeyValuePair<string, SchemaStatistics> pattern in Patterns)
+        //    {
+        //        //if (pattern.Value.Label == true) //skipping the leaf nodes labeled 0 (false)
+        //        //{
+        //        double dDotProduct = (double) CalculateDotProduct(coefficient, pattern.Key);
+        //        if (dDotProduct != 0)
+        //        {
+        //            dCoefficientValue = dCoefficientValue + (dDotProduct / denominator);
+        //        }
+        //        //}
+        //    }
+        //    return dCoefficientValue;
+        //}
 
 
         // All DFT models

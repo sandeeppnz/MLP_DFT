@@ -207,11 +207,6 @@ namespace BackPropProgram
 
 
             nn.CalculateAccuracyAndAppendYValMy(trainData, rankArray, out yZero, out yOne);
-            #region write to csv
-            WriteToCSV(NUMINPUT,yZero,"0");
-            WriteToCSV(NUMINPUT, yOne,"1");
-
-            #endregion
 
             #endregion
 
@@ -316,7 +311,6 @@ namespace BackPropProgram
 
             Dictionary<string, double> coeffArray = new Dictionary<string, double>();
 
-
             foreach (string j in sjVectorList)
             {
                 double coeff = getCoefficientValue(j, SxClusterLabel_ClassOne);
@@ -324,9 +318,38 @@ namespace BackPropProgram
             }
 
 
+            
+            
+
+
+            // Calculate Inverse DFT for each sXVectvor
+            // Input: CoffArray, AllSjVectors,  AllSxVectors in the patterns
+            // Output: f(x)  
+            var invDFT_fx_classZero = new Dictionary<string, double>();
+            var invDFT_fx_classOne = new Dictionary<string, double>();
+
+            //Class 1
+            foreach (string x in yZero)
+            {
+                double coeff = getInvDftValue(x, sjVectorList, coeffArray);
+                invDFT_fx_classZero[x] = coeff;
+            }
+
+
+            //Class 1
+            foreach (string x in yOne)
+            {
+                double coeff = getInvDftValue(x, sjVectorList, coeffArray);
+                invDFT_fx_classOne[x] = coeff;
+            }
 
 
 
+            #region write to csv
+            WriteToCSV(NUMINPUT, yZero, "0", invDFT_fx_classZero);
+            WriteToCSV(NUMINPUT, yOne, "1", invDFT_fx_classOne);
+
+            #endregion
 
 
 
@@ -335,7 +358,7 @@ namespace BackPropProgram
             Console.ReadLine();
         }
 
-        private static void WriteToCSV(int numCols, List<string> instanceArray, string classLabel)
+        private static void WriteToCSV(int numCols, List<string> instanceArray, string classFromMLP, Dictionary<string,double> invDFT_fx)
         {
             StreamWriter sw = new StreamWriter(@"D:\MLP.csv", true);
 
@@ -343,7 +366,7 @@ namespace BackPropProgram
             {
                 sw.Write(s.ToString());
                 sw.Write(",");
-                sw.Write(classLabel);
+                sw.Write(classFromMLP);
                 sw.Write(",");
                 sw.Write(",");
                 for (int j = 0; j < numCols; j++)
@@ -352,7 +375,13 @@ namespace BackPropProgram
                     sw.Write(s[j].ToString());
                     sw.Write(",");
                 }
-                sw.Write(classLabel);
+                sw.Write(classFromMLP);
+                sw.Write(",");
+                sw.Write(",");
+
+                double fx = invDFT_fx[s];
+                sw.Write(fx);
+
                 sw.Write("\r\n");
             }
 
@@ -371,7 +400,24 @@ namespace BackPropProgram
             sw.Close();
         }
 
-        public static double getCoefficientValue(String j, List<string> patterns)
+        public static double getInvDftValue(string xVector, List<string> jPatterns, Dictionary<string,double> coeffArray)
+        {
+            double fx = 0.0;
+
+            foreach (string j in jPatterns)
+            {
+                double dotProduct = DFT.CalculateDotProduct(j, xVector);
+                double coeff = coeffArray[j];
+                fx += dotProduct * coeff;
+            }
+
+
+            return fx;
+
+        }
+
+
+        public static double getCoefficientValue(string j, List<string> patterns)
         {
             double denominator = Math.Pow(2, j.Length);
             double coefficientValue = 0.0;
