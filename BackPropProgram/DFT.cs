@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Collections;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
@@ -8,35 +9,706 @@ namespace BackPropProgram
 {
     public class DFT
     {
+        /// <summary>
+        // Calculate Inverse DFT for each sXVectvor
+        // Input: CoffArray, AllSjVectors,  AllSxVectors in the patterns
+        // Output: f(x)  
+        /// </summary>
+        /// <param name="allSchemaSxClass0"></param>
+        /// <param name="sjVectors"></param>
+        /// <param name="coeffsDFT"></param>
+        /// <returns></returns>
+        public static Dictionary<string, double> GetFxByInverseDFT(List<string> allSchemaSxClass0, List<string> sjVectors, Dictionary<string, double> coeffsDFT)
+        {
+            var fxs = new Dictionary<string, double>();
+            foreach (string x in allSchemaSxClass0)
+            {
+                double coeff = DFT.GetCoeffInverseDft(x, sjVectors, coeffsDFT);
+                fxs[x] = coeff;
+            }
 
-        //public static double CalculateInverseDFT(Dictionary<string, double> coeffArray, )
-        //{
+            return fxs;
+        }
 
-        //}
 
-        //public static double getCoefficientValue(String coefficient, Dictionary<String, SchemaStatistics> Patterns)
-        //{
-        //    double denominator = Math.Pow(2, coefficient.Length);
-        //    double dCoefficientValue = 0.0;
-        //    foreach (KeyValuePair<string, SchemaStatistics> pattern in Patterns)
-        //    {
-        //        //if (pattern.Value.Label == true) //skipping the leaf nodes labeled 0 (false)
-        //        //{
-        //        double dDotProduct = (double) CalculateDotProduct(coefficient, pattern.Key);
-        //        if (dDotProduct != 0)
-        //        {
-        //            dCoefficientValue = dCoefficientValue + (dDotProduct / denominator);
-        //        }
-        //        //}
-        //    }
-        //    return dCoefficientValue;
-        //}
+
+        /// <summary>
+        /// 
+        /// </summary>
+        /// <param name="uniqueSchemaList"></param>
+        /// <param name="patternList"></param>
+        /// <returns></returns>
+        public static Dictionary<string, double> CalculateFxByPatternDirectly(List<string> uniqueSchemaList, List<string> patternList, string classLabel)
+        {
+            var fxArray = new Dictionary<string, double>();
+            //Class 0
+            foreach (string schemaInstance in uniqueSchemaList)
+            {
+                double coeff = DFT.GetFxByWildcardCharacterCheck(schemaInstance, patternList, classLabel);
+                fxArray[schemaInstance] = coeff;
+            }
+
+            return fxArray;
+        }
+
+
+
+        /// <summary>
+        /// 
+        /// </summary>
+        /// <param name="vector"></param>
+        /// <param name="decimals"></param>
+        /// <returns></returns>
+        public static double[] ShowVectorWInput(int numInput,int numHidden,int numOutput, double[] vector, int decimals)
+        {
+            int nodeCount = 1;
+            int k = 0;
+
+            double[] inputNodeHiddenTotalArray = new double[numInput];
+
+            for (int i = 0; i < vector.Length; ++i)
+            {
+                for (int j = 0; j < numInput; ++j)
+                {
+                    Console.Write("Input-Node " + j + ": ");
+
+                    for (int m = 0; m < numHidden; ++m)
+                    {
+                        double val = vector[k++];
+                        Console.Write(val.ToString("F" + decimals) + " ");
+                        inputNodeHiddenTotalArray[j] += Math.Abs(Math.Round(val, 2));
+                    }
+                    Console.WriteLine();
+                }
+
+                for (int j = 0; j < numHidden; ++j)
+                {
+                    Console.Write("Bias Hidden-Node " + j + ": ");
+                    Console.Write(vector[k++].ToString("F" + decimals) + " ");
+                    Console.WriteLine();
+                }
+
+                for (int j = 0; j < numHidden; ++j)
+                {
+                    Console.Write("Output-Node " + j + ": ");
+                    for (int m = 0; m < numOutput; ++m)
+                    {
+                        Console.Write(vector[k++].ToString("F" + decimals) + " ");
+                    }
+                    Console.WriteLine();
+                }
+
+
+                for (int j = 0; j < numOutput; ++j)
+                {
+                    Console.Write("Bias Output-Node " + j + ": ");
+                    Console.Write(vector[k++].ToString("F" + decimals) + " ");
+                    Console.WriteLine();
+                }
+                break;
+            }
+            return inputNodeHiddenTotalArray;
+        }
+
+
+
+        /// <summary>
+        /// 
+        /// </summary>
+        /// <param name="weightsArray"></param>
+        /// <param name="rankArray"></param>
+        /// <returns></returns>
+        public static double[] UpdateWeightsArrayByRank(int numInput, int numHidden, double[] weightsArray, double[] rankArray)
+        {
+            //Set zero weights if for bottom 5 weights
+            //int NUMINPUT = 11;
+            //int NUMHIDDEN = 8;
+            int k = 0;
+
+            for (int i = 0; i < weightsArray.Length; ++i)
+            {
+                for (int j = 0; j < numInput; ++j)
+                {
+                    for (int m = 0; m < numHidden; ++m)
+                    {
+                        if (rankArray[j] > 5)
+                        {
+
+                            weightsArray[k] = 0;
+                        }
+
+                        k++;
+                    }
+
+                }
+                break;
+            }
+            return weightsArray;
+        }
+
+
+
+
+        /// <summary>
+        /// 
+        /// </summary>
+        /// <param name="table"></param>
+        /// <param name="rankArray"></param>
+        /// <returns></returns>
+        public static bool[,] SetIrrelevantVariables(int numInput, bool[,] table, double[] rankArray)
+        {
+            int k = 0;
+            for (int i = 0; i < table.GetLength(0); i++)
+            {
+                for (int j = 0; j < numInput; j++)
+                {
+                    if (rankArray[j] >= 5)
+                    {
+
+                        table[i, j] = false;
+                    }
+
+                    k++;
+                }
+            }
+
+            return table;
+        }
+
+
+
+        /// <summary>
+        /// 
+        /// </summary>
+        /// <param name="numInput"></param>
+        /// <param name="totalArray"></param>
+        /// <returns></returns>
+        public static double[] GenerateRankArray(int numInput, double[] totalArray)
+        {
+            double max = -1;
+            int rank = 1;
+
+            double[] rankArray = new double[numInput];
+
+            for (int i = 0; i < numInput; ++i)
+            {
+                rankArray[i] = 0;
+            }
+
+            for (int i = 0; i < numInput; ++i)
+            {
+                for (int j = 0; j < numInput; ++j)
+                {
+                    if ((totalArray[j] > max) && (rankArray[j] == 0))
+                    {
+                        max = totalArray[j];
+                    }
+                }
+
+                //Update the rank
+                for (int j = 0; j < numInput; ++j)
+                {
+                    if (totalArray[j] == max)
+                    {
+                        rankArray[j] = rank++;
+                    }
+                }
+                max = -1;
+            }
+
+            Console.WriteLine("Weights");
+            for (int i = 0; i < numInput; ++i)
+            {
+                Console.WriteLine(totalArray[i] + " " + rankArray[i]);
+            }
+
+            return rankArray;
+        }
+
+
+
+
+        /// <summary>
+        /// 
+        /// </summary>
+        /// <param name="redundantSchema"></param>
+        /// <returns></returns>
+        public static double[][] MakeArrayBasedSchema(int numInput, HashSet<string> redundantSchema)
+        {
+            /*
+             * Translate schema to send to the Evaluator
+             * 
+             */
+
+            double[][] array = new double[redundantSchema.Count][];
+
+            int i = 0;
+
+            foreach (string s in redundantSchema)
+            {
+                double[] wordArray = new double[numInput];
+
+                for (int j = 0; j < numInput; j++)
+                {
+                    double val = s[j].ToString() == "0" ? 0 : 1;
+                    wordArray[j] = val;
+                }
+
+                array[i] = wordArray;
+                i++;
+            }
+            return array;
+        }
+
+        /// <summary>
+        /// 
+        /// </summary>
+        /// <param name="xValues"></param>
+        /// <param name="rankArray"></param>
+        /// <param name="numInput"></param>
+        /// <returns></returns>
+        public static double[] SetXValueToZeroByRankCheck(double[] xValues, double[] rankArray, int numInput)
+        {
+            //Set zero weights if for bottom 5 weights
+            int k = 0;
+            for (int j = 0; j < numInput; ++j)
+            {
+                if (rankArray[j] > 5)
+                {
+
+                    xValues[k] = 0;
+                }
+                k++;
+            }
+            return xValues;
+        }
+
+
+
+        /// <summary>
+        /// 
+        /// </summary>
+        /// <param name="data"></param>
+        /// <param name="rankArray"></param>
+        /// <returns></returns>
+        public static HashSet<string> GetUniqueRedudantSchema(int numInput, bool isFeatureSelection, double[][] data, double[] rankArray)
+        {
+            /*
+             * Get unique schema entries
+             * https://www.dotnetperls.com/bitarray
+             * 
+             */
+
+            double[] xValues = new double[numInput]; // inputs
+                                                     //List<string> fullList = new List<string>();
+            HashSet<string> fullHashSet = new HashSet<string>();
+            List<BitArray> fullList = new List<BitArray>();
+            double[] yValues; // computed Y
+
+            for (int i = 0; i < data.Length; i++)
+            {
+                //Ideally, pass bool[] to the BitArray()
+                Array.Copy(data[i], xValues, numInput); // get x-values
+
+                //TODO: rank array comment
+                if (isFeatureSelection)
+                {
+                    xValues = SetXValueToZeroByRankCheck(xValues, rankArray, numInput);
+                }
+                //BitArray n = new BitArray(numInput);
+                string s = null;
+                for (int j = 0; j < numInput; j++)
+                {
+                    s += xValues[j].ToString();
+                }
+                fullHashSet.Add(s);
+            }
+            return fullHashSet;
+        }
+
+
+        /// <summary>
+        /// Optimisation:
+        /// If each pattern has a recurring wildcharacter in same position, the position correpsonding to the attribute can be considered a redundant feature
+        /// e.g. if the 2nd attribute is redudant, and the following patterns are derived initially
+        /// (**0,0*1,1*1), then w(*1*) = 0 but w(*1*) is not zero 
+        /// </summary>
+        /// <param name="fullPatternList"></param>
+        /// <returns> Returns redundant attributes (i.e. attributes that have a wild card character) in each pattern
+        /// </returns>
+        public static List<int> FindRedundantAttributeFromPatterns(List<string> fullPatternList)
+        {
+            string p1 = fullPatternList[0];
+            List<int> redundantIndexList = new List<int>();
+            List<int> redudantIdenxLocalList = null;
+
+            for (int i = 1; i < fullPatternList.Count(); i++)
+            {
+                string s = fullPatternList[i];
+                redudantIdenxLocalList = new List<int>();
+
+                for (int j = 0; j < s.Length; j++)
+                {
+                    if ((p1[j] == '*') && (s[j] == '*'))
+                    {
+                        redudantIdenxLocalList.Add(j + 1);
+
+                    }
+                }
+
+                if (i != 1) // the global list will be empty in the beginning
+                {
+                    redundantIndexList = redundantIndexList.Intersect(redudantIdenxLocalList).ToList();
+                }
+                else
+                {
+                    redundantIndexList = redudantIdenxLocalList;
+                }
+            }
+            return redundantIndexList;
+        }
+
+
+
+
+
+        /// <summary>
+        /// 
+        /// </summary>
+        /// <param name="col"></param>
+        /// <returns></returns>
+        public static bool[,] GenerateTruthTable(int col)
+        {
+            bool[,] table;
+            int row = (int) Math.Pow(2, col);
+
+            table = new bool[row, col];
+
+            int divider = row;
+
+            // iterate by column
+            for (int c = 0; c < col; c++)
+            {
+                divider /= 2;
+                bool cell = false;
+                // iterate every row by this column's index:
+                for (int r = 0; r < row; r++)
+                {
+                    table[r, c] = cell;
+                    if ((divider == 1) || ((r + 1) % divider == 0))
+                    {
+                        cell = !cell;
+                    }
+                }
+            }
+
+            return table;
+        }
+
+
+
+        /// <summary>
+        /// Check the each schema and return the fx value from based on the pattern it can be accomdated to
+        /// </summary>
+        /// <param name="schemaInstance"></param>
+        /// <param name="patternList"></param>
+        /// <returns></returns>
+        public static double GetFxByWildcardCharacterCheck(string schemaInstance, List<string> patternList, string classLabel)
+        {
+            double fx = -1;
+            foreach (string pattern in patternList)
+            {
+                if (pattern.Equals(schemaInstance))
+                {
+                    return double.Parse(classLabel.ToString());
+                }
+                else
+                {
+                    //it would contain wild character
+                    bool isMatch = true; //resetting for each pattern
+
+                    for (int j = 0; j < pattern.Length; j++)
+                    {
+
+                        if (pattern[j] != '*' && pattern[j] != schemaInstance[j])
+                        {
+                            isMatch = false;
+                        }
+                        else
+                        {
+                            if (pattern[j] == '*')
+                            {
+                                // can be matched
+                            }
+                            else if (pattern[j] != schemaInstance[j])
+                            {
+                                isMatch = false;
+                                return fx;
+                            }
+                            else
+                            {
+                                //pattern[j] == schemaInstance[j]
+                            }
+                        }
+                    }
+
+                    if (isMatch)
+                    {
+                        return double.Parse(classLabel.ToString());
+                    }
+                }
+            }
+            return fx;
+        }
+
+
+
+        /// <summary>
+        /// 
+        /// </summary>
+        /// <param name="yArray"></param>
+        /// <param name="yArrayOther"></param>
+        /// <returns></returns>
+        public static List<string> GetSchemaClustersWithWildcardChars(List<string> yArray, List<string> yArrayOther)
+        {
+            List<string> clusterPool = new List<string>();
+
+            //Zero Class Value
+            for (int i = 0; i < yArray.Count; i++)
+            {
+                if (i == 0)
+                {
+                    //create first cluster
+                    clusterPool.Add(yArray[i]);
+                }
+                else
+                {
+                    int clusterIt = 0;
+                    for (int cl = clusterPool.Count() - 1; cl >= 0; cl--)
+                    //for (int cl = 0; cl < clusterPool.Count(); cl++)
+                    {
+
+                        //string clusterLabel = clusterPool[cl];
+                        //foreach (string clusterLabel in clusterPool)
+                        //{
+                        //Get ClusterString
+                        string clusterLabel = clusterPool[cl];
+
+                        string s = yArray[i];
+                        string newLabel = null;
+                        for (int j = 0; j < s.Length; j++)
+                        {
+                            if (s[j] == clusterLabel[j])
+                            {
+                                newLabel += s[j].ToString();
+                            }
+                            else
+                            {
+                                newLabel += '*';
+                            }
+                        }
+
+                        clusterIt++;
+
+                        if (!string.IsNullOrEmpty(newLabel) && newLabel.Replace("*", string.Empty).Trim().Length == 0)
+                        {
+                            //Open a new cluster, if there are no suitable existing clusters
+                            // cluster selected based on sequence
+                            if (clusterIt >= clusterPool.Count())
+                            {
+                                clusterPool.Add(s);
+                                break;
+                            }
+
+                        }
+                        else
+                        {
+                            bool isCheck = IsValidClassLabel(yArrayOther, newLabel);
+                            if (isCheck)
+                            {
+                                if (clusterLabel != newLabel)
+                                {
+                                    clusterPool.Remove(clusterLabel);
+                                    clusterPool.Add(newLabel);
+                                }
+                                break;
+                            }
+                            else
+                            {
+                                if (clusterIt >= clusterPool.Count())
+                                {
+                                    clusterPool.Add(s);
+                                    break;
+                                }
+                            }
+
+                        }
+                    }
+                }
+            }
+            return clusterPool;
+        }
+
+        /// <summary>
+        /// Check??????
+        /// </summary>
+        /// <param name="zeroArrayClusterLabels"></param>
+        /// <param name="oneClusterLabel"></param>
+        /// <returns></returns>
+        private static bool IsValidClassLabel(List<string> zeroArrayClusterLabels, string oneClusterLabel)
+        {
+            foreach (string zeroClusterLabel in zeroArrayClusterLabels)
+            {
+                ////TODO: Evalute if the algorithm needs to be iterated to each clusterlabel
+                //if (!string.IsNullOrEmpty(zeroClusterLabel) && newLabel.Replace("*", string.Empty).Trim().Length == 0)
+                //{
+                //    return false;
+                //}
+
+                //Check if any wildcharacters
+                int matchCount = 0;
+
+                if (IsPure(zeroClusterLabel) && IsPure(oneClusterLabel))
+                {
+                    for (int i = 0; i < zeroClusterLabel.Length; i++)
+                    {
+                        if (zeroClusterLabel[i] == oneClusterLabel[i])
+                        {
+                            matchCount++;
+                        }
+                    }
+                }
+                else
+                {
+                    //if either is not pure
+                    for (int i = 0; i < zeroClusterLabel.Length; i++)
+                    {
+                        if (oneClusterLabel[i].ToString() == "*" || zeroClusterLabel[i].ToString() == "*")
+                        {
+                            matchCount++;
+                        }
+                        else
+                        {
+                            if (zeroClusterLabel[i] == oneClusterLabel[i])
+                            {
+                                matchCount++;
+                            }
+                        }
+                    }
+                }
+
+                if (matchCount == oneClusterLabel.Count())
+                {
+                    return false;
+                }
+            }
+
+            return true;
+        }
+
+        /// <summary>
+        /// Check if the string is a complete wildcard character string e.g. '****'
+        /// </summary>
+        /// <param name="code"></param>
+        /// <returns></returns>
+        private static bool IsPure(string code)
+        {
+            
+            int len = code.ToString().Count();
+            if (!string.IsNullOrEmpty(code) && code.Replace("*", string.Empty).Trim().Length < len)
+            {
+                return false;
+            }
+
+            return true;
+        }
+
+
+        /// <summary>
+        /// Calculate the coeffcients of DFT
+        /// </summary>
+        /// <param name="SxClusterLabel_ClassOne"></param>
+        /// <param name="sjVectorList"></param>
+        /// <returns></returns>
+        public static Dictionary<string, double> CalculateDFTCoeffs(int numInput, List<string> SxClusterLabel_ClassOne, out List<string> sjVectorList)
+        {
+            sjVectorList = new List<string>();
+            bool[,] sjVectorArray = DFT.GenerateTruthTable(numInput);
+            int arrayLength = (int) Math.Pow(2, (double) numInput);
+
+            for (int i = 0; i < arrayLength; i++)
+            {
+                bool state;
+                string sjString = string.Empty;
+                for (int j = 0; j < numInput; j++)
+                {
+                    if (sjVectorArray[i, j] == false)
+                        sjString += '0';
+                    else
+                        sjString += '1';
+                    //state = sjVectorArray[i, j];
+                }
+                sjVectorList.Add(sjString);
+            }
+
+            Dictionary<string, double> coeffArray = new Dictionary<string, double>();
+
+            foreach (string j in sjVectorList)
+            {
+                double coeff = DFT.GetCoefficientValue(j, SxClusterLabel_ClassOne);
+                coeffArray[j] = coeff;
+            }
+
+            return coeffArray;
+        }
+
+
+        /// <summary>
+        /// Calculate the Coefficient value
+        /// </summary>
+        /// <param name="j"></param>
+        /// <param name="patterns"></param>
+        /// <returns></returns>
+        private static double GetCoefficientValue(string j, List<string> patterns)
+        {
+            double denominator = Math.Pow(2, j.Length);
+            double coefficientValue = 0.0;
+            foreach (string x in patterns)
+            {
+                double dotProduct = DFT.CalculateDotProduct(j, x);
+                if (dotProduct != 0)
+                {
+                    coefficientValue = coefficientValue + (dotProduct / denominator);
+                }
+            }
+            return coefficientValue;
+        }
+
+        /// <summary>
+        /// Calculate the f(x) value i.e. Inverse of DFT
+        /// </summary>
+        /// <param name="xVector"></param>
+        /// <param name="jPatterns"></param>
+        /// <param name="coeffArray"></param>
+        /// <returns></returns>
+        private static double GetCoeffInverseDft(string xVector, List<string> jPatterns, Dictionary<string, double> coeffArray)
+        {
+            double fx = 0.0;
+            foreach (string j in jPatterns)
+            {
+                double dotProduct = DFT.CalculateDotProduct(j, xVector);
+                double coeff = coeffArray[j];
+                fx += dotProduct * coeff;
+            }
+            return fx;
+        }
+
 
 
         // All DFT models
         //************************************************************************************************************************************
         //Calculates dot product between two binary strings with wild card characters. sjVector can not have wildcard characters
-        public static int CalculateDotProduct(string sjVector, string sxVector)
+        private static int CalculateDotProduct(string sjVector, string sxVector)
         {
             if (sjVector.Length != sxVector.Length)
             {
@@ -118,6 +790,39 @@ namespace BackPropProgram
             }
             return 10000;
         }
+
+
+        //public static string getBinaryString(int number, out int numberOfOnes)
+        //{
+        //    numberOfOnes = 0;
+        //    string binaryString = "";
+        //    if (number == 0)
+        //    {
+        //        binaryString = "0";
+        //    }
+        //    while (number > 0)
+        //    {
+        //        int value = number % 2;
+        //        if (value == 1)
+        //        {
+        //            numberOfOnes++;
+        //        }
+        //        binaryString = binaryString + value.ToString();
+        //        number = number / 2;
+        //    }
+
+        //    //TODO: redefine size
+        //    while (binaryString.Length < 3)
+        //    {
+        //        binaryString = binaryString + "0";
+        //    }
+
+        //    char[] charArray = binaryString.ToArray();
+        //    Array.Reverse(charArray);
+        //    binaryString = new string(charArray);
+        //    return binaryString;
+        //}
+
 
 
     }

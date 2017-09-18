@@ -67,21 +67,6 @@ namespace BackPropProgram
             return result;
         }
 
-        public static double[] SetXValueToZeroByRankCheck(double[] xValues, double[] rankArray, int numInput)
-        {
-            //Set zero weights if for bottom 5 weights
-            int k = 0;
-            for (int j = 0; j < numInput; ++j)
-            {
-                if (rankArray[j] > 5)
-                {
-
-                    xValues[k] = 0;
-                }
-                k++;
-            }
-            return xValues;
-        }
 
         //private static double[][] MakeMatrixRandom(int rows,
         //  int cols, int seed) // helper for ctor, Train
@@ -458,7 +443,7 @@ namespace BackPropProgram
                 //TODO: rank array comment
                 if (isFeatureSelection)
                 {
-                    xValues = SetXValueToZeroByRankCheck(xValues, rankArray, numInput);
+                    xValues = DFT.SetXValueToZeroByRankCheck(xValues, rankArray, numInput);
                 }
 
 
@@ -475,7 +460,13 @@ namespace BackPropProgram
             return (numCorrect * 1.0) / (numCorrect + numWrong);
         }
 
-
+        /// <summary>
+        /// Calculates Accuracy and Sets the yOne and YZero
+        /// </summary>
+        /// <param name="data"></param>
+        /// <param name="rankArray"></param>
+        /// <param name="yZero"></param>
+        /// <param name="yOne"></param>
         public void CalculateAccuracyAndAppendYValMy(double[][] data, double[] rankArray, out List<string> yZero, out List<string> yOne)
         {
             // percentage correct using winner-takes all
@@ -505,7 +496,7 @@ namespace BackPropProgram
                 //TODO: xValues comments
                 if (isFeatureSelection)
                 {
-                    xValues = SetXValueToZeroByRankCheck(xValues, rankArray, numInput);
+                    xValues = DFT.SetXValueToZeroByRankCheck(xValues, rankArray, numInput);
                 }
 
                 yValues = this.ComputeOutputs(xValues);
@@ -560,191 +551,8 @@ namespace BackPropProgram
             }
         }
 
-        /// <summary>
-        /// Optimisation:
-        /// If each pattern has a recurring wildcharacter in same position, the position correpsonding to the attribute can be considered a redundant feature
-        /// e.g. if the 2nd attribute is redudant, and the following patterns are derived initially
-        /// (**0,0*1,1*1), then w(*1*) = 0 but w(*1*) is not zero 
-        /// </summary>
-        /// <param name="fullPatternList"></param>
-        /// <returns> Returns redundant attributes (i.e. attributes that have a wild card character) in each pattern
-        /// </returns>
-        public List<int> FindRedundantAttributeFromPatterns(List<string> fullPatternList)
-        {
-            string p1 = fullPatternList[0];
-            List<int> redundantIndexList = new List<int>();
-            List<int> redudantIdenxLocalList = null;
-
-            for (int i = 1; i < fullPatternList.Count(); i++)
-            {
-                string s = fullPatternList[i];
-                redudantIdenxLocalList = new List<int>();
-
-                for (int j = 0; j < s.Length; j++)
-                {
-                    if ((p1[j] == '*') && (s[j] == '*'))
-                    {
-                        redudantIdenxLocalList.Add(j + 1);
-
-                    }
-                }
-
-                if (i != 1) // the global list will be empty in the beginning
-                {
-                    redundantIndexList = redundantIndexList.Intersect(redudantIdenxLocalList).ToList();
-                }
-                else
-                {
-                    redundantIndexList = redudantIdenxLocalList;
-                }
-            }
-            return redundantIndexList;
-        }
 
 
-
-        public List<string> SetWildcard(List<string> yArray, List<string> yArrayOther)
-        {
-            List<string> clusterPool = new List<string>();
-
-            //Zero Class Value
-            for (int i = 0; i < yArray.Count; i++)
-            {
-                if (i == 0)
-                {
-                    //create first cluster
-                    clusterPool.Add(yArray[i]);
-                }
-                else
-                {
-                    int clusterIt = 0;
-                    for (int cl = clusterPool.Count() - 1; cl >= 0; cl--)
-                    //for (int cl = 0; cl < clusterPool.Count(); cl++)
-                    {
-
-                        //string clusterLabel = clusterPool[cl];
-                        //foreach (string clusterLabel in clusterPool)
-                        //{
-                        //Get ClusterString
-                        string clusterLabel = clusterPool[cl];
-
-                        string s = yArray[i];
-                        string newLabel = null;
-                        for (int j = 0; j < s.Length; j++)
-                        {
-                            if (s[j] == clusterLabel[j])
-                            {
-                                newLabel += s[j].ToString();
-                            }
-                            else
-                            {
-                                newLabel += '*';
-                            }
-                        }
-
-                        clusterIt++;
-
-                        if (!string.IsNullOrEmpty(newLabel) && newLabel.Replace("*", string.Empty).Trim().Length == 0)
-                        {
-                            //Open a new cluster, if there are no suitable existing clusters
-                            // cluster selected based on sequence
-                            if (clusterIt >= clusterPool.Count())
-                            {
-                                clusterPool.Add(s);
-                                break;
-                            }
-
-                        }
-                        else
-                        {
-                            bool isCheck = IsValidClassLabel(yArrayOther, newLabel);
-                            if (isCheck)
-                            {
-                                if (clusterLabel != newLabel)
-                                {
-                                    clusterPool.Remove(clusterLabel);
-                                    clusterPool.Add(newLabel);
-                                }
-                                break;
-                            }
-                            else
-                            {
-                                if (clusterIt >= clusterPool.Count())
-                                {
-                                    clusterPool.Add(s);
-                                    break;
-                                }
-                            }
-
-                        }
-                    }
-                }
-            }
-            return clusterPool;
-        }
-
-        public bool IsPure(string code)
-        {
-            int len = code.ToString().Count();
-            if (!string.IsNullOrEmpty(code) && code.Replace("*", string.Empty).Trim().Length < len)
-            {
-                return false;
-            }
-
-            return true;
-        }
-
-        public bool IsValidClassLabel(List<string> zeroArrayClusterLabels, string oneClusterLabel)
-        {
-            foreach (string zeroClusterLabel in zeroArrayClusterLabels)
-            {
-                ////TODO: Evalute if the algorithm needs to be iterated to each clusterlabel
-                //if (!string.IsNullOrEmpty(zeroClusterLabel) && newLabel.Replace("*", string.Empty).Trim().Length == 0)
-                //{
-                //    return false;
-                //}
-
-                //Check if any wildcharacters
-
-                int matchCount = 0;
-
-                if (IsPure(zeroClusterLabel) && IsPure(oneClusterLabel))
-                {
-                    for (int i = 0; i < zeroClusterLabel.Length; i++)
-                    {
-                        if (zeroClusterLabel[i] == oneClusterLabel[i])
-                        {
-                            matchCount++;
-                        }
-                    }
-                }
-                else
-                {
-                    //if either is not pure
-                    for (int i = 0; i < zeroClusterLabel.Length; i++)
-                    {
-                        if (oneClusterLabel[i].ToString() == "*" || zeroClusterLabel[i].ToString() == "*")
-                        {
-                            matchCount++;
-                        }
-                        else
-                        {
-                            if (zeroClusterLabel[i] == oneClusterLabel[i])
-                            {
-                                matchCount++;
-                            }
-                        }
-                    }
-                }
-
-                if (matchCount == oneClusterLabel.Count())
-                {
-                    return false;
-                }
-            }
-
-            return true;
-        }
 
         //public List<string> SetWildcard(List<string> yArray)
         //{
@@ -822,70 +630,8 @@ namespace BackPropProgram
             return bigIndex;
         }
 
-        //public List<BitArray> GetRedudantSchema(double[][] data, double[] rankArray)
-        public HashSet<string> GetUniqueRedudantSchemaMy(double[][] data, double[] rankArray)
-        {
-            /*
-             * Get unique schema entries
-             * https://www.dotnetperls.com/bitarray
-             * 
-             */
 
-            double[] xValues = new double[numInput]; // inputs
-                                                     //List<string> fullList = new List<string>();
-            HashSet<string> fullHashSet = new HashSet<string>();
-            List<BitArray> fullList = new List<BitArray>();
-            double[] yValues; // computed Y
-
-            for (int i = 0; i < data.Length; i++)
-            {
-                //Ideally, pass bool[] to the BitArray()
-                Array.Copy(data[i], xValues, numInput); // get x-values
-
-                //TODO: rank array comment
-                if (isFeatureSelection)
-                {
-                    xValues = SetXValueToZeroByRankCheck(xValues, rankArray, numInput);
-                }
-                //BitArray n = new BitArray(numInput);
-                string s = null;
-                for (int j = 0; j < numInput; j++)
-                {
-                    s += xValues[j].ToString();
-                }
-                fullHashSet.Add(s);
-            }
-            return fullHashSet;
-        }
-
-        public double[][] MakeArrayBasedSchemaMy(HashSet<string> redundantSchema)
-        {
-            /*
-             * Translate schema to send to the Evaluator
-             * 
-             */
-
-            double[][] array = new double[redundantSchema.Count][];
-
-            int i = 0;
-
-            foreach (string s in redundantSchema)
-            {
-                double[] wordArray = new double[numInput];
-
-                for (int j = 0; j < numInput; j++)
-                {
-                    double val = s[j].ToString() == "0" ? 0 : 1;
-                    wordArray[j] = val;
-                }
-
-                array[i] = wordArray;
-                i++;
-            }
-            return array;
-        }
-
-
+        
 
     } // NeuralNetwork
 

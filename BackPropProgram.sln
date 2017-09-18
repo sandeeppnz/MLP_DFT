@@ -5,6 +5,8 @@ VisualStudioVersion = 14.0.25420.1
 MinimumVisualStudioVersion = 10.0.40219.1
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "BackPropProgram", "BackPropProgram\BackPropProgram.csproj", "{E97D30FF-5153-4566-A379-CE372E3BA90D}"
 EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "BackPropProgram.Tests", "BackPropProgram.Tests\BackPropProgram.Tests.csproj", "{B5E9D220-B414-416F-9897-A63A8758A01E}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -15,6 +17,10 @@ Global
 		{E97D30FF-5153-4566-A379-CE372E3BA90D}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{E97D30FF-5153-4566-A379-CE372E3BA90D}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{E97D30FF-5153-4566-A379-CE372E3BA90D}.Release|Any CPU.Build.0 = Release|Any CPU
+		{B5E9D220-B414-416F-9897-A63A8758A01E}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{B5E9D220-B414-416F-9897-A63A8758A01E}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{B5E9D220-B414-416F-9897-A63A8758A01E}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{B5E9D220-B414-416F-9897-A63A8758A01E}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE

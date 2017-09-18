@@ -10,7 +10,7 @@ using System.Collections;
 
 namespace BackPropProgram
 {
-    /*
+    /*  
      * https://visualstudiomagazine.com/Articles/2015/04/01/Back-Propagation-Using-C.aspx?Page=3 
      * 
      * Dataset: 10000
@@ -18,9 +18,6 @@ namespace BackPropProgram
      * Test: 2000
      * Features: 11
      * Class: 0,1
-     * 
-     * 1) Input the file
-     * 2) 
      * 
      */
 
@@ -41,12 +38,10 @@ namespace BackPropProgram
             //int numRows = 1000;
             //int seed = 1; // gives nice demo
 
-
-
             //int numOutput = 2; // number of classes for Y
             int numRows = 45312; //10000; //// // //
             int seed = 1; // gives nice demo
-
+            float[][] fullDataset, tValueFile;
 
             //int numInput = 11; // number features
             //int numHidden = 9;
@@ -54,87 +49,19 @@ namespace BackPropProgram
             //int numRows = 10000;//10000; // //
             //int seed = 1; // gives nice demo
 
-
             int maxEpochs = 100;
             double learnRate = 0.3;
             double momentum = 0.2;
             //double learnRate = 0.3;
             //double momentum = 0.2;
 
-
-            String line = String.Empty;
-            //System.IO.StreamReader file = new System.IO.StreamReader(@"d:\Data.csv");
-
-            //System.IO.StreamReader file = new System.IO.StreamReader(@"d:\Data_withY-CS.csv");
-
-            //System.IO.StreamReader file = new System.IO.StreamReader(@"d:\irisCSV.csv");
-
-            System.IO.StreamReader file = new System.IO.StreamReader(@"d:\Data_withYEle.csv");
-
-
-            float[][] fullDataset = new float[numRows][];
-
-            float[][] tValueFile = new float[numRows][];
-
-
-            for (int i = 0; i < numRows; i++)
-                fullDataset[i] = new float[NUMINPUT + 1];
-
-            int r = 0;
-            while ((line = file.ReadLine()) != null)
-            {
-                String[] parts_of_line = line.Split(',');
-                for (int i = 0; i < parts_of_line.Length; i++)
-                {
-                    parts_of_line[i] = parts_of_line[i].Trim();
-                }
-
-                // do with the parts of the line whatever you like
-                //TODO
-                for (int i = 0; i < NUMINPUT + 1; i++)
-                {
-                    fullDataset[r][i] = float.Parse(parts_of_line[i]);
-                }
-                //tValueFile[r] = float.Parse(parts_of_line[11]);
-
-                r++;
-            }
-
-            //NEW
-            for (int i = 0; i < numRows; i++)
-                tValueFile[i] = new float[2];
-
-
-            for (int i = 0; i < numRows; i++)
-            {
-                //TODO: 
-                if (fullDataset[i][NUMINPUT] == 0)
-                {
-                    tValueFile[i][1] = 0;
-                    tValueFile[i][0] = 1;
-                }
-                else
-                {
-                    tValueFile[i][0] = 0;
-                    tValueFile[i][1] = 1;
-
-                }
-            }
-
+            FileProcessor.InputDatasetCSV(NUMINPUT, numRows, out fullDataset, out tValueFile);
 
             Console.WriteLine("\nBegin neural network back-propagation demo");
-
-
             Console.WriteLine("\nGenerating " + numRows +
               " artificial data items with " + NUMINPUT + " features");
-
-
-
             double[][] allData = MakeAllDataDataFile(NUMINPUT, NUMHIDDEN, NUMOUTPUT,
               numRows, seed, fullDataset, tValueFile);
-
-
-
             Console.WriteLine("Done");
 
             //ShowMatrix(allData, allData.Length, 2, true);
@@ -154,72 +81,67 @@ namespace BackPropProgram
 
             Console.WriteLine("Creating a " + NUMINPUT + "-" + NUMHIDDEN +
               "-" + NUMOUTPUT + " neural network");
-            NeuralNetwork nn = new NeuralNetwork(NUMINPUT, NUMHIDDEN, NUMOUTPUT, ISFEATURESELECTION);
-
-
+            NeuralNetwork neuralNetwork = new NeuralNetwork(NUMINPUT, NUMHIDDEN, NUMOUTPUT, ISFEATURESELECTION);
 
             Console.WriteLine("\nSetting maxEpochs = " + maxEpochs);
             Console.WriteLine("Setting learnRate = " + learnRate.ToString("F2"));
             Console.WriteLine("Setting momentum  = " + momentum.ToString("F2"));
-
             Console.WriteLine("\nStarting training");
 
-            List<string> yZero = new List<string>();
-            List<string> yOne = new List<string>();
-
-
             #region MLP
-            double[] weights = nn.Train(trainData, maxEpochs, learnRate, momentum);
-
-
-
+            double[] weights = neuralNetwork.Train(trainData, maxEpochs, learnRate, momentum);
             Console.WriteLine("Done");
             Console.WriteLine("\nFinal neural network model weights and biases:\n");
             ShowVector(weights, 2, 10, true);
 
-            double[] inputNodeTotalWeightsArray = ShowVectorWInputMy(weights, 2);
+            double[] inputNodeTotalWeightsArray = DFT.ShowVectorWInput(NUMINPUT, NUMHIDDEN, NUMOUTPUT, weights, 2);
 
             double[] rankArray = null;
             if (ISFEATURESELECTION)
             {
-                rankArray = GenerateRankArrayMy(inputNodeTotalWeightsArray);
-                weights = UpdateWeightsArrayByRankMy(weights, rankArray);
-                inputNodeTotalWeightsArray = ShowVectorWInputMy(weights, 2);
-                nn.SetWeights(weights);
+                rankArray = DFT.GenerateRankArray(NUMINPUT, inputNodeTotalWeightsArray);
+                weights = DFT.UpdateWeightsArrayByRank(NUMINPUT, NUMHIDDEN, weights, rankArray);
+                inputNodeTotalWeightsArray = DFT.ShowVectorWInput(NUMINPUT, NUMHIDDEN, NUMOUTPUT, weights, 2);
+                neuralNetwork.SetWeights(weights);
             }
 
-            double trainAcc = nn.Accuracy(trainData, rankArray);
+            double trainAcc = neuralNetwork.Accuracy(trainData, rankArray);
             Console.WriteLine("\nFinal accuracy on training data = " + trainAcc.ToString("F4"));
 
-            bool[,] inputTable = GenerateTruthTableMy(NUMINPUT);
+            bool[,] inputTable = DFT.GenerateTruthTable(NUMINPUT);
             bool[] answer1 = new bool[inputTable.GetLength(0)];
 
             if (ISFEATURESELECTION)
             {
-                inputTable = SetIrrelevantVariablesMy(inputTable, rankArray);
+                inputTable = DFT.SetIrrelevantVariables(NUMINPUT, inputTable, rankArray);
             }
 
-            double testAcc = nn.Accuracy(testData, rankArray);
+            double testAcc = neuralNetwork.Accuracy(testData, rankArray);
             Console.WriteLine("Final accuracy on test data     = " + testAcc.ToString("F4"));
-
-            var redundantSchema = nn.GetUniqueRedudantSchemaMy(trainData, rankArray); //unique combinations
-            var convertedArray = nn.MakeArrayBasedSchemaMy(redundantSchema);
-
-
-            nn.CalculateAccuracyAndAppendYValMy(trainData, rankArray, out yZero, out yOne);
 
             #endregion
 
 
+            #region Main DFT processing begins
+            var redundantSchema = DFT.GetUniqueRedudantSchema(NUMINPUT, ISFEATURESELECTION, trainData, rankArray); //unique combinations
+            var convertedArray = DFT.MakeArrayBasedSchema(NUMINPUT, redundantSchema);
+
+            List<string> allSchemaSxClass0 = null;
+            List<string> allSchemaSxClass1 = null;
+            neuralNetwork.CalculateAccuracyAndAppendYValMy(trainData, rankArray, out allSchemaSxClass0, out allSchemaSxClass1);
+            #endregion
+
+
+
             //1*1
-            //yZero = new List<string>()
+            //allSchemaSxClass0 = new List<string>()
             //{
             //    "001",
             //    "011",
             //};
 
             //**0, 1*1
-            //yOne = new List<string>()
+            //allSchemaSxClass1 = new List<string>()
             //{
             //    "000",
             //    "010",
@@ -231,13 +153,13 @@ namespace BackPropProgram
 
 
             ////001
-            //yZero = new List<string>()
+            //allSchemaSxClass0 = new List<string>()
             //{
             //    "001",
             //};
 
             ////011, **0, 1 * 1
-            //yOne = new List<string>()
+            //allSchemaSxClass1 = new List<string>()
             //{
             //    "101",
             //    "111",
@@ -248,132 +170,65 @@ namespace BackPropProgram
             //    "011"
             //};
 
-            ////sample
-            //0*1
-            yZero = new List<string>()
-            {
-                "001",
-                "011",
-            };
+            //////sample
+            ////0*1
+            //allSchemaSxClass0 = new List<string>()
+            //{
+            //    "001",
+            //    "011",
+            //};
 
-            //**0, 1 * 1
-            yOne = new List<string>()
-            {
-                "000",
-                "100",
-                "110",
-                "010",
+            ////**0, 1 * 1
+            //allSchemaSxClass1 = new List<string>()
+            //{
+            //    "000",
+            //    "100",
+            //    "110",
+            //    "010",
 
-                "101",
-                "111",
-            };
+            //    "101",
+            //    "111",
+            //};
 
 
 
-            var SxClusterLabel_ClassZero = nn.SetWildcard(yZero, yOne);
-            var SxClusterLabel_ClassOne = nn.SetWildcard(yOne, yZero);
+            var clusteredSchemaSxClass0 = DFT.GetSchemaClustersWithWildcardChars(allSchemaSxClass0, allSchemaSxClass1);
+            var clusteredSchemaSxClass1 = DFT.GetSchemaClustersWithWildcardChars(allSchemaSxClass1, allSchemaSxClass0);
 
-            //SxClusterLabel_ClassOne = new List<string> {
+            //clusteredSchemaSxClass1 = new List<string> {
             //    "*1*",
             //    "1**",
             //    "**0",
             //    "**0",
             //};
-            //SxClusterLabel_ClassOne = new List<string> {
+            //clusteredSchemaSxClass1 = new List<string> {
             //    "*10",
             //    "**1",
             //    "1*1",
             //};
 
-            var patternVerfication_fx_classZero = new Dictionary<string, double>();
-            var patternVerfication_fx_classOne = new Dictionary<string, double>();
-            //Class 0
-            foreach (string schemaInstance in yZero)
-            {
-                double coeff = get_fx_ByWildCardPattern(schemaInstance, SxClusterLabel_ClassZero, "0");
-                patternVerfication_fx_classZero[schemaInstance] = coeff;
-            }
-            //Class 1
-            foreach (string schemaInstance in yOne)
-            {
-                double coeff = get_fx_ByWildCardPattern(schemaInstance, SxClusterLabel_ClassOne, "1");
-                patternVerfication_fx_classOne[schemaInstance] = coeff;
-            }
+            #region Calculate f(x) directly by looking at the pattern
+            var fxShortcutClass0 = DFT.CalculateFxByPatternDirectly(allSchemaSxClass0, clusteredSchemaSxClass0, "0");
+            var fxShortcutClass1 = DFT.CalculateFxByPatternDirectly(allSchemaSxClass1, clusteredSchemaSxClass1, "1");
+            #endregion
 
+            #region Find redundant attributes from patterns
+            var redundantAttibuteIndexList = DFT.FindRedundantAttributeFromPatterns(clusteredSchemaSxClass1);
+            #endregion
 
-
-
-
-            var redundantAttibuteIndexList = nn.FindRedundantAttributeFromPatterns(SxClusterLabel_ClassOne);
-
-
-
-
-            //TODO: change to common input
-            int NUMINPUT_Temp = 3; 
-            bool[,] sjVectorArray = GenerateTruthTableMy(NUMINPUT_Temp);
-            List<string> sjVectorList = new List<string>();
-            int arrayLength = (int) Math.Pow(2, (double) NUMINPUT_Temp);
-
-            for (int i = 0; i < arrayLength; i++)
-            {
-                bool state;
-                string sjString = string.Empty;
-                for (int j = 0; j < NUMINPUT_Temp; j++)
-                {
-                    if (sjVectorArray[i, j] == false)
-                        sjString += '0';
-                    else
-                        sjString += '1';
-                    //state = sjVectorArray[i, j];
-                }
-                sjVectorList.Add(sjString);
-            }
-
-            Dictionary<string, double> coeffArray = new Dictionary<string, double>();
-
-            foreach (string j in sjVectorList)
-            {
-                double coeff = getCoefficientValue(j, SxClusterLabel_ClassOne);
-                coeffArray[j] = coeff;
-            }
-
-
-
-
-
-
-            // Calculate Inverse DFT for each sXVectvor
-            // Input: CoffArray, AllSjVectors,  AllSxVectors in the patterns
-            // Output: f(x)  
-            var invDFT_fx_classZero = new Dictionary<string, double>();
-            var invDFT_fx_classOne = new Dictionary<string, double>();
-
-            //Class 0
-            foreach (string x in yZero)
-            {
-                double coeff = get_fx_ByInvDFT(x, sjVectorList, coeffArray);
-                invDFT_fx_classZero[x] = coeff;
-            }
-
-
-            //Class 1
-            foreach (string x in yOne)
-            {
-                double coeff = get_fx_ByInvDFT(x, sjVectorList, coeffArray);
-                invDFT_fx_classOne[x] = coeff;
-            }
-
-
+            #region Calculate DFT coeffs
+            List<string> sjVectors = null;
+            var coeffsDFT = DFT.CalculateDFTCoeffs(NUMINPUT, clusteredSchemaSxClass1, out sjVectors);
+            #endregion
+            
+            #region Calculate f(x) by Inveser DFT 
+            var fxClass0ByInvDFT = DFT.GetFxByInverseDFT(allSchemaSxClass0, sjVectors, coeffsDFT);
+            var fxClass1ByInvDFT = DFT.GetFxByInverseDFT(allSchemaSxClass1, sjVectors, coeffsDFT);
+            #endregion
 
             #region write to csv
-            //WriteToCSV(NUMINPUT, yZero, "0", invDFT_fx_classZero, patternVerfication_fx_classZero);
-            //WriteToCSV(NUMINPUT, yOne, "1", invDFT_fx_classOne, patternVerfication_fx_classOne);
-
-            //TODO: change to common input
-            WriteToCSV(3, yZero, "0", invDFT_fx_classZero, patternVerfication_fx_classZero);
-            WriteToCSV(3, yOne, "1", invDFT_fx_classOne, patternVerfication_fx_classOne);
-
+            FileProcessor.WriteOutputToCsv(NUMINPUT, allSchemaSxClass0, "0", fxClass0ByInvDFT, fxShortcutClass0, true);
+            FileProcessor.WriteOutputToCsv(NUMINPUT, allSchemaSxClass1, "1", fxClass1ByInvDFT, fxShortcutClass1, false);
             #endregion
 
 
@@ -383,148 +238,17 @@ namespace BackPropProgram
             Console.ReadLine();
         }
 
-        private static void WriteToCSV(int numCols, List<string> instanceArray, string classFromMLP, 
-            Dictionary<string, double> invDFT_fx, Dictionary<string, double> patternVerfication_fx)
-        {
-            StreamWriter sw = new StreamWriter(@"D:\MLP.csv", true);
-
-            foreach (var s in instanceArray)
-            {
-                sw.Write(s.ToString());
-                sw.Write(",");
-                sw.Write(classFromMLP);
-                sw.Write(",");
-                sw.Write(",");
-                for (int j = 0; j < numCols; j++)
-                {
-
-                    sw.Write(s[j].ToString());
-                    sw.Write(",");
-                }
-                sw.Write(classFromMLP);
-                sw.Write(",");
-                sw.Write(",");
-
-                double fx = invDFT_fx[s];
-                sw.Write(fx);
-                sw.Write(",");
-                sw.Write(",");
-
-                fx = patternVerfication_fx[s];
-                sw.Write(fx);
-
-
-
-                sw.Write("\r\n");
-            }
 
 
 
 
-            //for (int i = 0; i < NUMINPUT; i++)
-            //{
-            //        sw.Write(i.ToString());
-            //        sw.Write(",");
-            //}
-            //sw.Write(",");
-
-
-            sw.Flush();
-            sw.Close();
-        }
-
-        public static double get_fx_ByInvDFT(string xVector, List<string> jPatterns, Dictionary<string, double> coeffArray)
-        {
-            double fx = 0.0;
-
-            foreach (string j in jPatterns)
-            {
-                double dotProduct = DFT.CalculateDotProduct(j, xVector);
-                double coeff = coeffArray[j];
-                fx += dotProduct * coeff;
-            }
-
-
-            return fx;
-
-        }
-
-        /// <summary>
-        /// Check the each schema and return the fx value from based on the pattern it can be accomdated to
-        /// </summary>
-        /// <param name="schemaInstance"></param>
-        /// <param name="patternList"></param>
-        /// <returns></returns>
-        public static double get_fx_ByWildCardPattern(string schemaInstance, List<string> patternList, string classLabel)
-        {
-            double fx = -1;
-            foreach (string pattern in patternList)
-            {
-                if (pattern.Equals(schemaInstance))
-                {
-                    return double.Parse(classLabel.ToString());
-                }
-                else
-                {
-                    //it would contain wild character
-                    bool isMatch = true; //resetting for each pattern
-
-                    for (int j = 0; j < pattern.Length; j++)
-                    {
-
-                        if (pattern[j] != '*' && pattern[j] != schemaInstance[j])
-                        {
-                            isMatch = false;
-                        }
-                        else
-                        {
-                            if (pattern[j] == '*')
-                            {
-                                // can be matched
-                            }
-                            else if (pattern[j] != schemaInstance[j])
-                            {
-                                isMatch = false;
-                                return fx;
-                            }
-                            else
-                            {
-                                //pattern[j] == schemaInstance[j]
-                            }
-                        }
-                    }
-
-                    if (isMatch)
-                    {
-                        return double.Parse(classLabel.ToString());
-                    }
-                }
-            }
-            return fx;
-
-        }
 
 
 
 
-        public static double getCoefficientValue(string j, List<string> patterns)
-        {
-            double denominator = Math.Pow(2, j.Length);
-            double coefficientValue = 0.0;
-
-            foreach (string x in patterns)
-            {
-                double dotProduct = DFT.CalculateDotProduct(j, x);
-                if (dotProduct != 0)
-                {
-                    coefficientValue = coefficientValue + (dotProduct / denominator);
-                }
-            }
 
 
-            return coefficientValue;
 
-        }
 
         #region commented
         //private static DataTable GetDataTabletFromCSVFile(string csv_file_path)
@@ -631,156 +355,6 @@ namespace BackPropProgram
         //} // MakeAllData
         #endregion
 
-        //public static string getBinaryString(int number, out int numberOfOnes)
-        //{
-        //    numberOfOnes = 0;
-        //    string binaryString = "";
-        //    if (number == 0)
-        //    {
-        //        binaryString = "0";
-        //    }
-        //    while (number > 0)
-        //    {
-        //        int value = number % 2;
-        //        if (value == 1)
-        //        {
-        //            numberOfOnes++;
-        //        }
-        //        binaryString = binaryString + value.ToString();
-        //        number = number / 2;
-        //    }
-
-        //    //TODO: redefine size
-        //    while (binaryString.Length < 3)
-        //    {
-        //        binaryString = binaryString + "0";
-        //    }
-
-        //    char[] charArray = binaryString.ToArray();
-        //    Array.Reverse(charArray);
-        //    binaryString = new string(charArray);
-        //    return binaryString;
-        //}
-
-
-
-        //private static void SortForClusters(List<string> list)
-        //{
-        //    /*
-        //     * Sort according to the fx val, then the string
-        //     * Clustering algorithm 
-        //     * 
-        //     */
-
-        //    var ascendingOrder = list.OrderBy(i => i);
-
-
-
-        //}
-
-
-
-        private static bool[,] GenerateTruthTableMy(int col)
-        {
-            bool[,] table;
-            int row = (int) Math.Pow(2, col);
-
-            table = new bool[row, col];
-
-            int divider = row;
-
-            // iterate by column
-            for (int c = 0; c < col; c++)
-            {
-                divider /= 2;
-                bool cell = false;
-                // iterate every row by this column's index:
-                for (int r = 0; r < row; r++)
-                {
-                    table[r, c] = cell;
-                    if ((divider == 1) || ((r + 1) % divider == 0))
-                    {
-                        cell = !cell;
-                    }
-                }
-            }
-
-            return table;
-        }
-
-        public static bool[,] SetIrrelevantVariablesMy(bool[,] table, double[] rankArray)
-        {
-            int k = 0;
-            for (int i = 0; i < table.GetLength(0); i++)
-            {
-                for (int j = 0; j < NUMINPUT; j++)
-                {
-                    if (rankArray[j] >= 5)
-                    {
-
-                        table[i, j] = false;
-                    }
-
-                    k++;
-                }
-            }
-
-            return table;
-        }
-
-
-        //public static double[][] GenerateSchemaMap()
-        //{
-        //    int maxRowSize = (int) Math.Pow(NUMINPUT, 2);
-
-        //    double[][] schema = new double[maxRowSize][];
-        //    for (int r = 0; r < schema.Length; ++r)
-        //        schema[r] = new double[NUMINPUT];
-
-        //    //for (int i = 0; i < NUMINPUT; i++)
-        //    //{
-        //    //    for (int j = 0; j < NUMINPUT; j++)
-        //    //    {
-        //    //        schema[i][j] = 0;
-        //    //    }
-        //    //}
-
-        //    //for (int a = 0; a < 2; a++)
-        //    //{
-        //    //    for (int b = 0; b < 2; b++)
-        //    //    {
-
-        //    //        for (int c = 0; c < 2; c++)
-        //    //        {
-
-        //    //            for (int d = 0; d < 2; d++)
-        //    //            {
-        //    //                for (int e = 0; e < 2; e++)
-        //    //                {
-        //    //                    for (int f = 0; f < 2;f++)
-        //    //                    {
-        //    //                        for (int g = 0; g < 2; g++)
-        //    //                        {
-        //    //                            //schema[]
-        //    //                        }
-
-        //    //                    }
-
-        //    //                }
-
-        //    //            }
-
-        //    //        }
-        //    //    }
-        //    //}
-
-
-        //    return schema;
-
-
-
-        //}
-
         public static void ShowMatrix(double[][] matrix, int numRows,
               int decimals, bool indices)
         {
@@ -832,86 +406,6 @@ namespace BackPropProgram
 
 
         #region Mods
-
-
-
-        public static double[] GenerateRankArrayMy(double[] totalArray)
-        {
-            double max = -1;
-            int rank = 1;
-
-            double[] rankArray = new double[NUMINPUT];
-
-            for (int i = 0; i < NUMINPUT; ++i)
-            {
-                rankArray[i] = 0;
-            }
-
-            for (int i = 0; i < NUMINPUT; ++i)
-            {
-                for (int j = 0; j < NUMINPUT; ++j)
-                {
-                    if ((totalArray[j] > max) && (rankArray[j] == 0))
-                    {
-                        max = totalArray[j];
-                    }
-                }
-
-                //Update the rank
-                for (int j = 0; j < NUMINPUT; ++j)
-                {
-                    if (totalArray[j] == max)
-                    {
-                        rankArray[j] = rank++;
-                    }
-                }
-                max = -1;
-            }
-
-
-            Console.WriteLine("Weights");
-            for (int i = 0; i < NUMINPUT; ++i)
-            {
-                Console.WriteLine(totalArray[i] + " " + rankArray[i]);
-            }
-
-
-            return rankArray;
-        }
-
-        public static double[] UpdateWeightsArrayByRankMy(double[] weightsArray, double[] rankArray)
-        {
-            //Set zero weights if for bottom 5 weights
-            //int NUMINPUT = 11;
-            //int NUMHIDDEN = 8;
-            int k = 0;
-
-            for (int i = 0; i < weightsArray.Length; ++i)
-            {
-                for (int j = 0; j < NUMINPUT; ++j)
-                {
-                    for (int m = 0; m < NUMHIDDEN; ++m)
-                    {
-                        if (rankArray[j] > 5)
-                        {
-
-                            weightsArray[k] = 0;
-                        }
-
-                        k++;
-                    }
-
-                }
-
-
-                break;
-
-            }
-
-            return weightsArray;
-        }
-
-
 
 
 
@@ -995,60 +489,6 @@ namespace BackPropProgram
         //    return null;
         //}
 
-
-
-
-
-        public static double[] ShowVectorWInputMy(double[] vector, int decimals)
-        {
-            int nodeCount = 1;
-            int k = 0;
-
-            double[] inputNodeHiddenTotalArray = new double[NUMINPUT];
-
-            for (int i = 0; i < vector.Length; ++i)
-            {
-                for (int j = 0; j < NUMINPUT; ++j)
-                {
-                    Console.Write("Input-Node " + j + ": ");
-
-                    for (int m = 0; m < NUMHIDDEN; ++m)
-                    {
-                        double val = vector[k++];
-                        Console.Write(val.ToString("F" + decimals) + " ");
-                        inputNodeHiddenTotalArray[j] += Math.Abs(Math.Round(val, 2));
-                    }
-                    Console.WriteLine();
-                }
-
-                for (int j = 0; j < NUMHIDDEN; ++j)
-                {
-                    Console.Write("Bias Hidden-Node " + j + ": ");
-                    Console.Write(vector[k++].ToString("F" + decimals) + " ");
-                    Console.WriteLine();
-                }
-
-                for (int j = 0; j < NUMHIDDEN; ++j)
-                {
-                    Console.Write("Output-Node " + j + ": ");
-                    for (int m = 0; m < NUMOUTPUT; ++m)
-                    {
-                        Console.Write(vector[k++].ToString("F" + decimals) + " ");
-                    }
-                    Console.WriteLine();
-                }
-
-
-                for (int j = 0; j < NUMOUTPUT; ++j)
-                {
-                    Console.Write("Bias Output-Node " + j + ": ");
-                    Console.Write(vector[k++].ToString("F" + decimals) + " ");
-                    Console.WriteLine();
-                }
-                break;
-            }
-            return inputNodeHiddenTotalArray;
-        }
 
         #endregion
 
@@ -1187,8 +627,6 @@ namespace BackPropProgram
             } // each row
             return result;
         } // MakeAllData
-
-
 
 
         static void SplitTrainTest(double[][] allData, double trainPct,
