@@ -13,3 +13,5 @@ d:\ANN_Project_AUT_Sem3\Microsoft\BackPropProgram\BackPropProgram.Tests\bin\Debu
 d:\ANN_Project_AUT_Sem3\Microsoft\BackPropProgram\BackPropProgram.Tests\obj\Debug\BackPropProgram.Tests.csprojResolveAssemblyReference.cache
 d:\ANN_Project_AUT_Sem3\Microsoft\BackPropProgram\BackPropProgram.Tests\obj\Debug\BackPropProgram.Tests.dll
 d:\ANN_Project_AUT_Sem3\Microsoft\BackPropProgram\BackPropProgram.Tests\obj\Debug\BackPropProgram.Tests.pdb
+d:\ANN_Project_AUT_Sem3\Microsoft\BackPropProgram\BackPropProgram.Tests\bin\Debug\BackPropProgram.exe
+d:\ANN_Project_AUT_Sem3\Microsoft\BackPropProgram\BackPropProgram.Tests\bin\Debug\BackPropProgram.pdb

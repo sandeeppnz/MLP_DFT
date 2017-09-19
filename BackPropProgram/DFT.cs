@@ -9,6 +9,8 @@ namespace BackPropProgram
 {
     public class DFT
     {
+
+
         /// <summary>
         // Calculate Inverse DFT for each sXVectvor
         // Input: CoffArray, AllSjVectors,  AllSxVectors in the patterns
@@ -18,18 +20,16 @@ namespace BackPropProgram
         /// <param name="sjVectors"></param>
         /// <param name="coeffsDFT"></param>
         /// <returns></returns>
-        public static Dictionary<string, double> GetFxByInverseDFT(List<string> allSchemaSxClass0, List<string> sjVectors, Dictionary<string, double> coeffsDFT)
+        public static Dictionary<string, double> GetFxByInverseDFT(List<string> allSchemaSxClass0, List<string> sjVectors, Dictionary<string, double> coeffDft)
         {
             var fxs = new Dictionary<string, double>();
             foreach (string x in allSchemaSxClass0)
             {
-                double coeff = DFT.GetCoeffInverseDft(x, sjVectors, coeffsDFT);
+                double coeff = DFT.GetCoeffInverseDft(x, sjVectors, coeffDft);
                 fxs[x] = coeff;
             }
-
             return fxs;
         }
-
 
 
         /// <summary>
@@ -41,16 +41,13 @@ namespace BackPropProgram
         public static Dictionary<string, double> CalculateFxByPatternDirectly(List<string> uniqueSchemaList, List<string> patternList, string classLabel)
         {
             var fxArray = new Dictionary<string, double>();
-            //Class 0
             foreach (string schemaInstance in uniqueSchemaList)
             {
                 double coeff = DFT.GetFxByWildcardCharacterCheck(schemaInstance, patternList, classLabel);
                 fxArray[schemaInstance] = coeff;
             }
-
             return fxArray;
         }
-
 
 
         /// <summary>
@@ -120,11 +117,7 @@ namespace BackPropProgram
         /// <returns></returns>
         public static double[] UpdateWeightsArrayByRank(int numInput, int numHidden, double[] weightsArray, double[] rankArray)
         {
-            //Set zero weights if for bottom 5 weights
-            //int NUMINPUT = 11;
-            //int NUMHIDDEN = 8;
             int k = 0;
-
             for (int i = 0; i < weightsArray.Length; ++i)
             {
                 for (int j = 0; j < numInput; ++j)
@@ -259,6 +252,7 @@ namespace BackPropProgram
             }
             return array;
         }
+
 
         /// <summary>
         /// 
@@ -424,7 +418,7 @@ namespace BackPropProgram
                 }
                 else
                 {
-                    //it would contain wild character
+                    //it would contain wildcard character
                     bool isMatch = true; //resetting for each pattern
 
                     for (int j = 0; j < pattern.Length; j++)
@@ -466,20 +460,20 @@ namespace BackPropProgram
         /// <summary>
         /// 
         /// </summary>
-        /// <param name="yArray"></param>
-        /// <param name="yArrayOther"></param>
+        /// <param name="instanceSchemas"></param>
+        /// <param name="otherInstanceSchemas"></param>
         /// <returns></returns>
-        public static List<string> GetSchemaClustersWithWildcardChars(List<string> yArray, List<string> yArrayOther)
+        public static List<string> GetSchemaClustersWithWildcardChars(List<string> instanceSchemas, List<string> otherInstanceSchemas)
         {
-            List<string> clusterPool = new List<string>();
+            var clusterPool = new List<string>();
 
             //Zero Class Value
-            for (int i = 0; i < yArray.Count; i++)
+            for (int i = 0; i < instanceSchemas.Count; i++)
             {
                 if (i == 0)
                 {
                     //create first cluster
-                    clusterPool.Add(yArray[i]);
+                    clusterPool.Add(instanceSchemas[i]);
                 }
                 else
                 {
@@ -494,7 +488,7 @@ namespace BackPropProgram
                         //Get ClusterString
                         string clusterLabel = clusterPool[cl];
 
-                        string s = yArray[i];
+                        string s = instanceSchemas[i];
                         string newLabel = null;
                         for (int j = 0; j < s.Length; j++)
                         {
@@ -523,7 +517,7 @@ namespace BackPropProgram
                         }
                         else
                         {
-                            bool isCheck = IsValidClassLabel(yArrayOther, newLabel);
+                            bool isCheck = IsValidClassLabel(otherInstanceSchemas, newLabel);
                             if (isCheck)
                             {
                                 if (clusterLabel != newLabel)
@@ -548,6 +542,8 @@ namespace BackPropProgram
             }
             return clusterPool;
         }
+
+
 
         /// <summary>
         /// Check??????
@@ -646,7 +642,6 @@ namespace BackPropProgram
                         sjString += '0';
                     else
                         sjString += '1';
-                    //state = sjVectorArray[i, j];
                 }
                 sjVectorList.Add(sjString);
             }
@@ -708,6 +703,12 @@ namespace BackPropProgram
         // All DFT models
         //************************************************************************************************************************************
         //Calculates dot product between two binary strings with wild card characters. sjVector can not have wildcard characters
+        /// <summary>
+        /// 
+        /// </summary>
+        /// <param name="sjVector"></param>
+        /// <param name="sxVector"></param>
+        /// <returns></returns>
         private static int CalculateDotProduct(string sjVector, string sxVector)
         {
             if (sjVector.Length != sxVector.Length)

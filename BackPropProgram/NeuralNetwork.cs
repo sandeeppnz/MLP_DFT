@@ -552,68 +552,6 @@ namespace BackPropProgram
         }
 
 
-
-
-        //public List<string> SetWildcard(List<string> yArray)
-        //{
-        //    List<string> clusterPool = new List<string>();
-
-        //    //Zero Class Value
-        //    for (int i = 0; i < yArray.Count; i++)
-        //    {
-        //        if (i == 0)
-        //        {
-        //            //create first cluster
-        //            clusterPool.Add(yArray[i]);
-        //        }
-        //        else
-        //        {
-        //            //Get ClusterString
-        //            string clusterLabel = clusterPool[0];
-
-        //            string s = yArray[i];
-        //            string newLabel = null;
-        //            for (int j = 0; j < s.Length; j++)
-        //            {
-        //                if (s[j] == clusterLabel[j])
-        //                {
-        //                    newLabel += s[j].ToString();
-        //                }
-        //                else
-        //                {
-        //                    newLabel += '*';
-        //                }
-        //            }
-
-
-        //            if (!string.IsNullOrEmpty(newLabel) && newLabel.Replace("*", string.Empty).Trim().Length == 0)
-        //            {
-        //                //Open a new cluster
-        //                clusterPool.Add(s);
-        //            }
-        //            else
-        //            {
-
-        //                if (clusterLabel != newLabel)
-        //                {
-        //                    clusterPool.Remove(clusterLabel);
-        //                    clusterPool.Add(newLabel);
-        //                }
-
-        //            }
-
-        //        }
-
-
-        //    }
-
-        //    return clusterPool;
-
-
-
-        //}
-
-
         private static int MaxIndex(double[] vector) // helper for Accuracy()
         {
             // index of largest value

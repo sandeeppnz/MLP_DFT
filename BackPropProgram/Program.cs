@@ -12,13 +12,11 @@ namespace BackPropProgram
 {
     /*  
      * https://visualstudiomagazine.com/Articles/2015/04/01/Back-Propagation-Using-C.aspx?Page=3 
-     * 
      * Dataset: 10000
      * Train: 8000
      * Test: 2000
      * Features: 11
      * Class: 0,1
-     * 
      */
 
 
@@ -94,8 +92,10 @@ namespace BackPropProgram
             Console.WriteLine("\nFinal neural network model weights and biases:\n");
             ShowVector(weights, 2, 10, true);
 
+            //TODO: not used
             double[] inputNodeTotalWeightsArray = DFT.ShowVectorWInput(NUMINPUT, NUMHIDDEN, NUMOUTPUT, weights, 2);
 
+            //TODO: not used
             double[] rankArray = null;
             if (ISFEATURESELECTION)
             {
@@ -108,9 +108,11 @@ namespace BackPropProgram
             double trainAcc = neuralNetwork.Accuracy(trainData, rankArray);
             Console.WriteLine("\nFinal accuracy on training data = " + trainAcc.ToString("F4"));
 
+            //TODO: not used
             bool[,] inputTable = DFT.GenerateTruthTable(NUMINPUT);
             bool[] answer1 = new bool[inputTable.GetLength(0)];
 
+            //TODO: not used
             if (ISFEATURESELECTION)
             {
                 inputTable = DFT.SetIrrelevantVariables(NUMINPUT, inputTable, rankArray);
@@ -132,80 +134,15 @@ namespace BackPropProgram
             #endregion
 
 
-
-            //1*1
-            //allSchemaSxClass0 = new List<string>()
-            //{
-            //    "001",
-            //    "011",
-            //};
-
-            //**0, 1*1
-            //allSchemaSxClass1 = new List<string>()
-            //{
-            //    "000",
-            //    "010",
-            //    "100",
-            //    "110",
-            //    "101",
-            //    "111",
-            //};
+            int numInputs_temp = NUMINPUT;
+            //int numInputs_temp = 3;
 
 
-            ////001
-            //allSchemaSxClass0 = new List<string>()
-            //{
-            //    "001",
-            //};
-
-            ////011, **0, 1 * 1
-            //allSchemaSxClass1 = new List<string>()
-            //{
-            //    "101",
-            //    "111",
-            //    "000",
-            //    "110",
-            //    "010",
-            //    "100",
-            //    "011"
-            //};
-
-            //////sample
-            ////0*1
-            //allSchemaSxClass0 = new List<string>()
-            //{
-            //    "001",
-            //    "011",
-            //};
-
-            ////**0, 1 * 1
-            //allSchemaSxClass1 = new List<string>()
-            //{
-            //    "000",
-            //    "100",
-            //    "110",
-            //    "010",
-
-            //    "101",
-            //    "111",
-            //};
-
-
+            //Implemented Test cases
 
             var clusteredSchemaSxClass0 = DFT.GetSchemaClustersWithWildcardChars(allSchemaSxClass0, allSchemaSxClass1);
             var clusteredSchemaSxClass1 = DFT.GetSchemaClustersWithWildcardChars(allSchemaSxClass1, allSchemaSxClass0);
 
-            //clusteredSchemaSxClass1 = new List<string> {
-            //    "*1*",
-            //    "1**",
-            //    "**0",
-            //    "**0",
-            //};
-            //clusteredSchemaSxClass1 = new List<string> {
-            //    "*10",
-            //    "**1",
-            //    "1*1",
-            //};
 
             #region Calculate f(x) directly by looking at the pattern
             var fxShortcutClass0 = DFT.CalculateFxByPatternDirectly(allSchemaSxClass0, clusteredSchemaSxClass0, "0");
@@ -213,25 +150,30 @@ namespace BackPropProgram
             #endregion
 
             #region Find redundant attributes from patterns
+            //TODO: not used
+            //Implemented Test cases
             var redundantAttibuteIndexList = DFT.FindRedundantAttributeFromPatterns(clusteredSchemaSxClass1);
             #endregion
 
             #region Calculate DFT coeffs
             List<string> sjVectors = null;
-            var coeffsDFT = DFT.CalculateDFTCoeffs(NUMINPUT, clusteredSchemaSxClass1, out sjVectors);
+            //Implemented Test cases
+            var coeffsDFT = DFT.CalculateDFTCoeffs(numInputs_temp, clusteredSchemaSxClass1, out sjVectors);
             #endregion
             
-            #region Calculate f(x) by Inveser DFT 
+            #region Calculate f(x) by Inverse DFT 
+
             var fxClass0ByInvDFT = DFT.GetFxByInverseDFT(allSchemaSxClass0, sjVectors, coeffsDFT);
             var fxClass1ByInvDFT = DFT.GetFxByInverseDFT(allSchemaSxClass1, sjVectors, coeffsDFT);
             #endregion
 
+
+            Console.ReadLine();
+
             #region write to csv
-            FileProcessor.WriteOutputToCsv(NUMINPUT, allSchemaSxClass0, "0", fxClass0ByInvDFT, fxShortcutClass0, true);
-            FileProcessor.WriteOutputToCsv(NUMINPUT, allSchemaSxClass1, "1", fxClass1ByInvDFT, fxShortcutClass1, false);
+            FileProcessor.WriteOutputToCsv(numInputs_temp, allSchemaSxClass0, "0", fxClass0ByInvDFT, fxShortcutClass0, true);
+            FileProcessor.WriteOutputToCsv(numInputs_temp, allSchemaSxClass1, "1", fxClass1ByInvDFT, fxShortcutClass1, false);
             #endregion
-
-
 
 
             Console.WriteLine("\nEnd back-propagation demo\n");
