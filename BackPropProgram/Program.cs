@@ -124,6 +124,8 @@ namespace BackPropProgram
             #endregion
 
 
+
+
             #region Main DFT processing begins
             var redundantSchema = DFT.GetUniqueRedudantSchema(NUMINPUT, ISFEATURESELECTION, trainData, rankArray); //unique combinations
             var convertedArray = DFT.MakeArrayBasedSchema(NUMINPUT, redundantSchema);
@@ -136,10 +138,6 @@ namespace BackPropProgram
 
             int numInputs_temp = NUMINPUT;
             //int numInputs_temp = 3;
-
-
-            //Implemented Test cases
-
             var clusteredSchemaSxClass0 = DFT.GetSchemaClustersWithWildcardChars(allSchemaSxClass0, allSchemaSxClass1);
             var clusteredSchemaSxClass1 = DFT.GetSchemaClustersWithWildcardChars(allSchemaSxClass1, allSchemaSxClass0);
 
@@ -151,29 +149,33 @@ namespace BackPropProgram
 
             #region Find redundant attributes from patterns
             //TODO: not used
-            //Implemented Test cases
             var redundantAttibuteIndexList = DFT.FindRedundantAttributeFromPatterns(clusteredSchemaSxClass1);
             #endregion
 
             #region Calculate DFT coeffs
             List<string> sjVectors = null;
-            //Implemented Test cases
             var coeffsDFT = DFT.CalculateDFTCoeffs(numInputs_temp, clusteredSchemaSxClass1, out sjVectors);
             #endregion
-            
-            #region Calculate f(x) by Inverse DFT 
 
+            #region Calculate f(x) by Inverse DFT 
             var fxClass0ByInvDFT = DFT.GetFxByInverseDFT(allSchemaSxClass0, sjVectors, coeffsDFT);
             var fxClass1ByInvDFT = DFT.GetFxByInverseDFT(allSchemaSxClass1, sjVectors, coeffsDFT);
             #endregion
 
+            //FileProcessor.WriteCoeffArraToCsv(coeffsDFT);
+            //FileProcessor.WritesXVectorsToCsv(allSchemaSxClass1);
+            //FileProcessor.WriteCoeffArraToCsv(coeffsDFT);
+
 
             Console.ReadLine();
 
+            
             #region write to csv
             FileProcessor.WriteOutputToCsv(numInputs_temp, allSchemaSxClass0, "0", fxClass0ByInvDFT, fxShortcutClass0, true);
             FileProcessor.WriteOutputToCsv(numInputs_temp, allSchemaSxClass1, "1", fxClass1ByInvDFT, fxShortcutClass1, false);
             #endregion
+
+
 
 
             Console.WriteLine("\nEnd back-propagation demo\n");

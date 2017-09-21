@@ -116,6 +116,39 @@ namespace BackPropProgram
             sw.Close();
         }
 
+        public static void WriteCoeffArraToCsv(Dictionary<string, double> coeffs)
+        {
+            var sw = new StreamWriter(@"D:\DftCoeffs.csv", true);
+
+            sw.Write('"');
+            foreach (var s in coeffs)
+            {
+                sw.Write(s.Key.ToString());
+                sw.Write(':');
+                sw.Write(s.Value.ToString());
+                sw.Write(',');
+                sw.Write("\r\n");
+            }
+            sw.Flush();
+            sw.Close();
+        }
+
+        public static void WritesXVectorsToCsv(List<string> array)
+        {
+            var sw = new StreamWriter(@"D:\sxVectors1.csv", true);
+
+            sw.Write('"');
+            foreach (var s in array)
+            {
+                sw.Write(s.ToString());
+                sw.Write(',');
+            }
+            sw.Write('"');
+            sw.Flush();
+            sw.Close();
+        }
+
+
 
     }
 }

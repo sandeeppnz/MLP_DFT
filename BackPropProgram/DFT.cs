@@ -9,8 +9,6 @@ namespace BackPropProgram
 {
     public class DFT
     {
-
-
         /// <summary>
         // Calculate Inverse DFT for each sXVectvor
         // Input: CoffArray, AllSjVectors,  AllSxVectors in the patterns
@@ -33,7 +31,6 @@ namespace BackPropProgram
 
 
         /// <summary>
-        /// 
         /// </summary>
         /// <param name="uniqueSchemaList"></param>
         /// <param name="patternList"></param>
@@ -51,12 +48,11 @@ namespace BackPropProgram
 
 
         /// <summary>
-        /// 
         /// </summary>
         /// <param name="vector"></param>
         /// <param name="decimals"></param>
         /// <returns></returns>
-        public static double[] ShowVectorWInput(int numInput,int numHidden,int numOutput, double[] vector, int decimals)
+        public static double[] ShowVectorWInput(int numInput, int numHidden, int numOutput, double[] vector, int decimals)
         {
             int nodeCount = 1;
             int k = 0;
@@ -110,7 +106,6 @@ namespace BackPropProgram
 
 
         /// <summary>
-        /// 
         /// </summary>
         /// <param name="weightsArray"></param>
         /// <param name="rankArray"></param>
@@ -143,7 +138,6 @@ namespace BackPropProgram
 
 
         /// <summary>
-        /// 
         /// </summary>
         /// <param name="table"></param>
         /// <param name="rankArray"></param>
@@ -171,7 +165,6 @@ namespace BackPropProgram
 
 
         /// <summary>
-        /// 
         /// </summary>
         /// <param name="numInput"></param>
         /// <param name="totalArray"></param>
@@ -367,7 +360,7 @@ namespace BackPropProgram
 
 
         /// <summary>
-        /// 
+        /// GenerateTruthTable
         /// </summary>
         /// <param name="col"></param>
         /// <returns></returns>
@@ -454,6 +447,68 @@ namespace BackPropProgram
             }
             return fx;
         }
+
+
+        ///// <summary>
+        ///// SkipCalculatingDftCofficient
+        ///// </summary>
+        ///// <param name="redundantAttributes"></param>
+        ///// <returns></returns>
+        //public static List<string> GetRedudantInstanceSchemas(int bitStringLength, List<int> positions)
+        //{
+        //    var tblMatrix = GenerateTruthTable(bitStringLength);
+        //    var table = DeriveSjVectors(bitStringLength, tblMatrix);
+        //    var redundantInstances = new List<string>();
+
+        //    string emptyString = string.Empty;
+        //    string selectionString = emptyString.PadLeft(bitStringLength, '0');
+
+
+        //    foreach (int position in positions)
+        //    {
+        //        StringBuilder sb = new StringBuilder(selectionString);
+        //        sb[position] = '1';
+        //        selectionString = sb.ToString();
+        //    }
+
+
+        //    foreach (string s in table)
+        //    {
+
+
+        //        if(s == selectionString)
+        //        redundantInstances.Add(s);
+
+        //    }
+
+
+        //    return redundantInstances;
+        //}
+
+
+        /// <summary>
+        /// GetRedudantInstanceSchemas
+        /// </summary>
+        /// <param name="redundantAttributes"></param>
+        /// <returns></returns>
+        public static List<string> GetRedudantInstanceSchemas(int bitStringLength, int position)
+        {
+            var tblMatrix = GenerateTruthTable(bitStringLength);
+            var table = DeriveSjVectors(bitStringLength, tblMatrix);
+            var redundantInstances = new List<string>();
+
+            foreach (var s in table)
+            {
+                if (s[position] == '1')
+                {
+                    redundantInstances.Add(s);
+                }
+            }
+
+            return redundantInstances;
+        }
+
+
 
 
 
@@ -609,7 +664,7 @@ namespace BackPropProgram
         /// <returns></returns>
         private static bool IsPure(string code)
         {
-            
+
             int len = code.ToString().Count();
             if (!string.IsNullOrEmpty(code) && code.Replace("*", string.Empty).Trim().Length < len)
             {
@@ -628,13 +683,36 @@ namespace BackPropProgram
         /// <returns></returns>
         public static Dictionary<string, double> CalculateDFTCoeffs(int numInput, List<string> SxClusterLabel_ClassOne, out List<string> sjVectorList)
         {
-            sjVectorList = new List<string>();
             bool[,] sjVectorArray = DFT.GenerateTruthTable(numInput);
-            int arrayLength = (int) Math.Pow(2, (double) numInput);
 
+            sjVectorList = DeriveSjVectors(numInput, sjVectorArray);
+
+            Dictionary<string, double> coeffArray = new Dictionary<string, double>();
+
+            List<int> redundantIndices = FindRedundantAttributeFromPatterns(sjVectorList);
+            redundantIndices.Sort();
+
+            foreach (string j in sjVectorList)
+            {
+                double coeff = DFT.GetCoefficientValue(j, SxClusterLabel_ClassOne);
+                coeffArray[j] = coeff;
+            }
+
+            return coeffArray;
+        }
+
+        /// <summary>
+        /// 
+        /// </summary>
+        /// <param name="numInput"></param>
+        /// <param name="sjVectorArray"></param>
+        /// <returns></returns>
+        public static List<string> DeriveSjVectors(int numInput, bool[,] sjVectorArray)
+        {
+            int arrayLength = (int) Math.Pow(2, (double) numInput);
+            List<string> sjVectorList = new List<string>();
             for (int i = 0; i < arrayLength; i++)
             {
-                bool state;
                 string sjString = string.Empty;
                 for (int j = 0; j < numInput; j++)
                 {
@@ -646,15 +724,7 @@ namespace BackPropProgram
                 sjVectorList.Add(sjString);
             }
 
-            Dictionary<string, double> coeffArray = new Dictionary<string, double>();
-
-            foreach (string j in sjVectorList)
-            {
-                double coeff = DFT.GetCoefficientValue(j, SxClusterLabel_ClassOne);
-                coeffArray[j] = coeff;
-            }
-
-            return coeffArray;
+            return sjVectorList;
         }
 
 
@@ -686,7 +756,7 @@ namespace BackPropProgram
         /// <param name="jPatterns"></param>
         /// <param name="coeffArray"></param>
         /// <returns></returns>
-        private static double GetCoeffInverseDft(string xVector, List<string> jPatterns, Dictionary<string, double> coeffArray)
+        public static double GetCoeffInverseDft(string xVector, List<string> jPatterns, Dictionary<string, double> coeffArray)
         {
             double fx = 0.0;
             foreach (string j in jPatterns)
@@ -790,6 +860,35 @@ namespace BackPropProgram
                 }
             }
             return 10000;
+        }
+
+
+
+        /// <summary>
+        /// GetRedudantInstanceSchemas
+        /// </summary>
+        /// <param name="redundantAttributes"></param>
+        /// <returns></returns>
+        public static List<string> CalculateEnergyThresholding(int bitStringLength, int order)
+        {
+            var tblMatrix = GenerateTruthTable(bitStringLength);
+            var table = DeriveSjVectors(bitStringLength, tblMatrix);
+            var list = new List<string>();
+
+            if (order == 1)
+            {
+                list.Add(table[0]);
+            }
+
+            foreach (var entry in table)
+            {
+                if (entry.Replace("0", string.Empty).Length == order)
+                {
+                    list.Add(entry);
+                }
+            }
+
+            return list;
         }
 
 
