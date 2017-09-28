@@ -361,7 +361,7 @@ namespace BackPropProgram.Tests
             //List<int> positions = new List<int>() { 1, 2 };
 
             //act
-            var actual = DFT.CalculateEnergyThresholding(3, 3);
+            var actual = DFT.CalculateEnergyThresholding(4, 2);
             var expected = new List<string>() { "010", "011", "110", "111" };
 
             //assert
