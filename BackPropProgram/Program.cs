@@ -24,7 +24,7 @@ namespace BackPropProgram
 
     class Program
     {
-        const int NUMINPUT = 7;//11 // number features
+        const int NUMINPUT = 11;//7;//11 // number features
         const int NUMHIDDEN = 8;
         const int NUMOUTPUT = 2; // number of classes for Y
         const bool ISFEATURESELECTION = false;
@@ -38,7 +38,7 @@ namespace BackPropProgram
             //int seed = 1; // gives nice demo
 
             //int numOutput = 2; // number of classes for Y
-            int numRows = 45312; //10000; //// // //
+            int numRows = 10000; //45312; //10000; //// // //
             int seed = 1; // gives nice demo
             float[][] fullDataset, tValueFile;
 
@@ -54,155 +54,161 @@ namespace BackPropProgram
             //double learnRate = 0.3;
             //double momentum = 0.2;
 
-            //FileProcessor.InputDatasetCSV(NUMINPUT, numRows, out fullDataset, out tValueFile);
-
-            //Console.WriteLine("\nBegin neural network back-propagation demo");
-            //Console.WriteLine("\nGenerating " + numRows +
-            //  " artificial data items with " + NUMINPUT + " features");
-            //double[][] allData = MakeAllDataDataFile(NUMINPUT, NUMHIDDEN, NUMOUTPUT,
-            //  numRows, seed, fullDataset, tValueFile);
-            //Console.WriteLine("Done");
-
-            ////ShowMatrix(allData, allData.Length, 2, true);
-
-            //Console.WriteLine("\nCreating train (80%) and test (20%) matrices");
-            //double[][] trainData;
-            //double[][] testData;
-
-            //SplitTrainTest(allData, 0.8, seed, out trainData, out testData);
-            //Console.WriteLine("Done\n");
-
-            //Console.WriteLine("Training data:");
-            //ShowMatrix(trainData, 4, 2, true);
-
-            //Console.WriteLine("Test data:");
-            //ShowMatrix(testData, 4, 2, true);
-
-            //Console.WriteLine("Creating a " + NUMINPUT + "-" + NUMHIDDEN +
-            //  "-" + NUMOUTPUT + " neural network");
-            //NeuralNetwork neuralNetwork = new NeuralNetwork(NUMINPUT, NUMHIDDEN, NUMOUTPUT, ISFEATURESELECTION);
-
-            //Console.WriteLine("\nSetting maxEpochs = " + maxEpochs);
-            //Console.WriteLine("Setting learnRate = " + learnRate.ToString("F2"));
-            //Console.WriteLine("Setting momentum  = " + momentum.ToString("F2"));
-            //Console.WriteLine("\nStarting training");
-
-            //#region MLP
-            //double[] weights = neuralNetwork.Train(trainData, maxEpochs, learnRate, momentum);
-            //Console.WriteLine("Done");
-            //Console.WriteLine("\nFinal neural network model weights and biases:\n");
-            //ShowVector(weights, 2, 10, true);
-
-            ////TODO: not used
-            //double[] inputNodeTotalWeightsArray = DFT.ShowVectorWInput(NUMINPUT, NUMHIDDEN, NUMOUTPUT, weights, 2);
-
-            ////TODO: not used
-            //double[] rankArray = null;
-            //if (ISFEATURESELECTION)
-            //{
-            //    rankArray = DFT.GenerateRankArray(NUMINPUT, inputNodeTotalWeightsArray);
-            //    weights = DFT.UpdateWeightsArrayByRank(NUMINPUT, NUMHIDDEN, weights, rankArray);
-            //    inputNodeTotalWeightsArray = DFT.ShowVectorWInput(NUMINPUT, NUMHIDDEN, NUMOUTPUT, weights, 2);
-            //    neuralNetwork.SetWeights(weights);
-            //}
-
-            //double trainAcc = neuralNetwork.Accuracy(trainData, rankArray);
-            //Console.WriteLine("\nFinal accuracy on training data = " + trainAcc.ToString("F4"));
-
-            ////TODO: not used
-            //bool[,] inputTable = DFT.GenerateTruthTable(NUMINPUT);
-            //bool[] answer1 = new bool[inputTable.GetLength(0)];
-
-            ////TODO: not used
-            //if (ISFEATURESELECTION)
-            //{
-            //    inputTable = DFT.SetIrrelevantVariables(NUMINPUT, inputTable, rankArray);
-            //}
-
-            //double testAcc = neuralNetwork.Accuracy(testData, rankArray);
-            //Console.WriteLine("Final accuracy on test data     = " + testAcc.ToString("F4"));
-
-            //#endregion
-
-
-
-
-            //#region Main DFT processing begins
-            //var redundantSchema = DFT.GetUniqueRedudantSchema(NUMINPUT, ISFEATURESELECTION, trainData, rankArray); //unique combinations
-            //var convertedArray = DFT.MakeArrayBasedSchema(NUMINPUT, redundantSchema);
-
-            //List<string> allSchemaSxClass0 = null;
-            //List<string> allSchemaSxClass1 = null;
-            //neuralNetwork.CalculateAccuracyAndAppendYValMy(trainData, rankArray, out allSchemaSxClass0, out allSchemaSxClass1);
-            //#endregion
-
-
-            //int numInputs_temp = NUMINPUT;
-            ////int numInputs_temp = 3;
-            //var clusteredSchemaSxClass0 = DFT.GetSchemaClustersWithWildcardChars(allSchemaSxClass0, allSchemaSxClass1);
-            //var clusteredSchemaSxClass1 = DFT.GetSchemaClustersWithWildcardChars(allSchemaSxClass1, allSchemaSxClass0);
-
-
-            //#region Calculate f(x) directly by looking at the pattern
-            //var fxShortcutClass0 = DFT.CalculateFxByPatternDirectly(allSchemaSxClass0, clusteredSchemaSxClass0, "0");
-            //var fxShortcutClass1 = DFT.CalculateFxByPatternDirectly(allSchemaSxClass1, clusteredSchemaSxClass1, "1");
-            //#endregion
-
-            //#region Find redundant attributes from patterns
-            ////TODO: not used
-            //var redundantAttibuteIndexList = DFT.FindRedundantAttributeFromPatterns(clusteredSchemaSxClass1);
-            //#endregion
-
-            //#region Calculate DFT coeffs
-            //List<string> sjVectors = null;
-            //var coeffsDFT = DFT.CalculateDFTCoeffs(numInputs_temp, clusteredSchemaSxClass1, out sjVectors);
-            //#endregion
-
-            //#region Calculate f(x) by Inverse DFT 
-            //var fxClass0ByInvDFT = DFT.GetFxByInverseDFT(allSchemaSxClass0, sjVectors, coeffsDFT);
-            //var fxClass1ByInvDFT = DFT.GetFxByInverseDFT(allSchemaSxClass1, sjVectors, coeffsDFT);
-            //#endregion
-
-            ////FileProcessor.WriteCoeffArraToCsv(coeffsDFT);
-            ////FileProcessor.WritesXVectorsToCsv(allSchemaSxClass1);
-            ////FileProcessor.WriteCoeffArraToCsv(coeffsDFT);
-
-
-            ////Console.ReadLine();
-
-
-
-            //#region write to csv
-            //FileProcessor.WriteOutputToCsv(numInputs_temp, allSchemaSxClass0, "0", fxClass0ByInvDFT, fxShortcutClass0, true);
-            //FileProcessor.WriteOutputToCsv(numInputs_temp, allSchemaSxClass1, "1", fxClass1ByInvDFT, fxShortcutClass1, false);
-            //#endregion
-
 
             #region sample test R
             //string path = @"D:\ANN_Project_AUT_Sem3\Microsoft\BackPropProgram\HotellingR";
             //var result = RScript.RunFromCmd(path + @"\rcodeTest.r", @"C:\Program Files\R\R-3.4.1\bin\rscript.exe", "3");
             #endregion
 
-
-            string path = @"D:\ANN_Project_AUT_Sem3\Microsoft\BackPropProgram\HotellingR";
-            var result = RScript.RunFromCmd(path + @"\hotellingttest3.r", @"C:\Program Files\R\R-3.4.1\bin\rscript.exe", "3");
-
-            var res2 = result.Substring(result.IndexOf(']') + 1);
-            var res3 = res2.Substring(res2.IndexOf(']') + 1);
-            var res = Regex.Split(res3, @"[^0-9\.]+");
-
-
-            decimal p_val = 0;
-            foreach (string s in res)
+            double p_val = 0;
+            double partition = 0;
+            string inputFilePathAndName = @"d:/ann_project_aut_sem3/microsoft/backpropprogram/hotellingr/Data_withY.csv";
+            //string inputFilePathAndName = @"d:/ann_project_aut_sem3/microsoft/backpropprogram/hotellingr/Data_withYEle.csv";
+            while (p_val <= 0.05)
             {
-                if (!string.IsNullOrEmpty(s))
+                partition += 0.1;
+                string path = @"D:\ANN_Project_AUT_Sem3\Microsoft\BackPropProgram\HotellingR";
+                var result = RScript.RunFromCmd(path + @"\hotellingttest3.r", @"C:\Program Files\R\R-3.4.1\bin\rscript.exe", partition.ToString(), inputFilePathAndName);
+
+                var res2 = result.Substring(result.IndexOf(']') + 1);
+                var res3 = res2.Substring(res2.IndexOf(']') + 1);
+                var res = Regex.Split(res3, @"[^0-9\.]+");
+
+
+                foreach (string s in res)
                 {
-                    p_val = decimal.Parse(s);
-                    break;
+                    if (!string.IsNullOrEmpty(s))
+                    {
+                        p_val = double.Parse(s);
+                        break;
+                    }
                 }
             }
 
-            //var resFinal = res.Split(new string[] { ";" }, StringSplitOptions.RemoveEmptyEntries);
+            FileProcessor.InputDatasetCSV(NUMINPUT, numRows, out fullDataset, out tValueFile, inputFilePathAndName);
+
+            Console.WriteLine("\nBegin neural network back-propagation demo");
+            Console.WriteLine("\nGenerating " + numRows +
+              " artificial data items with " + NUMINPUT + " features");
+            double[][] allData = MakeAllDataDataFile(NUMINPUT, NUMHIDDEN, NUMOUTPUT,
+              numRows, seed, fullDataset, tValueFile);
+            Console.WriteLine("Done");
+
+            //ShowMatrix(allData, allData.Length, 2, true);
+
+            Console.WriteLine("\nCreating train (80%) and test (20%) matrices");
+            double[][] trainData;
+            double[][] testData;
+
+            SplitTrainTest(allData, partition, seed, out trainData, out testData);
+            Console.WriteLine("Done\n");
+
+            Console.WriteLine("Training data:");
+            ShowMatrix(trainData, 4, 2, true);
+
+            Console.WriteLine("Test data:");
+            ShowMatrix(testData, 4, 2, true);
+
+            Console.WriteLine("Creating a " + NUMINPUT + "-" + NUMHIDDEN +
+              "-" + NUMOUTPUT + " neural network");
+            NeuralNetwork neuralNetwork = new NeuralNetwork(NUMINPUT, NUMHIDDEN, NUMOUTPUT, ISFEATURESELECTION);
+
+            Console.WriteLine("\nSetting maxEpochs = " + maxEpochs);
+            Console.WriteLine("Setting learnRate = " + learnRate.ToString("F2"));
+            Console.WriteLine("Setting momentum  = " + momentum.ToString("F2"));
+            Console.WriteLine("\nStarting training");
+
+            #region MLP
+            double[] weights = neuralNetwork.Train(trainData, maxEpochs, learnRate, momentum);
+            Console.WriteLine("Done");
+            Console.WriteLine("\nFinal neural network model weights and biases:\n");
+            ShowVector(weights, 2, 10, true);
+
+            //TODO: not used
+            double[] inputNodeTotalWeightsArray = DFT.ShowVectorWInput(NUMINPUT, NUMHIDDEN, NUMOUTPUT, weights, 2);
+
+            //TODO: not used
+            double[] rankArray = null;
+            if (ISFEATURESELECTION)
+            {
+                rankArray = DFT.GenerateRankArray(NUMINPUT, inputNodeTotalWeightsArray);
+                weights = DFT.UpdateWeightsArrayByRank(NUMINPUT, NUMHIDDEN, weights, rankArray);
+                inputNodeTotalWeightsArray = DFT.ShowVectorWInput(NUMINPUT, NUMHIDDEN, NUMOUTPUT, weights, 2);
+                neuralNetwork.SetWeights(weights);
+            }
+
+            double trainAcc = neuralNetwork.Accuracy(trainData, rankArray);
+            Console.WriteLine("\nFinal accuracy on training data = " + trainAcc.ToString("F4"));
+
+            //TODO: not used
+            bool[,] inputTable = DFT.GenerateTruthTable(NUMINPUT);
+            bool[] answer1 = new bool[inputTable.GetLength(0)];
+
+            //TODO: not used
+            if (ISFEATURESELECTION)
+            {
+                inputTable = DFT.SetIrrelevantVariables(NUMINPUT, inputTable, rankArray);
+            }
+
+            double testAcc = neuralNetwork.Accuracy(testData, rankArray);
+            Console.WriteLine("Final accuracy on test data     = " + testAcc.ToString("F4"));
+
+            #endregion
+
+
+
+
+            #region Main DFT processing begins
+            var redundantSchema = DFT.GetUniqueRedudantSchema(NUMINPUT, ISFEATURESELECTION, trainData, rankArray); //unique combinations
+            var convertedArray = DFT.MakeArrayBasedSchema(NUMINPUT, redundantSchema);
+
+            List<string> allSchemaSxClass0 = null;
+            List<string> allSchemaSxClass1 = null;
+            neuralNetwork.CalculateAccuracyAndAppendYValMy(trainData, rankArray, out allSchemaSxClass0, out allSchemaSxClass1);
+            #endregion
+
+
+            int numInputs_temp = NUMINPUT;
+            //int numInputs_temp = 3;
+            var clusteredSchemaSxClass0 = DFT.GetSchemaClustersWithWildcardChars(allSchemaSxClass0, allSchemaSxClass1);
+            var clusteredSchemaSxClass1 = DFT.GetSchemaClustersWithWildcardChars(allSchemaSxClass1, allSchemaSxClass0);
+
+
+            #region Calculate f(x) directly by looking at the pattern
+            var fxShortcutClass0 = DFT.CalculateFxByPatternDirectly(allSchemaSxClass0, clusteredSchemaSxClass0, "0");
+            var fxShortcutClass1 = DFT.CalculateFxByPatternDirectly(allSchemaSxClass1, clusteredSchemaSxClass1, "1");
+            #endregion
+
+            #region Find redundant attributes from patterns
+            //TODO: not used
+            var redundantAttibuteIndexList = DFT.FindRedundantAttributeFromPatterns(clusteredSchemaSxClass1);
+            #endregion
+
+            #region Calculate DFT coeffs
+            List<string> sjVectors = null;
+            var coeffsDFT = DFT.CalculateDFTCoeffs(numInputs_temp, clusteredSchemaSxClass1, out sjVectors);
+            #endregion
+
+            #region Calculate f(x) by Inverse DFT 
+            var fxClass0ByInvDFT = DFT.GetFxByInverseDFT(allSchemaSxClass0, sjVectors, coeffsDFT);
+            var fxClass1ByInvDFT = DFT.GetFxByInverseDFT(allSchemaSxClass1, sjVectors, coeffsDFT);
+            #endregion
+
+            //FileProcessor.WriteCoeffArraToCsv(coeffsDFT);
+            //FileProcessor.WritesXVectorsToCsv(allSchemaSxClass1);
+            //FileProcessor.WriteCoeffArraToCsv(coeffsDFT);
+
+
+            //Console.ReadLine();
+
+
+
+            #region write to csv
+            FileProcessor.WriteOutputToCsv(numInputs_temp, allSchemaSxClass0, "0", fxClass0ByInvDFT, fxShortcutClass0, true);
+            FileProcessor.WriteOutputToCsv(numInputs_temp, allSchemaSxClass1, "1", fxClass1ByInvDFT, fxShortcutClass1, false);
+            #endregion
+
+
 
 
 

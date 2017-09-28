@@ -36,7 +36,7 @@ namespace BackPropProgram
         //}
 
 
-        public static string RunFromCmd(string rCodeFilePath, string rScriptExecutablePath, string args)
+        public static string RunFromCmd(string rCodeFilePath, string rScriptExecutablePath, string args, string filePathAndName)
         {
             string file = rCodeFilePath;
             string result = string.Empty;
@@ -47,7 +47,7 @@ namespace BackPropProgram
                 var info = new ProcessStartInfo();
                 info.FileName = rScriptExecutablePath;
                 info.WorkingDirectory = Path.GetDirectoryName(rScriptExecutablePath);
-                info.Arguments = rCodeFilePath + " " + args;
+                info.Arguments = rCodeFilePath + " " + args + " " + filePathAndName;
 
                 info.RedirectStandardInput = false;
                 info.RedirectStandardOutput = true;

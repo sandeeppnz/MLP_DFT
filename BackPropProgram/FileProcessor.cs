@@ -10,13 +10,13 @@ namespace BackPropProgram
     public class FileProcessor
     {
 
-        public static void InputDatasetCSV(int numInputs, int numRows, out float[][] fullDataset, out float[][] tValueFile)
+        public static void InputDatasetCSV(int numInputs, int numRows, out float[][] fullDataset, out float[][] tValueFile, string inputFilePathName)
         {
             String line = String.Empty;
             //System.IO.StreamReader file = new System.IO.StreamReader(@"d:\Data.csv");
             //System.IO.StreamReader file = new System.IO.StreamReader(@"d:\Data_withY-CS.csv");
             //System.IO.StreamReader file = new System.IO.StreamReader(@"d:\irisCSV.csv");
-            System.IO.StreamReader file = new System.IO.StreamReader(@"d:\Data_withYEle.csv");
+            System.IO.StreamReader file = new System.IO.StreamReader(inputFilePathName);
             fullDataset = new float[numRows][];
             tValueFile = new float[numRows][];
             for (int i = 0; i < numRows; i++)
