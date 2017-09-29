@@ -506,7 +506,7 @@ namespace BackPropProgram
                 string s = string.Empty;
                 for (int j = 0; j < numInput; j++)
                 {
-                    s += xValues[j].ToString();
+                    s += xValues[j].ToString(); //TODO: for continuous variables this would raise errors
                 }
 
                 if (binaryResult == 0)

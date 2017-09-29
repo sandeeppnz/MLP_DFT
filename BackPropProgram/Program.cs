@@ -24,7 +24,7 @@ namespace BackPropProgram
 
     class Program
     {
-        const int NUMINPUT = 11;//7;//11 // number features
+        const int NUMINPUT = 7; //11; // number features
         const int NUMHIDDEN = 8;
         const int NUMOUTPUT = 2; // number of classes for Y
         const bool ISFEATURESELECTION = false;
@@ -38,7 +38,7 @@ namespace BackPropProgram
             //int seed = 1; // gives nice demo
 
             //int numOutput = 2; // number of classes for Y
-            int numRows = 10000; //45312; //10000; //// // //
+            int numRows = 45312; //10000;
             int seed = 1; // gives nice demo
             float[][] fullDataset, tValueFile;
 
@@ -62,8 +62,8 @@ namespace BackPropProgram
 
             double p_val = 0;
             double partition = 0;
-            string inputFilePathAndName = @"d:/ann_project_aut_sem3/microsoft/backpropprogram/hotellingr/Data_withY.csv";
-            //string inputFilePathAndName = @"d:/ann_project_aut_sem3/microsoft/backpropprogram/hotellingr/Data_withYEle.csv";
+            //string inputFilePathAndName = @"d:/ann_project_aut_sem3/microsoft/backpropprogram/hotellingr/Data_withY.csv";
+            string inputFilePathAndName = @"d:/ann_project_aut_sem3/microsoft/backpropprogram/hotellingr/Data_withYEle.csv";
             while (p_val <= 0.05)
             {
                 partition += 0.1;
