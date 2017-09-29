@@ -1,0 +1,2 @@
+D:\ANN_Project_AUT_Sem3\Microsoft\BackPropProgram\BackPropProgram\obj\Debug\ConsoleApp.csprojResolveAssemblyReference.cache
+D:\ANN_Project_AUT_Sem3\Microsoft\BackPropProgram\BackPropProgram\obj\Debug\ConsoleApp.csproj.CoreCompileInputs.cache

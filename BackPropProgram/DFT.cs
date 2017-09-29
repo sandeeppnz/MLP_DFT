@@ -367,7 +367,7 @@ namespace BackPropProgram
         public static bool[,] GenerateTruthTable(int col)
         {
             bool[,] table;
-            int row = (int) Math.Pow(2, col);
+            int row = (int)Math.Pow(2, col);
 
             table = new bool[row, col];
 
@@ -709,7 +709,7 @@ namespace BackPropProgram
         /// <returns></returns>
         public static List<string> DeriveSjVectors(int numInput, bool[,] sjVectorArray)
         {
-            int arrayLength = (int) Math.Pow(2, (double) numInput);
+            int arrayLength = (int)Math.Pow(2, (double)numInput);
             List<string> sjVectorList = new List<string>();
             for (int i = 0; i < arrayLength; i++)
             {
@@ -834,17 +834,17 @@ namespace BackPropProgram
             {
                 if (i0WildcardCount == sjVector.Length) //all are 0 * combinations
                 {
-                    return (int) Math.Pow(2, i0WildcardCount);
+                    return (int)Math.Pow(2, i0WildcardCount);
                 }
                 else if (i0WildcardCount < sjVector.Length)
                 {
                     if (i11Count % 2 == 0) //there exists some 1 1 combinations
                     {
-                        return (int) Math.Pow(2, i0WildcardCount);
+                        return (int)Math.Pow(2, i0WildcardCount);
                     }
                     else
                     {
-                        return -(int) Math.Pow(2, i0WildcardCount);
+                        return -(int)Math.Pow(2, i0WildcardCount);
                     }
                 }
             }

@@ -1,0 +1,9 @@
+D:\ResearchProject2017\MLP_DFT\MLP_DFT\bin\Debug\MLP_DFT.exe.config
+D:\ResearchProject2017\MLP_DFT\MLP_DFT\bin\Debug\MLP_DFT.exe
+D:\ResearchProject2017\MLP_DFT\MLP_DFT\bin\Debug\MLP_DFT.pdb
+D:\ResearchProject2017\MLP_DFT\MLP_DFT\obj\Debug\MLP_DFT.csprojResolveAssemblyReference.cache
+D:\ResearchProject2017\MLP_DFT\MLP_DFT\obj\Debug\MLP_DFT.Properties.Resources.resources
+D:\ResearchProject2017\MLP_DFT\MLP_DFT\obj\Debug\MLP_DFT.csproj.GenerateResource.Cache
+D:\ResearchProject2017\MLP_DFT\MLP_DFT\obj\Debug\MLP_DFT.csproj.CoreCompileInputs.cache
+D:\ResearchProject2017\MLP_DFT\MLP_DFT\obj\Debug\MLP_DFT.exe
+D:\ResearchProject2017\MLP_DFT\MLP_DFT\obj\Debug\MLP_DFT.pdb

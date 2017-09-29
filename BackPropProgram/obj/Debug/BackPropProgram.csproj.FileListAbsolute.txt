@@ -1,7 +1,11 @@
-d:\ANN_Project_AUT_Sem3\Microsoft\BackPropProgram\BackPropProgram\bin\Debug\BackPropProgram.exe.config
-d:\ANN_Project_AUT_Sem3\Microsoft\BackPropProgram\BackPropProgram\bin\Debug\BackPropProgram.exe
-d:\ANN_Project_AUT_Sem3\Microsoft\BackPropProgram\BackPropProgram\bin\Debug\BackPropProgram.pdb
-d:\ANN_Project_AUT_Sem3\Microsoft\BackPropProgram\BackPropProgram\obj\Debug\BackPropProgram.csprojResolveAssemblyReference.cache
-d:\ANN_Project_AUT_Sem3\Microsoft\BackPropProgram\BackPropProgram\obj\Debug\BackPropProgram.exe
-d:\ANN_Project_AUT_Sem3\Microsoft\BackPropProgram\BackPropProgram\obj\Debug\BackPropProgram.pdb
+D:\ANN_Project_AUT_Sem3\Microsoft\BackPropProgram\BackPropProgram\obj\Debug\BackPropProgram.csprojResolveAssemblyReference.cache
 D:\ANN_Project_AUT_Sem3\Microsoft\BackPropProgram\BackPropProgram\obj\Debug\BackPropProgram.csproj.CoreCompileInputs.cache
+D:\ANN_Project_AUT_Sem3\Microsoft\BackPropProgram\BackPropProgram\bin\Debug\BackPropProgram.exe.config
+D:\ANN_Project_AUT_Sem3\Microsoft\BackPropProgram\BackPropProgram\bin\Debug\BackPropProgram.exe
+D:\ANN_Project_AUT_Sem3\Microsoft\BackPropProgram\BackPropProgram\bin\Debug\BackPropProgram.pdb
+D:\ANN_Project_AUT_Sem3\Microsoft\BackPropProgram\BackPropProgram\bin\Debug\Algorithms.dll
+D:\ANN_Project_AUT_Sem3\Microsoft\BackPropProgram\BackPropProgram\bin\Debug\Persistence.dll
+D:\ANN_Project_AUT_Sem3\Microsoft\BackPropProgram\BackPropProgram\bin\Debug\Algorithms.pdb
+D:\ANN_Project_AUT_Sem3\Microsoft\BackPropProgram\BackPropProgram\bin\Debug\Persistence.pdb
+D:\ANN_Project_AUT_Sem3\Microsoft\BackPropProgram\BackPropProgram\obj\Debug\BackPropProgram.exe
+D:\ANN_Project_AUT_Sem3\Microsoft\BackPropProgram\BackPropProgram\obj\Debug\BackPropProgram.pdb

@@ -1,12 +1,7 @@
-﻿using System;
+﻿using Algorithms;
+using Persistence;
+using System;
 using System.Collections.Generic;
-using System.Data;
-using System.IO;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
-using Microsoft.VisualBasic.FileIO;
-using System.Collections;
 using System.Text.RegularExpressions;
 
 namespace BackPropProgram
@@ -29,30 +24,19 @@ namespace BackPropProgram
         const int NUMOUTPUT = 2; // number of classes for Y
         const bool ISFEATURESELECTION = false;
 
+
         static void Main(string[] args)
         {
-            //int numInput = 4; // number features
-            //int numHidden = 5;
-            //int numOutput = 3; // number of classes for Y
-            //int numRows = 1000;
-            //int seed = 1; // gives nice demo
-
-            //int numOutput = 2; // number of classes for Y
+            int seed = 1;
             int numRows = 45312; //10000;
-            int seed = 1; // gives nice demo
             float[][] fullDataset, tValueFile;
-
-            //int numInput = 11; // number features
-            //int numHidden = 9;
-            //int numOutput = 2; // number of classes for Y
-            //int numRows = 10000;//10000; // //
-            //int seed = 1; // gives nice demo
-
             int maxEpochs = 100;
             double learnRate = 0.3;
             double momentum = 0.2;
-            //double learnRate = 0.3;
-            //double momentum = 0.2;
+            string inputFilePathAndName = @"d:/ann_project_aut_sem3/microsoft/backpropprogram/hotellingr/Data_withYEle.csv";
+            //string inputFilePathAndName = @"d:/ann_project_aut_sem3/microsoft/backpropprogram/hotellingr/Data_withY.csv";
+            double p_val = 0;
+            double partition = 0;
 
 
             #region sample test R
@@ -60,10 +44,6 @@ namespace BackPropProgram
             //var result = RScript.RunFromCmd(path + @"\rcodeTest.r", @"C:\Program Files\R\R-3.4.1\bin\rscript.exe", "3");
             #endregion
 
-            double p_val = 0;
-            double partition = 0;
-            //string inputFilePathAndName = @"d:/ann_project_aut_sem3/microsoft/backpropprogram/hotellingr/Data_withY.csv";
-            string inputFilePathAndName = @"d:/ann_project_aut_sem3/microsoft/backpropprogram/hotellingr/Data_withYEle.csv";
             while (p_val <= 0.05)
             {
                 partition += 0.1;
@@ -85,13 +65,14 @@ namespace BackPropProgram
                 }
             }
 
-            FileProcessor.InputDatasetCSV(NUMINPUT, numRows, out fullDataset, out tValueFile, inputFilePathAndName);
+            FileProcessor.ReadInputDatasetCSV(NUMINPUT, numRows, out fullDataset, out tValueFile, inputFilePathAndName);
 
             Console.WriteLine("\nBegin neural network back-propagation demo");
-            Console.WriteLine("\nGenerating " + numRows +
-              " artificial data items with " + NUMINPUT + " features");
-            double[][] allData = MakeAllDataDataFile(NUMINPUT, NUMHIDDEN, NUMOUTPUT,
+            Console.WriteLine("\nGenerating " + numRows + " artificial data items with " + NUMINPUT + " features");
+
+            double[][] allData = GenerateInitialMLPModel(NUMINPUT, NUMHIDDEN, NUMOUTPUT,
               numRows, seed, fullDataset, tValueFile);
+
             Console.WriteLine("Done");
 
             //ShowMatrix(allData, allData.Length, 2, true);
@@ -100,7 +81,7 @@ namespace BackPropProgram
             double[][] trainData;
             double[][] testData;
 
-            SplitTrainTest(allData, partition, seed, out trainData, out testData);
+            NeuralNetwork.SplitTrainTest(allData, partition, seed, out trainData, out testData);
             Console.WriteLine("Done\n");
 
             Console.WriteLine("Training data:");
@@ -204,8 +185,8 @@ namespace BackPropProgram
 
 
             #region write to csv
-            FileProcessor.WriteOutputToCsv(numInputs_temp, allSchemaSxClass0, "0", fxClass0ByInvDFT, fxShortcutClass0, true);
-            FileProcessor.WriteOutputToCsv(numInputs_temp, allSchemaSxClass1, "1", fxClass1ByInvDFT, fxShortcutClass1, false);
+            FileProcessor.WriteCSVOutput(numInputs_temp, allSchemaSxClass0, "0", fxClass0ByInvDFT, fxShortcutClass0, true);
+            FileProcessor.WriteCSVOutput(numInputs_temp, allSchemaSxClass1, "1", fxClass1ByInvDFT, fxShortcutClass1, false);
             #endregion
 
 
@@ -471,7 +452,7 @@ namespace BackPropProgram
         #endregion
 
 
-        static double[][] MakeAllDataDataFile(int numInput, int numHidden,
+        static double[][] GenerateInitialMLPModel(int numInput, int numHidden,
               int numOutput, int numRows, int seed, float[][] datafile, float[][] tValueFile)
         {
             Random rnd = new Random(seed);
@@ -607,36 +588,6 @@ namespace BackPropProgram
         } // MakeAllData
 
 
-        static void SplitTrainTest(double[][] allData, double trainPct,
-          int seed, out double[][] trainData, out double[][] testData)
-        {
-            Random rnd = new Random(seed);
-            int totRows = allData.Length;
-            int numTrainRows = (int)(totRows * trainPct); // usually 0.80
-            int numTestRows = totRows - numTrainRows;
-            trainData = new double[numTrainRows][];
-            testData = new double[numTestRows][];
-
-            double[][] copy = new double[allData.Length][]; // ref copy of data
-            for (int i = 0; i < copy.Length; ++i)
-            {
-                copy[i] = allData[i];
-            }
-
-            //TODO: shuffle
-            for (int i = 0; i < copy.Length; ++i) // scramble order
-            {
-                int r = rnd.Next(i, copy.Length); // use Fisher-Yates
-                double[] tmp = copy[r];
-                copy[r] = copy[i];
-                copy[i] = tmp;
-            }
-            for (int i = 0; i < numTrainRows; ++i)
-                trainData[i] = copy[i];
-
-            for (int i = 0; i < numTestRows; ++i)
-                testData[i] = copy[i + numTrainRows];
-        } // SplitTrainTest
     }
 
 
