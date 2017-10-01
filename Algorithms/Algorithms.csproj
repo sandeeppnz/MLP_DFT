@@ -41,8 +41,10 @@
     <Reference Include="System.Xml" />
   </ItemGroup>
   <ItemGroup>
-    <Compile Include="DFT.cs" />
+    <Compile Include="DFTModel.cs" />
     <Compile Include="FileProcessor.cs" />
+    <Compile Include="Helper.cs" />
+    <Compile Include="InverseDFTModel.cs" />
     <Compile Include="Logger.cs" />
     <Compile Include="MLPModel.cs" />
     <Compile Include="NeuralNetwork.cs" />

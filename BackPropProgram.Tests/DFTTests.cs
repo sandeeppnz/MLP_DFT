@@ -2,7 +2,6 @@
 using NUnit.Framework;
 using System.Collections.Generic;
 using System.Linq;
-using Algorithms;
 
 namespace BackPropProgram.Tests
 {
@@ -47,12 +46,15 @@ namespace BackPropProgram.Tests
         //[Ignore("Some reason")]
         public static void FindRedundantAttributeFromPatterns_Return_Empty(params string[] inputString)
         {
+            DFTModel model = new DFTModel();
+
+
             //arrange
             var clusteredSchemaSxClass1 = inputString[0]
                                         .Split(',')
                                         .ToList();
             //act
-            var actualList = DFT.FindRedundantAttributeFromPatterns(clusteredSchemaSxClass1);
+            var actualList = model.FindRedundantAttributeFromPatterns(clusteredSchemaSxClass1);
 
             var expectedList = new List<int>();
             if (!string.IsNullOrEmpty(inputString[1]))
@@ -78,11 +80,13 @@ namespace BackPropProgram.Tests
         public static void FindRedundantAttributeFromPatterns_Return_OneElement(params string[] inputString)
         {
             //arrange
+            DFTModel model = new DFTModel();
+
             var clusteredSchemaSxClass1 = inputString[0]
                                         .Split(',')
                                         .ToList();
             //act
-            var actualList = DFT.FindRedundantAttributeFromPatterns(clusteredSchemaSxClass1);
+            var actualList = model.FindRedundantAttributeFromPatterns(clusteredSchemaSxClass1);
 
             var expectedList = new List<int>();
             if (!string.IsNullOrEmpty(inputString[1]))
@@ -108,11 +112,13 @@ namespace BackPropProgram.Tests
         public static void FindRedundantAttributeFromPatterns_Return_TwoElements(params string[] inputString)
         {
             //arrange
+            DFTModel model = new DFTModel();
+
             var clusteredSchemaSxClass1 = inputString[0]
                                         .Split(',')
                                         .ToList();
             //act
-            var actualList = DFT.FindRedundantAttributeFromPatterns(clusteredSchemaSxClass1);
+            var actualList = model.FindRedundantAttributeFromPatterns(clusteredSchemaSxClass1);
 
             var expectedList = new List<int>();
             if (!string.IsNullOrEmpty(inputString[1]))
@@ -130,11 +136,13 @@ namespace BackPropProgram.Tests
         public static void FindRedundantAttributeFromPatterns_Return_ThreeElements(params string[] inputString)
         {
             //arrange
+            DFTModel model = new DFTModel();
+
             var clusteredSchemaSxClass1 = inputString[0]
                                         .Split(',')
                                         .ToList();
             //act
-            var actualList = DFT.FindRedundantAttributeFromPatterns(clusteredSchemaSxClass1);
+            var actualList = model.FindRedundantAttributeFromPatterns(clusteredSchemaSxClass1);
 
             var expectedList = new List<int>();
             if (!string.IsNullOrEmpty(inputString[1]))
@@ -161,6 +169,9 @@ namespace BackPropProgram.Tests
         [TestCase("000,100,110,010,101,111", "001,011", "0*1")] //class 0 testing
         public static void GetSchemaClustersWithWildcardChars_Return_CorrectString(params string[] inputString)
         {
+            DFTModel model = new DFTModel();
+
+
             //arrange
             var instanceSchemas = inputString[1]
                                         .Split(',')
@@ -170,7 +181,7 @@ namespace BackPropProgram.Tests
                                         .ToList();
 
             //act
-            var actualList = DFT.GetSchemaClustersWithWildcardChars(instanceSchemas, otherInstanceSchemas);
+            var actualList = model.GetSchemaClustersWithWildcardChars(instanceSchemas, otherInstanceSchemas);
 
             var expectedList = new List<string>();
             if (!string.IsNullOrEmpty(inputString[2]))
@@ -198,9 +209,10 @@ namespace BackPropProgram.Tests
                                         .ToList();
 
             //act
-            List<string> sjVectors = null;
             int numInput = 3;
-            var actualList = DFT.CalculateDFTCoeffs(numInput, clusteredSchemaSxClass1, out sjVectors);
+            DFTModel model = new DFTModel();
+
+            var actualList = model.CalculateDFTCoeffs(clusteredSchemaSxClass1);
 
             var expectedList = new Dictionary<string, double>();
             var fullExp = new List<string>();
@@ -235,6 +247,9 @@ namespace BackPropProgram.Tests
             string sxString1 = "0000000,0000001,0000010,0000011,0001001,0100000,0100001,0100010,0100011,0101000,0101001,1000000,1000001,1000010,1000011,1100000,1100001,1100010,1100011,1101000,1101001,1101011";
 
             //arrange
+            DFTModel model = new DFTModel();
+
+
             var fullCoeffString = inputString.Split(',').ToList();
             var coeffArray = new Dictionary<string, double>();
             var sjVectors = new List<string>();
@@ -252,7 +267,7 @@ namespace BackPropProgram.Tests
             List<double> actualList1 = new List<double>();
             foreach (string sx in sxVectors1)
             {
-                actualList1.Add(DFT.GetCoeffInverseDft(sx, sjVectors, coeffArray));
+                actualList1.Add(model.GetCoeffInverseDft(sx, sjVectors, coeffArray));
             }
 
             List<double> expectedList = new List<double>();
@@ -269,6 +284,10 @@ namespace BackPropProgram.Tests
         [Test, TestCaseSource("CoeffArray")]
         public static void GetCoeffInverseDft_ReturnFx0(string inputString)
         {
+
+            DFTModel model = new DFTModel();
+
+
             string sxString0 = "0001000,0001010,0001011,0011010,0101010,0101011,0101110,0111010,0111110,1001000,1001001,1001010,1001011,1010001,1011000,1011001,1011010,1011011,1101010,1110000,1110001,1111000,1111001,1111010,1111011";
             //arrange
             var fullCoeffString = inputString.Split(',').ToList();
@@ -288,7 +307,7 @@ namespace BackPropProgram.Tests
             List<double> actualList0 = new List<double>();
             foreach (string sx in sxVectors0)
             {
-                actualList0.Add(DFT.GetCoeffInverseDft(sx, sjVectors, coeffArray));
+                actualList0.Add(model.GetCoeffInverseDft(sx, sjVectors, coeffArray));
             }
 
             List<double> expectedList = new List<double>();
@@ -311,12 +330,15 @@ namespace BackPropProgram.Tests
         [TestCase("0001000")]
         public static void GetFxByWildcardCharacterCheck_ReturnFx1(string x)
         {
+
+            DFTModel model = new DFTModel();
+
             //arrange
             string patterns = "0**1*1*,*0010*0,10010**,1101010,1*1*0**";
             var patternList = patterns.Split(',').ToList();
 
             //act
-            double actual = DFT.GetFxByWildcardCharacterCheck(x, patternList, "0");
+            double actual = model.GetFxByWildcardCharacterCheck(x, patternList, "0");
             double expected = 0;
 
             //assert
@@ -336,12 +358,15 @@ namespace BackPropProgram.Tests
         [TestCase("111")]
         public static void CheckRedundantAttribute_Return_True(string sxString)
         {
+            DFTModel model = new DFTModel();
+
+
             //010,011,110,111
             //arrange
             //List<int> positions = new List<int>() { 1, 2 };
 
             //act
-            var actual = DFT.GetRedudantInstanceSchemas(3, 1);
+            var actual = model.GetRedudantInstanceSchemas(3, 1);
             var expected = new List<string>() { "010", "011", "110", "111" };
 
             //assert
@@ -362,7 +387,9 @@ namespace BackPropProgram.Tests
             //List<int> positions = new List<int>() { 1, 2 };
 
             //act
-            var actual = DFT.CalculateEnergyThresholding(4, 2);
+            DFTModel model = new DFTModel();
+
+            var actual = model.CalculateEnergyThresholding(4, 2);
             var expected = new List<string>() { "010", "011", "110", "111" };
 
             //assert

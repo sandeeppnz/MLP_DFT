@@ -1,5 +1,4 @@
-﻿using Algorithms;
-using System;
+﻿using System;
 using System.Collections.Generic;
 using System.Diagnostics;
 using System.Text.RegularExpressions;
@@ -22,7 +21,7 @@ namespace BackPropProgram
             const string rScripFileName = "hotellingttest3.r";
             const string dataPath = @"D:\ANN_Project_AUT_Sem3\Microsoft\BackPropProgram\Data\";
 
-            double partition = 0;
+            double partition = 0.8;
             //Files
             const int numInput = 7; //11; // number features
             const int numHidden = 8;
@@ -32,30 +31,30 @@ namespace BackPropProgram
             int numRows = 45312; //10000;
             string inputDatasetFileName = "Data_withYEle.csv";
             //string inputDatasetFileName = "Data_withY.csv";
-            
 
 
+            NeuralNetwork nn = new NeuralNetwork(numInput, numHidden, numOutput, ISFEATURESELECTION);
 
-            MLPModel model = new MLPModel(new FileProcessor(dataPath), new Logger(), new NeuralNetwork(numInput, numHidden, numOutput, ISFEATURESELECTION),
+            MLPModel mlpModel = new MLPModel(new FileProcessor(dataPath), new Logger(), nn,
                 numInput, seed, partition, hotellingTestThreshold, partitionIncrement, new RRunner());
 
-            model.ReadDataset(inputDatasetFileName, numRows);
-            model.RunHotellingTTest(inputDatasetFileName, rScripFileName, rBin);
+            mlpModel.ReadDataset(inputDatasetFileName, numRows);
+            mlpModel.RunHotellingTTest(inputDatasetFileName, rScripFileName, rBin);
 
 
             Stopwatch sw = new Stopwatch();
             sw.Start();
             Console.WriteLine("\nBegin neural network back-propagation");
 
-            model.GenerateArtificalDataUsingNN(numInput, numHidden, numOutput);
-            model.PrintWeights(2, 10, true);
+            mlpModel.GenerateArtificalDataUsingNN(numInput, numHidden, numOutput);
+            mlpModel.PrintWeights(2, 10, true);
 
 
-            model.SplitTrainTest(seed);
-            model.PrintTrain();
-            model.PrintTest();
-            model.CreateAndTrainMLP(numInput, numHidden, numOutput, ISFEATURESELECTION, maxEpochs, learnRate, momentum);
-            model.PrintWeights(2, 10, true);
+            mlpModel.SplitTrainTest(seed);
+            mlpModel.PrintTrain();
+            mlpModel.PrintTest();
+            mlpModel.CreateAndTrainMLP(numInput, numHidden, numOutput, ISFEATURESELECTION, maxEpochs, learnRate, momentum);
+            mlpModel.PrintWeights(2, 10, true);
 
 
 
@@ -79,8 +78,8 @@ namespace BackPropProgram
             //double trainAcc = neuralNetwork.Accuracy(trainData, rankArray);
 
 
-            Console.WriteLine("\nFinal accuracy on training data = " + model.TrainAcc.ToString("F4"));
-            Console.WriteLine("Final accuracy on test data     = " + model.TestAcc.ToString("F4"));
+            Console.WriteLine("\nFinal accuracy on training data = " + mlpModel.TrainAcc.ToString("F4"));
+            Console.WriteLine("Final accuracy on test data     = " + mlpModel.TestAcc.ToString("F4"));
             Console.WriteLine("\nEnd back-propagation\n");
             sw.Stop();
             Console.WriteLine("Elapsed={0}", sw.Elapsed);
@@ -105,39 +104,32 @@ namespace BackPropProgram
             Console.WriteLine("\nDFT Processing...");
 
             //Exit if the data is continuous
-            var redundantSchema = DFT.GetUniqueRedudantSchema(numInput, ISFEATURESELECTION, trainData, rankArray); //unique combinations
-            var convertedArray = DFT.MakeArrayBasedSchema(numInput, redundantSchema);
+            //Add rank array
+            DFTModel dftModel = new DFTModel(nn, numInput, mlpModel.TrainData, ISFEATURESELECTION, null);
 
-            List<string> allSchemaSxClass0 = null;
-            List<string> allSchemaSxClass1 = null;
-            neuralNetwork.CalculateAccuracyAndAppendYValMy(trainData, rankArray, out allSchemaSxClass0, out allSchemaSxClass1);
-            #endregion
+            dftModel.SplitSchemasByClass();
+            dftModel.GenerateClusteredSchemas();
+            dftModel.GenerateSjVectors();
+            dftModel.FindRedundantAttributeFromPatterns(dftModel.SjVectors); //ToDo: integrate with Coeff Cal
 
-
-            //int numInputs_temp = NUMINPUT;
-            ////int numInputs_temp = 3;
-            //var clusteredSchemaSxClass0 = DFT.GetSchemaClustersWithWildcardChars(allSchemaSxClass0, allSchemaSxClass1);
-            //var clusteredSchemaSxClass1 = DFT.GetSchemaClustersWithWildcardChars(allSchemaSxClass1, allSchemaSxClass0);
-
-
-            //#region Calculate f(x) directly by looking at the pattern
-            //var fxShortcutClass0 = DFT.CalculateFxByPatternDirectly(allSchemaSxClass0, clusteredSchemaSxClass0, "0");
-            //var fxShortcutClass1 = DFT.CalculateFxByPatternDirectly(allSchemaSxClass1, clusteredSchemaSxClass1, "1");
-            //#endregion
-
+            var energyCoffs = dftModel.CalculateDFTCoeffs(dftModel.ClusteredSchemaSxClass1);
             //#region Find redundant attributes from patterns
             ////TODO: not used
             //var redundantAttibuteIndexList = DFT.FindRedundantAttributeFromPatterns(clusteredSchemaSxClass1);
             //#endregion
+            #endregion
 
-            //#region Calculate DFT coeffs
-            //List<string> sjVectors = null;
-            //var coeffsDFT = DFT.CalculateDFTCoeffs(numInputs_temp, clusteredSchemaSxClass1, out sjVectors);
+
+
+            //#region Calculate f(x) directly by looking at the pattern
+            var fxShortcutClass0 = dftModel.CalculateFxByPatternDirectly(dftModel.AllSchemaSxClass0, dftModel.ClusteredSchemaSxClass0, "0");
+            var fxShortcutClass1 = dftModel.CalculateFxByPatternDirectly(dftModel.AllSchemaSxClass1, dftModel.ClusteredSchemaSxClass1, "1");
             //#endregion
 
+
             //#region Calculate f(x) by Inverse DFT 
-            //var fxClass0ByInvDFT = DFT.GetFxByInverseDFT(allSchemaSxClass0, sjVectors, coeffsDFT);
-            //var fxClass1ByInvDFT = DFT.GetFxByInverseDFT(allSchemaSxClass1, sjVectors, coeffsDFT);
+            var fxClass0ByInvDFT = dftModel.GetFxByInverseDFT(dftModel.AllSchemaSxClass0, dftModel.SjVectors, energyCoffs);
+            var fxClass1ByInvDFT = dftModel.GetFxByInverseDFT(dftModel.AllSchemaSxClass1, dftModel.SjVectors, energyCoffs);
             //#endregion
 
             ////FileProcessor.WriteCoeffArraToCsv(coeffsDFT);

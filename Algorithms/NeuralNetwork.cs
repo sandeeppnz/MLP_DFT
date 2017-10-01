@@ -1,5 +1,4 @@
-﻿using Algorithms;
-using System;
+﻿using System;
 using System.Collections.Generic;
 using System.Linq;
 
@@ -12,12 +11,16 @@ namespace BackPropProgram
 
     public interface INeuralNetwork
     {
+        
         int GetTotalWeights();
         void SetWeights(double[] weights);
 
 
         void SetAllWeights(double[] weights);
         double[] GetAllWeights();
+
+
+        int GetNumOutputNodes();
 
 
         double[] ComputeOutputs(double[] xValues);
@@ -30,11 +33,13 @@ namespace BackPropProgram
     public partial class NeuralNetwork : INeuralNetwork
     {
 
-        public int numInput { get; set; } // number input nodes
-        public int numHidden { get; set; }
-        public int numOutput { get; set; }
 
         public double[] AllWeights { get; set; }
+
+        public int NumInputNodes { get; set; }
+        public int NumOutputNodes { get; set; }
+        public int NumHiddenNodes { get; set; }
+
 
         private double[] inputs;
         private double[][] ihWeights; // input-hidden
@@ -53,9 +58,9 @@ namespace BackPropProgram
 
         public NeuralNetwork(int numInput, int numHidden, int numOutput, bool isFeatureSelection)
         {
-            this.numInput = numInput;
-            this.numHidden = numHidden;
-            this.numOutput = numOutput;
+            this.NumInputNodes = numInput;
+            this.NumHiddenNodes = numHidden;
+            this.NumOutputNodes = numOutput;
 
             this.inputs = new double[numInput];
 
@@ -81,6 +86,10 @@ namespace BackPropProgram
 
 
 
+        public int GetNumOutputNodes()
+        {
+            return NumOutputNodes;
+        }
 
 
         private static double[][] MakeMatrix(int rows,
@@ -114,8 +123,8 @@ namespace BackPropProgram
         private void InitializeWeights() // helper for ctor
         {
             // initialize weights and biases to small random values
-            int numWeights = (numInput * numHidden) +
-              (numHidden * numOutput) + numHidden + numOutput;
+            int numWeights = (NumInputNodes * NumHiddenNodes) +
+              (NumHiddenNodes * NumOutputNodes) + NumHiddenNodes + NumOutputNodes;
             double[] initialWeights = new double[numWeights];
             for (int i = 0; i < initialWeights.Length; ++i)
                 initialWeights[i] = (0.001 - 0.0001) * rnd.NextDouble() + 0.0001;
@@ -138,30 +147,30 @@ namespace BackPropProgram
         {
             // copy serialized weights and biases in weights[] array
             // to i-h weights, i-h biases, h-o weights, h-o biases
-            int numWeights = (numInput * numHidden) +
-              (numHidden * numOutput) + numHidden + numOutput;
+            int numWeights = (NumInputNodes * NumHiddenNodes) +
+              (NumHiddenNodes * NumOutputNodes) + NumHiddenNodes + NumOutputNodes;
 
             if (weights.Length != numWeights)
                 throw new Exception("Bad weights array in SetWeights");
 
             int k = 0; // points into weights param
 
-            for (int i = 0; i < numInput; ++i)
-                for (int j = 0; j < numHidden; ++j)
+            for (int i = 0; i < NumInputNodes; ++i)
+                for (int j = 0; j < NumHiddenNodes; ++j)
                     ihWeights[i][j] = weights[k++];
-            for (int i = 0; i < numHidden; ++i)
+            for (int i = 0; i < NumHiddenNodes; ++i)
                 hBiases[i] = weights[k++];
-            for (int i = 0; i < numHidden; ++i)
-                for (int j = 0; j < numOutput; ++j)
+            for (int i = 0; i < NumHiddenNodes; ++i)
+                for (int j = 0; j < NumOutputNodes; ++j)
                     hoWeights[i][j] = weights[k++];
-            for (int i = 0; i < numOutput; ++i)
+            for (int i = 0; i < NumOutputNodes; ++i)
                 oBiases[i] = weights[k++];
         }
 
         public double[] GetWeights()
         {
-            int numWeights = (numInput * numHidden) +
-              (numHidden * numOutput) + numHidden + numOutput;
+            int numWeights = (NumInputNodes * NumHiddenNodes) +
+              (NumHiddenNodes * NumOutputNodes) + NumHiddenNodes + NumOutputNodes;
             double[] result = new double[numWeights];
             int k = 0;
             for (int i = 0; i < ihWeights.Length; ++i)
@@ -182,42 +191,42 @@ namespace BackPropProgram
             for (int i = 0; i < yValues.Length; ++i) // copy x-values to inputs
                 this.outputs[i] = yValues[i];
 
-            double[] retResult = new double[numOutput]; // could define a GetOutputs 
+            double[] retResult = new double[NumOutputNodes]; // could define a GetOutputs 
             Array.Copy(this.outputs, retResult, retResult.Length);
             return retResult;
         }
 
         public double[] ComputeOutputs(double[] xValues)
         {
-            double[] hSums = new double[numHidden]; // hidden nodes sums scratch array
-            double[] oSums = new double[numOutput]; // output nodes sums
+            double[] hSums = new double[NumHiddenNodes]; // hidden nodes sums scratch array
+            double[] oSums = new double[NumOutputNodes]; // output nodes sums
 
             for (int i = 0; i < xValues.Length; ++i) // copy x-values to inputs
                 this.inputs[i] = xValues[i];
             // note: no need to copy x-values unless you implement a ToString.
             // more efficient is to simply use the xValues[] directly.
 
-            for (int j = 0; j < numHidden; ++j)  // compute i-h sum of weights * inputs
-                for (int i = 0; i < numInput; ++i)
+            for (int j = 0; j < NumHiddenNodes; ++j)  // compute i-h sum of weights * inputs
+                for (int i = 0; i < NumInputNodes; ++i)
                     hSums[j] += this.inputs[i] * this.ihWeights[i][j]; // note +=
 
-            for (int i = 0; i < numHidden; ++i)  // add biases to hidden sums
+            for (int i = 0; i < NumHiddenNodes; ++i)  // add biases to hidden sums
                 hSums[i] += this.hBiases[i];
 
-            for (int i = 0; i < numHidden; ++i)   // apply activation
+            for (int i = 0; i < NumHiddenNodes; ++i)   // apply activation
                 this.hOutputs[i] = HyperTan(hSums[i]); // hard-coded
 
-            for (int j = 0; j < numOutput; ++j)   // compute h-o sum of weights * hOutputs
-                for (int i = 0; i < numHidden; ++i)
+            for (int j = 0; j < NumOutputNodes; ++j)   // compute h-o sum of weights * hOutputs
+                for (int i = 0; i < NumHiddenNodes; ++i)
                     oSums[j] += hOutputs[i] * hoWeights[i][j];
 
-            for (int i = 0; i < numOutput; ++i)  // add biases to output sums
+            for (int i = 0; i < NumOutputNodes; ++i)  // add biases to output sums
                 oSums[i] += oBiases[i];
 
             double[] softOut = Softmax(oSums); // all outputs at once for efficiency
             Array.Copy(softOut, outputs, softOut.Length);
 
-            double[] retResult = new double[numOutput]; // could define a GetOutputs 
+            double[] retResult = new double[NumOutputNodes]; // could define a GetOutputs 
             Array.Copy(this.outputs, retResult, retResult.Length);
             return retResult;
         }
@@ -271,26 +280,26 @@ namespace BackPropProgram
         {
             // train using back-prop
             // back-prop specific arrays
-            double[][] hoGrads = MakeMatrix(numHidden, numOutput, 0.0); // hidden-to-output weight gradients
-            double[] obGrads = new double[numOutput];                   // output bias gradients
+            double[][] hoGrads = MakeMatrix(NumHiddenNodes, NumOutputNodes, 0.0); // hidden-to-output weight gradients
+            double[] obGrads = new double[NumOutputNodes];                   // output bias gradients
 
-            double[][] ihGrads = MakeMatrix(numInput, numHidden, 0.0);  // input-to-hidden weight gradients
-            double[] hbGrads = new double[numHidden];                   // hidden bias gradients
+            double[][] ihGrads = MakeMatrix(NumInputNodes, NumHiddenNodes, 0.0);  // input-to-hidden weight gradients
+            double[] hbGrads = new double[NumHiddenNodes];                   // hidden bias gradients
 
-            double[] oSignals = new double[numOutput];                  // local gradient output signals - gradients w/o associated input terms
-            double[] hSignals = new double[numHidden];                  // local gradient hidden node signals
+            double[] oSignals = new double[NumOutputNodes];                  // local gradient output signals - gradients w/o associated input terms
+            double[] hSignals = new double[NumHiddenNodes];                  // local gradient hidden node signals
 
             // back-prop momentum specific arrays 
-            double[][] ihPrevWeightsDelta = MakeMatrix(numInput, numHidden, 0.0);
-            double[] hPrevBiasesDelta = new double[numHidden];
-            double[][] hoPrevWeightsDelta = MakeMatrix(numHidden, numOutput, 0.0);
-            double[] oPrevBiasesDelta = new double[numOutput];
+            double[][] ihPrevWeightsDelta = MakeMatrix(NumInputNodes, NumHiddenNodes, 0.0);
+            double[] hPrevBiasesDelta = new double[NumHiddenNodes];
+            double[][] hoPrevWeightsDelta = MakeMatrix(NumHiddenNodes, NumOutputNodes, 0.0);
+            double[] oPrevBiasesDelta = new double[NumOutputNodes];
 
             int epoch = 0;
-            double[] xValues = new double[numInput]; // inputs
-            double[] tValues = new double[numOutput]; // target values
+            double[] xValues = new double[NumInputNodes]; // inputs
+            double[] tValues = new double[NumOutputNodes]; // target values
 
-            double[] tValuesFile = new double[numOutput]; // TODO: target values
+            double[] tValuesFile = new double[NumOutputNodes]; // TODO: target values
 
 
             double derivative = 0.0;
@@ -318,10 +327,10 @@ namespace BackPropProgram
                 {
                     int idx = sequence[ii];
 
-                    Array.Copy(trainData[idx], xValues, numInput);
+                    Array.Copy(trainData[idx], xValues, NumInputNodes);
                     //Array.Copy(trainData[idx], numInput, tValues, 0, numOutput);
 
-                    Array.Copy(trainData[idx], numInput + 2, tValuesFile, 0, numOutput);
+                    Array.Copy(trainData[idx], NumInputNodes + 2, tValuesFile, 0, NumOutputNodes);
 
 
                     ComputeOutputs(xValues); // copy xValues in, compute outputs 
@@ -329,7 +338,7 @@ namespace BackPropProgram
                     // indices: i = inputs, j = hiddens, k = outputs
 
                     // 1. compute output node signals (assumes softmax)
-                    for (int k = 0; k < numOutput; ++k)
+                    for (int k = 0; k < NumOutputNodes; ++k)
                     {
                         //errorSignal = tValues[k] - outputs[k];  // Wikipedia uses (o-t)
                         errorSignal = tValuesFile[k] - outputs[k];  // Wikipedia uses (o-t)
@@ -339,20 +348,20 @@ namespace BackPropProgram
                     }
 
                     // 2. compute hidden-to-output weight gradients using output signals
-                    for (int j = 0; j < numHidden; ++j)
-                        for (int k = 0; k < numOutput; ++k)
+                    for (int j = 0; j < NumHiddenNodes; ++j)
+                        for (int k = 0; k < NumOutputNodes; ++k)
                             hoGrads[j][k] = oSignals[k] * hOutputs[j];
 
                     // 2b. compute output bias gradients using output signals
-                    for (int k = 0; k < numOutput; ++k)
+                    for (int k = 0; k < NumOutputNodes; ++k)
                         obGrads[k] = oSignals[k] * 1.0; // dummy assoc. input value
 
                     // 3. compute hidden node signals
-                    for (int j = 0; j < numHidden; ++j)
+                    for (int j = 0; j < NumHiddenNodes; ++j)
                     {
                         derivative = (1 + hOutputs[j]) * (1 - hOutputs[j]); // for tanh
                         double sum = 0.0; // need sums of output signals times hidden-to-output weights
-                        for (int k = 0; k < numOutput; ++k)
+                        for (int k = 0; k < NumOutputNodes; ++k)
                         {
                             sum += oSignals[k] * hoWeights[j][k]; // represents error signal
                         }
@@ -360,20 +369,20 @@ namespace BackPropProgram
                     }
 
                     // 4. compute input-hidden weight gradients
-                    for (int i = 0; i < numInput; ++i)
-                        for (int j = 0; j < numHidden; ++j)
+                    for (int i = 0; i < NumInputNodes; ++i)
+                        for (int j = 0; j < NumHiddenNodes; ++j)
                             ihGrads[i][j] = hSignals[j] * inputs[i];
 
                     // 4b. compute hidden node bias gradients
-                    for (int j = 0; j < numHidden; ++j)
+                    for (int j = 0; j < NumHiddenNodes; ++j)
                         hbGrads[j] = hSignals[j] * 1.0; // dummy 1.0 input
 
                     // == update weights and biases
 
                     // update input-to-hidden weights
-                    for (int i = 0; i < numInput; ++i)
+                    for (int i = 0; i < NumInputNodes; ++i)
                     {
-                        for (int j = 0; j < numHidden; ++j)
+                        for (int j = 0; j < NumHiddenNodes; ++j)
                         {
                             double delta = ihGrads[i][j] * learnRate;
                             ihWeights[i][j] += delta; // would be -= if (o-t)
@@ -383,7 +392,7 @@ namespace BackPropProgram
                     }
 
                     // update hidden biases
-                    for (int j = 0; j < numHidden; ++j)
+                    for (int j = 0; j < NumHiddenNodes; ++j)
                     {
                         double delta = hbGrads[j] * learnRate;
                         hBiases[j] += delta;
@@ -392,9 +401,9 @@ namespace BackPropProgram
                     }
 
                     // update hidden-to-output weights
-                    for (int j = 0; j < numHidden; ++j)
+                    for (int j = 0; j < NumHiddenNodes; ++j)
                     {
-                        for (int k = 0; k < numOutput; ++k)
+                        for (int k = 0; k < NumOutputNodes; ++k)
                         {
                             double delta = hoGrads[j][k] * learnRate;
                             hoWeights[j][k] += delta;
@@ -404,7 +413,7 @@ namespace BackPropProgram
                     }
 
                     // update output node biases
-                    for (int k = 0; k < numOutput; ++k)
+                    for (int k = 0; k < NumOutputNodes; ++k)
                     {
                         double delta = obGrads[k] * learnRate;
                         oBiases[k] += delta;
@@ -434,24 +443,24 @@ namespace BackPropProgram
         {
             // average squared error per training item
             double sumSquaredError = 0.0;
-            double[] xValues = new double[numInput]; // first numInput values in trainData
+            double[] xValues = new double[NumInputNodes]; // first numInput values in trainData
             //double[] tValues = new double[numOutput]; // last numOutput values
 
-            double[] tValuesFileLocal = new double[numOutput]; // last numOutput values
+            double[] tValuesFileLocal = new double[NumOutputNodes]; // last numOutput values
 
 
 
             // walk thru each training case. looks like (6.9 3.2 5.7 2.3) (0 0 1)
             for (int i = 0; i < trainData.Length; ++i)
             {
-                Array.Copy(trainData[i], xValues, numInput);
+                Array.Copy(trainData[i], xValues, NumInputNodes);
                 //Array.Copy(trainData[i], numInput, tValues, 0, numOutput); // get target values
-                Array.Copy(trainData[i], numInput + 2, tValuesFileLocal, 0, numOutput); // get target values
+                Array.Copy(trainData[i], NumInputNodes + 2, tValuesFileLocal, 0, NumOutputNodes); // get target values
 
 
 
                 double[] yValues = this.ComputeOutputs(xValues); // outputs using current weights
-                for (int j = 0; j < numOutput; ++j)
+                for (int j = 0; j < NumOutputNodes; ++j)
                 {
                     //double err = tValues[j] - yValues[j];
 
@@ -469,28 +478,28 @@ namespace BackPropProgram
             // percentage correct using winner-takes all
             int numCorrect = 0;
             int numWrong = 0;
-            double[] xValues = new double[numInput]; // inputs
-            double[] tValues = new double[numOutput]; // targets
+            double[] xValues = new double[NumInputNodes]; // inputs
+            double[] tValues = new double[NumOutputNodes]; // targets
             double[] yValues; // computed Y
 
             for (int i = 0; i < data.Length; ++i)
             {
-                Array.Copy(data[i], xValues, numInput); // get x-values
+                Array.Copy(data[i], xValues, NumInputNodes); // get x-values
                 //Array.Copy(data[i], numInput, tValues, 0, numOutput); // get t-values
-                Array.Copy(data[i], numInput + 2, tValues, 0, numOutput); // get target values
+                Array.Copy(data[i], NumInputNodes + 2, tValues, 0, NumOutputNodes); // get target values
 
                 //Set X values to zero if ranking...
                 //TODO: rank array comment
                 if (isFeatureSelection)
                 {
-                    xValues = DFT.SetXValueToZeroByRankCheck(xValues, rankArray, numInput);
+                    xValues = Helper.SetXValueToZeroByRankCheck(xValues, rankArray, NumInputNodes);
                 }
 
 
                 yValues = this.ComputeOutputs(xValues);
 
-                int maxIndex = MaxIndex(yValues); // which cell in yValues has largest value?
-                int tMaxIndex = MaxIndex(tValues);
+                int maxIndex = Helper.MaxIndex(yValues); // which cell in yValues has largest value?
+                int tMaxIndex = Helper.MaxIndex(tValues);
 
                 if (maxIndex == tMaxIndex)
                     ++numCorrect;
@@ -500,113 +509,98 @@ namespace BackPropProgram
             return (numCorrect * 1.0) / (numCorrect + numWrong);
         }
 
-        /// <summary>
-        /// Calculates Accuracy and Sets the yOne and YZero
-        /// </summary>
-        /// <param name="data"></param>
-        /// <param name="rankArray"></param>
-        /// <param name="yZero"></param>
-        /// <param name="yOne"></param>
-        public void CalculateAccuracyAndAppendYValMy(double[][] data, double[] rankArray, out List<string> yZero, out List<string> yOne)
-        {
-            // percentage correct using winner-takes all
-            int numCorrect = 0;
-            int numWrong = 0;
-            double[] xValues = new double[numInput]; // inputs
-            double[] tValues = new double[numOutput]; // targets
-            double[] yValues; // computed Y
+        ///// <summary>
+        ///// Calculates Accuracy and Sets the yOne and YZero
+        ///// </summary>
+        ///// <param name="data"></param>
+        ///// <param name="rankArray"></param>
+        ///// <param name="yZero"></param>
+        ///// <param name="yOne"></param>
+        //public void CalculateAccuracyAndAppendYValMy(double[][] data, double[] rankArray, out List<string> yZero, out List<string> yOne)
+        //{
+        //    // percentage correct using winner-takes all
+        //    int numCorrect = 0;
+        //    int numWrong = 0;
+        //    double[] xValues = new double[numInput]; // inputs
+        //    double[] tValues = new double[numOutput]; // targets
+        //    double[] yValues; // computed Y
 
-            //List<string> dataList = new List<string>();
-            int binaryResult = 0;
+        //    //List<string> dataList = new List<string>();
+        //    int binaryResult = 0;
 
-            yZero = new List<string>();
-            yOne = new List<string>();
+        //    yZero = new List<string>();
+        //    yOne = new List<string>();
 
-            var yZeroTemp = new List<string>();
-            var yOneTemp = new List<string>();
-
-
-            for (int i = 0; i < data.Length; i++)
-            {
-                Array.Copy(data[i], xValues, numInput); // get x-values
-                Array.Copy(data[i], numInput + 2, tValues, 0, numOutput); // get target values from array
-
-                //Set X values to zero if ranking...
-
-                //TODO: xValues comments
-                if (isFeatureSelection)
-                {
-                    xValues = DFT.SetXValueToZeroByRankCheck(xValues, rankArray, numInput);
-                }
-
-                yValues = this.ComputeOutputs(xValues);
-                binaryResult = MaxIndex(yValues); // which cell in yValues has largest value?
-
-                //string s = binaryResult.ToString();
-                string s = string.Empty;
-                for (int j = 0; j < numInput; j++)
-                {
-                    s += xValues[j].ToString(); //TODO: for continuous variables this would raise errors
-                }
-
-                if (binaryResult == 0)
-                {
-                    //dataList.Add(s);
-                    yZeroTemp.Add(s);
-                }
-                else
-                {
-                    yOneTemp.Add(s);
-                }
-            }
-
-            int k = 0;
-            int[] outputZero = new int[yZeroTemp.Count];
-            foreach (string s in yZeroTemp)
-            {
-                outputZero[k] = Convert.ToInt32(s, 2);
-                k++;
-            }
-            Array.Sort(outputZero);
-            var outputZeroDistinct = outputZero.Distinct().ToArray();
-
-            k = 0;
-            int[] outputOne = new int[yOneTemp.Count];
-            foreach (string s in yOneTemp)
-            {
-                outputOne[k] = Convert.ToInt32(s, 2);
-                k++;
-            }
-            Array.Sort(outputOne);
-            var outputOneDistinct = outputOne.Distinct().ToArray();
-
-            for (int i = 0; i < outputZeroDistinct.Count(); i++)
-            {
-                yZero.Add(Convert.ToString(outputZeroDistinct[i], 2).PadLeft(numInput, '0'));
-            }
-
-            for (int i = 0; i < outputOneDistinct.Count(); i++)
-            {
-                yOne.Add(Convert.ToString(outputOneDistinct[i], 2).PadLeft(numInput, '0'));
-            }
-        }
+        //    var yZeroTemp = new List<string>();
+        //    var yOneTemp = new List<string>();
 
 
-        private static int MaxIndex(double[] vector) // helper for Accuracy()
-        {
-            // index of largest value
-            int bigIndex = 0;
-            double biggestVal = vector[0];
-            for (int i = 0; i < vector.Length; ++i)
-            {
-                if (vector[i] > biggestVal)
-                {
-                    biggestVal = vector[i];
-                    bigIndex = i;
-                }
-            }
-            return bigIndex;
-        }
+        //    for (int i = 0; i < data.Length; i++)
+        //    {
+        //        Array.Copy(data[i], xValues, numInput); // get x-values
+        //        Array.Copy(data[i], numInput + 2, tValues, 0, numOutput); // get target values from array
+
+        //        //Set X values to zero if ranking...
+
+        //        //TODO: xValues comments
+        //        if (isFeatureSelection)
+        //        {
+        //            xValues = DFTModel.SetXValueToZeroByRankCheck(xValues, rankArray, numInput);
+        //        }
+
+        //        yValues = this.ComputeOutputs(xValues);
+        //        binaryResult = MaxIndex(yValues); // which cell in yValues has largest value?
+
+        //        //string s = binaryResult.ToString();
+        //        string s = string.Empty;
+        //        for (int j = 0; j < numInput; j++)
+        //        {
+        //            s += xValues[j].ToString(); //TODO: for continuous variables this would raise errors
+        //        }
+
+        //        if (binaryResult == 0)
+        //        {
+        //            //dataList.Add(s);
+        //            yZeroTemp.Add(s);
+        //        }
+        //        else
+        //        {
+        //            yOneTemp.Add(s);
+        //        }
+        //    }
+
+        //    int k = 0;
+        //    int[] outputZero = new int[yZeroTemp.Count];
+        //    foreach (string s in yZeroTemp)
+        //    {
+        //        outputZero[k] = Convert.ToInt32(s, 2);
+        //        k++;
+        //    }
+        //    Array.Sort(outputZero);
+        //    var outputZeroDistinct = outputZero.Distinct().ToArray();
+
+        //    k = 0;
+        //    int[] outputOne = new int[yOneTemp.Count];
+        //    foreach (string s in yOneTemp)
+        //    {
+        //        outputOne[k] = Convert.ToInt32(s, 2);
+        //        k++;
+        //    }
+        //    Array.Sort(outputOne);
+        //    var outputOneDistinct = outputOne.Distinct().ToArray();
+
+        //    for (int i = 0; i < outputZeroDistinct.Count(); i++)
+        //    {
+        //        yZero.Add(Convert.ToString(outputZeroDistinct[i], 2).PadLeft(numInput, '0'));
+        //    }
+
+        //    for (int i = 0; i < outputOneDistinct.Count(); i++)
+        //    {
+        //        yOne.Add(Convert.ToString(outputOneDistinct[i], 2).PadLeft(numInput, '0'));
+        //    }
+        //}
+
+        
 
         public int GetTotalWeights()
         {
