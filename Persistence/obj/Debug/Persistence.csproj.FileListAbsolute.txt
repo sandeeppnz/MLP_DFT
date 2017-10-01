@@ -4,3 +4,5 @@ D:\ANN_Project_AUT_Sem3\Microsoft\BackPropProgram\Persistence\obj\Debug\Persiste
 D:\ANN_Project_AUT_Sem3\Microsoft\BackPropProgram\Persistence\obj\Debug\Persistence.dll
 D:\ANN_Project_AUT_Sem3\Microsoft\BackPropProgram\Persistence\obj\Debug\Persistence.pdb
 D:\ANN_Project_AUT_Sem3\Microsoft\BackPropProgram\Persistence\obj\Debug\Persistence.csprojResolveAssemblyReference.cache
+D:\ANN_Project_AUT_Sem3\Microsoft\BackPropProgram\Persistence\bin\Debug\Algorithms.dll
+D:\ANN_Project_AUT_Sem3\Microsoft\BackPropProgram\Persistence\bin\Debug\Algorithms.pdb

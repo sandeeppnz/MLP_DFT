@@ -5,15 +5,24 @@ using System.Linq;
 
 namespace BackPropProgram
 {
-    public partial class NeuralNetwork
+    public interface INeuralNetwork
     {
-        private int numInput; // number input nodes
-        private int numHidden;
-        private int numOutput;
+        int GetTotalWeights();
+        void SetWeights(double[] weights);
+        double[] ComputeOutputs(double[] xValues);
+        double[] Train(double[][] trainData, int maxEpochs, double learnRate, double momentum);
+        double Accuracy(double[][] data, double[] rankArray = null);
+
     }
 
-    public partial class NeuralNetwork
+
+    public partial class NeuralNetwork : INeuralNetwork
     {
+
+        public int numInput { get; set; } // number input nodes
+        public int numHidden { get; set; }
+        public int numOutput { get; set; }
+
 
         private double[] inputs;
         private double[][] ihWeights; // input-hidden
@@ -26,6 +35,9 @@ namespace BackPropProgram
 
         private Random rnd;
         private bool isFeatureSelection;
+
+        public int _totalWeights;
+
 
         public NeuralNetwork(int numInput, int numHidden, int numOutput, bool isFeatureSelection)
         {
@@ -49,40 +61,11 @@ namespace BackPropProgram
 
             this.InitializeWeights(); // all weights and biases
 
-
+            int numWeights = (numInput * numHidden) + numHidden +
+                  (numHidden * numOutput) + numOutput;
+            this._totalWeights = numWeights;
 
         } // ctor
-
-        public static void SplitTrainTest(double[][] allData, double trainPct,
-              int seed, out double[][] trainData, out double[][] testData)
-        {
-            Random rnd = new Random(seed);
-            int totRows = allData.Length;
-            int numTrainRows = (int)(totRows * trainPct); // usually 0.80
-            int numTestRows = totRows - numTrainRows;
-            trainData = new double[numTrainRows][];
-            testData = new double[numTestRows][];
-
-            double[][] copy = new double[allData.Length][]; // ref copy of data
-            for (int i = 0; i < copy.Length; ++i)
-            {
-                copy[i] = allData[i];
-            }
-
-            //TODO: shuffle
-            for (int i = 0; i < copy.Length; ++i) // scramble order
-            {
-                int r = rnd.Next(i, copy.Length); // use Fisher-Yates
-                double[] tmp = copy[r];
-                copy[r] = copy[i];
-                copy[i] = tmp;
-            }
-            for (int i = 0; i < numTrainRows; ++i)
-                trainData[i] = copy[i];
-
-            for (int i = 0; i < numTestRows; ++i)
-                testData[i] = copy[i + numTrainRows];
-        } // SplitTrainTest
 
 
 
@@ -457,7 +440,7 @@ namespace BackPropProgram
             return sumSquaredError / trainData.Length;
         } // MeanSquaredError
 
-        public double Accuracy(double[][] data, double[] rankArray)
+        public double Accuracy(double[][] data, double[] rankArray = null)
         {
             // percentage correct using winner-takes all
             int numCorrect = 0;
@@ -601,9 +584,10 @@ namespace BackPropProgram
             return bigIndex;
         }
 
-
-
-
+        public int GetTotalWeights()
+        {
+            return this._totalWeights;
+        }
     } // NeuralNetwork
 
 

@@ -4,10 +4,17 @@ using System.IO;
 
 namespace Persistence
 {
-    public class FileProcessor
+    public interface IFileProcessor
+    {
+        void ReadInputDatasetCSV(int numInputs, int numRows, out float[][] fullDataset, out float[][] tValueFile, string inputFilePathName);
+
+    }
+
+
+    public class FileProcessor: IFileProcessor
     {
 
-        public static void ReadInputDatasetCSV(int numInputs, int numRows, out float[][] fullDataset, out float[][] tValueFile, string inputFilePathName)
+        public void ReadInputDatasetCSV(int numInputs, int numRows, out float[][] fullDataset, out float[][] tValueFile, string inputFilePathName)
         {
             String line = String.Empty;
             //System.IO.StreamReader file = new System.IO.StreamReader(@"d:\Data.csv");

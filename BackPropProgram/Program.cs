@@ -29,7 +29,7 @@ namespace BackPropProgram
         {
             int seed = 1;
             int numRows = 45312; //10000;
-            float[][] fullDataset, tValueFile;
+            //float[][] fullDataset, tValueFile;
             int maxEpochs = 100;
             double learnRate = 0.3;
             double momentum = 0.2;
@@ -65,129 +65,112 @@ namespace BackPropProgram
                 }
             }
 
-            FileProcessor.ReadInputDatasetCSV(NUMINPUT, numRows, out fullDataset, out tValueFile, inputFilePathAndName);
+            Problem problem = new Problem(new FileProcessor(), new Logger(), new NeuralNetwork(NUMINPUT, NUMHIDDEN, NUMOUTPUT, ISFEATURESELECTION),
+                NUMINPUT, seed);
+
+            problem.ReadDataset(inputFilePathAndName, numRows);
+            //FileProcessor.ReadInputDatasetCSV(NUMINPUT, numRows, out fullDataset, out tValueFile, inputFilePathAndName);
 
             Console.WriteLine("\nBegin neural network back-propagation demo");
-            Console.WriteLine("\nGenerating " + numRows + " artificial data items with " + NUMINPUT + " features");
+            problem.GenerateArtificalDataUsingNN(NUMINPUT, NUMHIDDEN, NUMOUTPUT);
+            //double[][] allData = GenerateInitialMLPModel(NUMINPUT, NUMHIDDEN, NUMOUTPUT,
+            //  problem.NumRows, seed, problem.RawFullDataset, problem.TValueFile);
+            //NeuralNetwork.SplitTrainTest(allData, partition, seed, out trainData, out testData);
+            problem.SplitTrainTest(partition, seed);
+            problem.PrintTrain();
+            problem.PrintTest();
+            problem.CreateAndTrainMLP(NUMINPUT, NUMHIDDEN, NUMOUTPUT, ISFEATURESELECTION, maxEpochs, learnRate, momentum);
 
-            double[][] allData = GenerateInitialMLPModel(NUMINPUT, NUMHIDDEN, NUMOUTPUT,
-              numRows, seed, fullDataset, tValueFile);
 
-            Console.WriteLine("Done");
-
-            //ShowMatrix(allData, allData.Length, 2, true);
-
-            Console.WriteLine("\nCreating train (80%) and test (20%) matrices");
-            double[][] trainData;
-            double[][] testData;
-
-            NeuralNetwork.SplitTrainTest(allData, partition, seed, out trainData, out testData);
-            Console.WriteLine("Done\n");
-
-            Console.WriteLine("Training data:");
-            ShowMatrix(trainData, 4, 2, true);
-
-            Console.WriteLine("Test data:");
-            ShowMatrix(testData, 4, 2, true);
-
-            Console.WriteLine("Creating a " + NUMINPUT + "-" + NUMHIDDEN +
-              "-" + NUMOUTPUT + " neural network");
-            NeuralNetwork neuralNetwork = new NeuralNetwork(NUMINPUT, NUMHIDDEN, NUMOUTPUT, ISFEATURESELECTION);
-
-            Console.WriteLine("\nSetting maxEpochs = " + maxEpochs);
-            Console.WriteLine("Setting learnRate = " + learnRate.ToString("F2"));
-            Console.WriteLine("Setting momentum  = " + momentum.ToString("F2"));
-            Console.WriteLine("\nStarting training");
 
             #region MLP
-            double[] weights = neuralNetwork.Train(trainData, maxEpochs, learnRate, momentum);
-            Console.WriteLine("Done");
-            Console.WriteLine("\nFinal neural network model weights and biases:\n");
-            ShowVector(weights, 2, 10, true);
 
-            //TODO: not used
-            double[] inputNodeTotalWeightsArray = DFT.ShowVectorWInput(NUMINPUT, NUMHIDDEN, NUMOUTPUT, weights, 2);
+            ////TODO: not used
+            // NOT MIGRATED
+            //double[] inputNodeTotalWeightsArray = DFT.ShowVectorWInput(NUMINPUT, NUMHIDDEN, NUMOUTPUT, weights, 2);
 
-            //TODO: not used
-            double[] rankArray = null;
-            if (ISFEATURESELECTION)
-            {
-                rankArray = DFT.GenerateRankArray(NUMINPUT, inputNodeTotalWeightsArray);
-                weights = DFT.UpdateWeightsArrayByRank(NUMINPUT, NUMHIDDEN, weights, rankArray);
-                inputNodeTotalWeightsArray = DFT.ShowVectorWInput(NUMINPUT, NUMHIDDEN, NUMOUTPUT, weights, 2);
-                neuralNetwork.SetWeights(weights);
-            }
+            ////TODO: not used
+            //double[] rankArray = null;
+            //if (ISFEATURESELECTION)
+            //{
+            //    rankArray = DFT.GenerateRankArray(NUMINPUT, inputNodeTotalWeightsArray);
+            //    weights = DFT.UpdateWeightsArrayByRank(NUMINPUT, NUMHIDDEN, weights, rankArray);
+            //    inputNodeTotalWeightsArray = DFT.ShowVectorWInput(NUMINPUT, NUMHIDDEN, NUMOUTPUT, weights, 2);
+            //    neuralNetwork.SetWeights(weights);
+            //}
 
-            double trainAcc = neuralNetwork.Accuracy(trainData, rankArray);
-            Console.WriteLine("\nFinal accuracy on training data = " + trainAcc.ToString("F4"));
+            //Investigate Changes HERE
+            //double trainAcc = neuralNetwork.Accuracy(trainData, rankArray);
 
-            //TODO: not used
-            bool[,] inputTable = DFT.GenerateTruthTable(NUMINPUT);
-            bool[] answer1 = new bool[inputTable.GetLength(0)];
+            Console.WriteLine("\nFinal accuracy on training data = " + problem.TrainAcc.ToString("F4"));
+            Console.WriteLine("Final accuracy on test data     = " + problem.TestAcc.ToString("F4"));
 
-            //TODO: not used
-            if (ISFEATURESELECTION)
-            {
-                inputTable = DFT.SetIrrelevantVariables(NUMINPUT, inputTable, rankArray);
-            }
 
-            double testAcc = neuralNetwork.Accuracy(testData, rankArray);
-            Console.WriteLine("Final accuracy on test data     = " + testAcc.ToString("F4"));
+            ////TODO: not used
+            //bool[,] inputTable = DFT.GenerateTruthTable(NUMINPUT);
+            //bool[] answer1 = new bool[inputTable.GetLength(0)];
+
+            ////TODO: not used
+            //if (ISFEATURESELECTION)
+            //{
+            //    inputTable = DFT.SetIrrelevantVariables(NUMINPUT, inputTable, rankArray);
+            //}
+
 
             #endregion
 
 
 
 
-            #region Main DFT processing begins
-            var redundantSchema = DFT.GetUniqueRedudantSchema(NUMINPUT, ISFEATURESELECTION, trainData, rankArray); //unique combinations
-            var convertedArray = DFT.MakeArrayBasedSchema(NUMINPUT, redundantSchema);
+            //#region Main DFT processing begins
+            //var redundantSchema = DFT.GetUniqueRedudantSchema(NUMINPUT, ISFEATURESELECTION, trainData, rankArray); //unique combinations
+            //var convertedArray = DFT.MakeArrayBasedSchema(NUMINPUT, redundantSchema);
 
-            List<string> allSchemaSxClass0 = null;
-            List<string> allSchemaSxClass1 = null;
-            neuralNetwork.CalculateAccuracyAndAppendYValMy(trainData, rankArray, out allSchemaSxClass0, out allSchemaSxClass1);
-            #endregion
-
-
-            int numInputs_temp = NUMINPUT;
-            //int numInputs_temp = 3;
-            var clusteredSchemaSxClass0 = DFT.GetSchemaClustersWithWildcardChars(allSchemaSxClass0, allSchemaSxClass1);
-            var clusteredSchemaSxClass1 = DFT.GetSchemaClustersWithWildcardChars(allSchemaSxClass1, allSchemaSxClass0);
+            //List<string> allSchemaSxClass0 = null;
+            //List<string> allSchemaSxClass1 = null;
+            //neuralNetwork.CalculateAccuracyAndAppendYValMy(trainData, rankArray, out allSchemaSxClass0, out allSchemaSxClass1);
+            //#endregion
 
 
-            #region Calculate f(x) directly by looking at the pattern
-            var fxShortcutClass0 = DFT.CalculateFxByPatternDirectly(allSchemaSxClass0, clusteredSchemaSxClass0, "0");
-            var fxShortcutClass1 = DFT.CalculateFxByPatternDirectly(allSchemaSxClass1, clusteredSchemaSxClass1, "1");
-            #endregion
-
-            #region Find redundant attributes from patterns
-            //TODO: not used
-            var redundantAttibuteIndexList = DFT.FindRedundantAttributeFromPatterns(clusteredSchemaSxClass1);
-            #endregion
-
-            #region Calculate DFT coeffs
-            List<string> sjVectors = null;
-            var coeffsDFT = DFT.CalculateDFTCoeffs(numInputs_temp, clusteredSchemaSxClass1, out sjVectors);
-            #endregion
-
-            #region Calculate f(x) by Inverse DFT 
-            var fxClass0ByInvDFT = DFT.GetFxByInverseDFT(allSchemaSxClass0, sjVectors, coeffsDFT);
-            var fxClass1ByInvDFT = DFT.GetFxByInverseDFT(allSchemaSxClass1, sjVectors, coeffsDFT);
-            #endregion
-
-            //FileProcessor.WriteCoeffArraToCsv(coeffsDFT);
-            //FileProcessor.WritesXVectorsToCsv(allSchemaSxClass1);
-            //FileProcessor.WriteCoeffArraToCsv(coeffsDFT);
+            //int numInputs_temp = NUMINPUT;
+            ////int numInputs_temp = 3;
+            //var clusteredSchemaSxClass0 = DFT.GetSchemaClustersWithWildcardChars(allSchemaSxClass0, allSchemaSxClass1);
+            //var clusteredSchemaSxClass1 = DFT.GetSchemaClustersWithWildcardChars(allSchemaSxClass1, allSchemaSxClass0);
 
 
-            //Console.ReadLine();
+            //#region Calculate f(x) directly by looking at the pattern
+            //var fxShortcutClass0 = DFT.CalculateFxByPatternDirectly(allSchemaSxClass0, clusteredSchemaSxClass0, "0");
+            //var fxShortcutClass1 = DFT.CalculateFxByPatternDirectly(allSchemaSxClass1, clusteredSchemaSxClass1, "1");
+            //#endregion
+
+            //#region Find redundant attributes from patterns
+            ////TODO: not used
+            //var redundantAttibuteIndexList = DFT.FindRedundantAttributeFromPatterns(clusteredSchemaSxClass1);
+            //#endregion
+
+            //#region Calculate DFT coeffs
+            //List<string> sjVectors = null;
+            //var coeffsDFT = DFT.CalculateDFTCoeffs(numInputs_temp, clusteredSchemaSxClass1, out sjVectors);
+            //#endregion
+
+            //#region Calculate f(x) by Inverse DFT 
+            //var fxClass0ByInvDFT = DFT.GetFxByInverseDFT(allSchemaSxClass0, sjVectors, coeffsDFT);
+            //var fxClass1ByInvDFT = DFT.GetFxByInverseDFT(allSchemaSxClass1, sjVectors, coeffsDFT);
+            //#endregion
+
+            ////FileProcessor.WriteCoeffArraToCsv(coeffsDFT);
+            ////FileProcessor.WritesXVectorsToCsv(allSchemaSxClass1);
+            ////FileProcessor.WriteCoeffArraToCsv(coeffsDFT);
+
+
+            ////Console.ReadLine();
 
 
 
-            #region write to csv
-            FileProcessor.WriteCSVOutput(numInputs_temp, allSchemaSxClass0, "0", fxClass0ByInvDFT, fxShortcutClass0, true);
-            FileProcessor.WriteCSVOutput(numInputs_temp, allSchemaSxClass1, "1", fxClass1ByInvDFT, fxShortcutClass1, false);
-            #endregion
+            //#region write to csv
+            //FileProcessor.WriteCSVOutput(numInputs_temp, allSchemaSxClass0, "0", fxClass0ByInvDFT, fxShortcutClass0, true);
+            //FileProcessor.WriteCSVOutput(numInputs_temp, allSchemaSxClass1, "1", fxClass1ByInvDFT, fxShortcutClass1, false);
+            //#endregion
 
 
 
@@ -350,18 +333,18 @@ namespace BackPropProgram
         }
 
 
-        public static void ShowVector(double[] vector, int decimals,
-          int lineLen, bool newLine)
-        {
-            for (int i = 0; i < vector.Length; ++i)
-            {
-                if (i > 0 && i % lineLen == 0) Console.WriteLine("");
-                if (vector[i] >= 0) Console.Write(" ");
-                Console.Write(vector[i].ToString("F" + decimals) + " ");
-            }
-            if (newLine == true)
-                Console.WriteLine("");
-        }
+        //public static void ShowVector(double[] vector, int decimals,
+        //  int lineLen, bool newLine)
+        //{
+        //    for (int i = 0; i < vector.Length; ++i)
+        //    {
+        //        if (i > 0 && i % lineLen == 0) Console.WriteLine("");
+        //        if (vector[i] >= 0) Console.Write(" ");
+        //        Console.Write(vector[i].ToString("F" + decimals) + " ");
+        //    }
+        //    if (newLine == true)
+        //        Console.WriteLine("");
+        //}
 
 
         #region Mods
@@ -452,140 +435,140 @@ namespace BackPropProgram
         #endregion
 
 
-        static double[][] GenerateInitialMLPModel(int numInput, int numHidden,
-              int numOutput, int numRows, int seed, float[][] datafile, float[][] tValueFile)
-        {
-            Random rnd = new Random(seed);
-            int numWeights = (numInput * numHidden) + numHidden +
-              (numHidden * numOutput) + numOutput;
+        //static double[][] GenerateInitialMLPModel(int numInput, int numHidden,
+        //      int numOutput, int numRows, int seed, float[][] datafile, float[][] tValueFile)
+        //{
+        //    Random rnd = new Random(seed);
+        //    int numWeights = (numInput * numHidden) + numHidden +
+        //      (numHidden * numOutput) + numOutput;
 
-            double[] weights = new double[numWeights]; // actually weights & biases
+        //    double[] weights = new double[numWeights]; // actually weights & biases
 
-            for (int i = 0; i < numWeights; ++i)
-                weights[i] = 20.0 * rnd.NextDouble() - 10.0; // [-10.0 to 10.0]
+        //    for (int i = 0; i < numWeights; ++i)
+        //        weights[i] = 20.0 * rnd.NextDouble() - 10.0; // [-10.0 to 10.0]
 
-            Console.WriteLine("Generating weights and biases:");
-            ShowVector(weights, 2, 10, true);
+        //    Console.WriteLine("Generating weights and biases:");
+        //    ShowVector(weights, 2, 10, true);
 
-            double[][] result = new double[numRows][]; // allocate return-result
-            for (int i = 0; i < numRows; ++i)
-                //TODO: added to save the tvalues
-                result[i] = new double[numInput + numOutput + 2]; // 1-of-N in last column
+        //    double[][] result = new double[numRows][]; // allocate return-result
+        //    for (int i = 0; i < numRows; ++i)
+        //        //TODO: added to save the tvalues
+        //        result[i] = new double[numInput + numOutput + 2]; // 1-of-N in last column
 
-            NeuralNetwork gnn =
-              new NeuralNetwork(numInput, numHidden, numOutput, ISFEATURESELECTION); // generating NN
+        //    NeuralNetwork gnn =
+        //      new NeuralNetwork(numInput, numHidden, numOutput, ISFEATURESELECTION); // generating NN
 
-            gnn.SetWeights(weights);
+        //    gnn.SetWeights(weights);
 
-            for (int r = 0; r < numRows; ++r) // for each row
-            {
-                // generate random inputs
-                double[] inputs = new double[numInput];
+        //    for (int r = 0; r < numRows; ++r) // for each row
+        //    {
+        //        // generate random inputs
+        //        double[] inputs = new double[numInput];
 
-                //for (int i = 0; i < numInput; ++i)
-                //    inputs[i] = 20.0 * rnd.NextDouble() - 10.0; // [-10.0 to -10.0]
+        //        //for (int i = 0; i < numInput; ++i)
+        //        //    inputs[i] = 20.0 * rnd.NextDouble() - 10.0; // [-10.0 to -10.0]
 
-                //read file
-                for (int i = 0; i < numInput; ++i)
-                    inputs[i] = datafile[r][i]; // [-10.0 to -10.0]
+        //        //read file
+        //        for (int i = 0; i < numInput; ++i)
+        //            inputs[i] = datafile[r][i]; // [-10.0 to -10.0]
 
-                // compute outputs
-                double[] outputs = gnn.ComputeOutputs(inputs);
+        //        // compute outputs
+        //        double[] outputs = gnn.ComputeOutputs(inputs);
 
-                //double[] outputs = new double[numOutput];
-                //for (int i = numInput; i < numOutput + numInput; ++i)
-                //    outputs[i] = datafile[r][i]; // [-10.0 to -10.0]
+        //        //double[] outputs = new double[numOutput];
+        //        //for (int i = numInput; i < numOutput + numInput; ++i)
+        //        //    outputs[i] = datafile[r][i]; // [-10.0 to -10.0]
 
-                // translate outputs to 1-of-N
-                double[] oneOfN = new double[numOutput]; // all 0.0
+        //        // translate outputs to 1-of-N
+        //        double[] oneOfN = new double[numOutput]; // all 0.0
 
-                int maxIndex = 0;
-                double maxValue = outputs[0];
-                for (int i = 0; i < numOutput; ++i)
-                {
-                    if (outputs[i] > maxValue)
-                    {
-                        maxIndex = i;
-                        maxValue = outputs[i];
-                    }
-                }
-                oneOfN[maxIndex] = 1.0;
+        //        int maxIndex = 0;
+        //        double maxValue = outputs[0];
+        //        for (int i = 0; i < numOutput; ++i)
+        //        {
+        //            if (outputs[i] > maxValue)
+        //            {
+        //                maxIndex = i;
+        //                maxValue = outputs[i];
+        //            }
+        //        }
+        //        oneOfN[maxIndex] = 1.0;
 
-                // place inputs and 1-of-N output values into curr row
-                int c = 0; // column into result[][]
-                for (int i = 0; i < numInput; ++i) // inputs
-                    result[r][c++] = inputs[i];
-                for (int i = 0; i < numOutput; ++i) // outputs
-                    result[r][c++] = oneOfN[i];
+        //        // place inputs and 1-of-N output values into curr row
+        //        int c = 0; // column into result[][]
+        //        for (int i = 0; i < numInput; ++i) // inputs
+        //            result[r][c++] = inputs[i];
+        //        for (int i = 0; i < numOutput; ++i) // outputs
+        //            result[r][c++] = oneOfN[i];
 
-                //Add the target values
-                for (int i = 0; i < 2; ++i) // outputs
-                    result[r][c++] = tValueFile[r][i];
-
-
-
-            } // each row
-            return result;
-        } // MakeAllData
+        //        //Add the target values
+        //        for (int i = 0; i < 2; ++i) // outputs
+        //            result[r][c++] = tValueFile[r][i];
 
 
 
-        static double[][] MakeAllData(int numInput, int numHidden,
-          int numOutput, int numRows, int seed)
-        {
-            Random rnd = new Random(seed);
-            int numWeights = (numInput * numHidden) + numHidden +
-              (numHidden * numOutput) + numOutput;
+        //    } // each row
+        //    return result;
+        //} // MakeAllData
 
-            double[] weights = new double[numWeights]; // actually weights & biases
-            for (int i = 0; i < numWeights; ++i)
-                weights[i] = 20.0 * rnd.NextDouble() - 10.0; // [-10.0 to 10.0]
 
-            Console.WriteLine("Generating weights and biases:");
-            ShowVector(weights, 2, 10, true);
 
-            double[][] result = new double[numRows][]; // allocate return-result
-            for (int i = 0; i < numRows; ++i)
-                result[i] = new double[numInput + numOutput]; // 1-of-N in last column
+        //static double[][] MakeAllData(int numInput, int numHidden,
+        //  int numOutput, int numRows, int seed)
+        //{
+        //    Random rnd = new Random(seed);
+        //    int numWeights = (numInput * numHidden) + numHidden +
+        //      (numHidden * numOutput) + numOutput;
 
-            NeuralNetwork gnn =
-              new NeuralNetwork(numInput, numHidden, numOutput, ISFEATURESELECTION); // generating NN
-            gnn.SetWeights(weights);
+        //    double[] weights = new double[numWeights]; // actually weights & biases
+        //    for (int i = 0; i < numWeights; ++i)
+        //        weights[i] = 20.0 * rnd.NextDouble() - 10.0; // [-10.0 to 10.0]
 
-            for (int r = 0; r < numRows; ++r) // for each row
-            {
-                // generate random inputs
-                double[] inputs = new double[numInput];
-                for (int i = 0; i < numInput; ++i)
-                    inputs[i] = 20.0 * rnd.NextDouble() - 10.0; // [-10.0 to -10.0]
+        //    Console.WriteLine("Generating weights and biases:");
+        //    ShowVector(weights, 2, 10, true);
 
-                // compute outputs
-                double[] outputs = gnn.ComputeOutputs(inputs);
+        //    double[][] result = new double[numRows][]; // allocate return-result
+        //    for (int i = 0; i < numRows; ++i)
+        //        result[i] = new double[numInput + numOutput]; // 1-of-N in last column
 
-                // translate outputs to 1-of-N
-                double[] oneOfN = new double[numOutput]; // all 0.0
+        //    NeuralNetwork gnn =
+        //      new NeuralNetwork(numInput, numHidden, numOutput, ISFEATURESELECTION); // generating NN
+        //    gnn.SetWeights(weights);
 
-                int maxIndex = 0;
-                double maxValue = outputs[0];
-                for (int i = 0; i < numOutput; ++i)
-                {
-                    if (outputs[i] > maxValue)
-                    {
-                        maxIndex = i;
-                        maxValue = outputs[i];
-                    }
-                }
-                oneOfN[maxIndex] = 1.0;
+        //    for (int r = 0; r < numRows; ++r) // for each row
+        //    {
+        //        // generate random inputs
+        //        double[] inputs = new double[numInput];
+        //        for (int i = 0; i < numInput; ++i)
+        //            inputs[i] = 20.0 * rnd.NextDouble() - 10.0; // [-10.0 to -10.0]
 
-                // place inputs and 1-of-N output values into curr row
-                int c = 0; // column into result[][]
-                for (int i = 0; i < numInput; ++i) // inputs
-                    result[r][c++] = inputs[i];
-                for (int i = 0; i < numOutput; ++i) // outputs
-                    result[r][c++] = oneOfN[i];
-            } // each row
-            return result;
-        } // MakeAllData
+        //        // compute outputs
+        //        double[] outputs = gnn.ComputeOutputs(inputs);
+
+        //        // translate outputs to 1-of-N
+        //        double[] oneOfN = new double[numOutput]; // all 0.0
+
+        //        int maxIndex = 0;
+        //        double maxValue = outputs[0];
+        //        for (int i = 0; i < numOutput; ++i)
+        //        {
+        //            if (outputs[i] > maxValue)
+        //            {
+        //                maxIndex = i;
+        //                maxValue = outputs[i];
+        //            }
+        //        }
+        //        oneOfN[maxIndex] = 1.0;
+
+        //        // place inputs and 1-of-N output values into curr row
+        //        int c = 0; // column into result[][]
+        //        for (int i = 0; i < numInput; ++i) // inputs
+        //            result[r][c++] = inputs[i];
+        //        for (int i = 0; i < numOutput; ++i) // outputs
+        //            result[r][c++] = oneOfN[i];
+        //    } // each row
+        //    return result;
+        //} // MakeAllData
 
 
     }
