@@ -10,9 +10,7 @@ D:\ANN_Project_AUT_Sem3\Microsoft\BackPropProgram\BackPropProgram.Tests\bin\Debu
 D:\ANN_Project_AUT_Sem3\Microsoft\BackPropProgram\BackPropProgram.Tests\bin\Debug\Algorithms.dll
 D:\ANN_Project_AUT_Sem3\Microsoft\BackPropProgram\BackPropProgram.Tests\bin\Debug\Microsoft.VisualStudio.QualityTools.UnitTestFramework.dll
 D:\ANN_Project_AUT_Sem3\Microsoft\BackPropProgram\BackPropProgram.Tests\bin\Debug\nunit.framework.dll
-D:\ANN_Project_AUT_Sem3\Microsoft\BackPropProgram\BackPropProgram.Tests\bin\Debug\Persistence.dll
 D:\ANN_Project_AUT_Sem3\Microsoft\BackPropProgram\BackPropProgram.Tests\bin\Debug\Algorithms.pdb
-D:\ANN_Project_AUT_Sem3\Microsoft\BackPropProgram\BackPropProgram.Tests\bin\Debug\Persistence.pdb
 D:\ANN_Project_AUT_Sem3\Microsoft\BackPropProgram\BackPropProgram.Tests\bin\Debug\nunit.framework.xml
 D:\ANN_Project_AUT_Sem3\Microsoft\BackPropProgram\BackPropProgram.Tests\obj\Debug\BackPropProgram.Tests.csprojResolveAssemblyReference.cache
 D:\ANN_Project_AUT_Sem3\Microsoft\BackPropProgram\BackPropProgram.Tests\obj\Debug\BackPropProgram.Tests.csproj.CoreCompileInputs.cache

@@ -1,23 +1,31 @@
-﻿using Algorithms;
-using BackPropProgram;
-using System;
+﻿using System;
 using System.Collections.Generic;
+using System.Diagnostics;
+using System.IO;
 using System.Linq;
 using System.Text;
+using System.Text.RegularExpressions;
 using System.Threading.Tasks;
 
-namespace Persistence
+namespace BackPropProgram
 {
-    public class Problem
+    public class MLPModel
     {
         IFileProcessor _fileProcessor;
         ILogger _logger;
         INeuralNetwork _nn;
-
+        IRRunner _rRunner;
 
         public int NumAttributes { get; set; }
         public int NumRows { get; set; }
         public int Seed { get; set; }
+        public double Partition { get; set; }
+        public double PartitionIncrement { get; set; }
+
+        public double HotellingTestPValue { get; set; }
+        public double HotellingTestThreshold { get; set; }
+
+
         //int NumAttributes { get; set; }
 
         public string InputFilePathAndName { get; set; }
@@ -33,22 +41,74 @@ namespace Persistence
         public double TrainAcc { get; set; }
         public double TestAcc { get; set; }
 
-
-        public Problem(FileProcessor fp, Logger logger, NeuralNetwork nn, int numInput, int seed)
+        public MLPModel(FileProcessor fp, Logger logger, NeuralNetwork nn, int numInput, int seed, double partition, double hotellingTestThreshold, double partitionIncrement, RRunner rRunner)
         {
             _fileProcessor = fp;
             _logger = logger;
             _nn = nn;
+            _rRunner = rRunner;
 
-            
             Seed = seed;
             NumAttributes = numInput;
+
+            Partition = partition;
+            HotellingTestPValue = 0;
+            HotellingTestThreshold = hotellingTestThreshold;
+            PartitionIncrement = partitionIncrement;
+
         }
 
-        public void ReadDataset(string inputFilePathAndName, int numRows)
+        public void RunHotellingTTest(string inputDatasetFile, string rScriptFile, string rBin)
+        {
+            #region sample test R
+            //string path = @"D:\ANN_Project_AUT_Sem3\Microsoft\BackPropProgram\HotellingR";
+            //var result = RScript.RunFromCmd(path + @"\rcodeTest.r", @"C:\Program Files\R\R-3.4.1\bin\rscript.exe", "3");
+            #endregion
+
+            Stopwatch sw = new Stopwatch();
+            Console.WriteLine("Hotelling Test...");
+            sw.Start();
+            while (HotellingTestPValue <= HotellingTestThreshold)
+            {
+                var result = _rRunner.RunFromCmd(this._fileProcessor.GetDataPath() + rScriptFile, rBin, Partition.ToString(), this._fileProcessor.GetDataPath() + inputDatasetFile);
+
+                if (string.IsNullOrEmpty(result))
+                {
+                    Partition += PartitionIncrement;
+                    continue;
+                }
+
+                var res2 = result.Substring(result.IndexOf(']') + 1);
+                var res3 = res2.Substring(res2.IndexOf(']') + 1);
+                var res = Regex.Split(res3, @"[^0-9\.]+");
+
+
+                foreach (string s in res)
+                {
+                    if (!string.IsNullOrEmpty(s))
+                    {
+                        HotellingTestPValue = double.Parse(s);
+                        break;
+                    }
+                }
+                Console.WriteLine("Partiion: {0} PValue: {1}", Partition, HotellingTestPValue);
+
+
+                if (HotellingTestPValue <= HotellingTestThreshold)
+                {
+                    Partition += PartitionIncrement;
+                }
+            }
+            sw.Stop();
+            Console.WriteLine("Elapsed={0}", sw.Elapsed);
+
+
+        }
+
+        public void ReadDataset(string inputFileName, int numRows)
         {
             NumRows = numRows;
-           _fileProcessor.ReadInputDatasetCSV(NumAttributes, NumRows, out RawFullDataset, out TValueFile, inputFilePathAndName);
+            _fileProcessor.ReadInputDatasetCSV(NumAttributes, NumRows, out RawFullDataset, out TValueFile, inputFileName);
 
         }
 
@@ -64,7 +124,9 @@ namespace Persistence
                 weights[i] = 20.0 * rnd.NextDouble() - 10.0; // [-10.0 to 10.0]
 
             Console.WriteLine("Generating weights and biases:");
-            ShowVector(weights, 2, 10, true);
+
+            _nn.SetAllWeights(weights);
+            //ShowVector(weights, 2, 10, true);
 
             double[][] result = new double[NumRows][]; // allocate return-result
             for (int i = 0; i < NumRows; ++i)
@@ -165,7 +227,8 @@ namespace Persistence
             Console.WriteLine("Done");
             Console.WriteLine("\nFinal neural network model weights and biases:\n");
 
-            ShowVector(weights, 2, 10, true);
+            _nn.SetAllWeights(weights);
+            //ShowVector(weights, 2, 10, true);
 
             //trainAcc = _nn.Accuracy(TrainData, rankArray);
             TrainAcc = _nn.Accuracy(TrainData);
@@ -173,11 +236,25 @@ namespace Persistence
 
         }
 
+        //public void ShowVector(double[] vector, int decimals,
+        //    int lineLen, bool newLine)
+        //{
+        //    for (int i = 0; i < vector.Length; ++i)
+        //    {
+        //        if (i > 0 && i % lineLen == 0) Console.WriteLine("");
+        //        if (vector[i] >= 0) Console.Write(" ");
+        //        Console.Write(vector[i].ToString("F" + decimals) + " ");
+        //    }
+        //    if (newLine == true)
+        //        Console.WriteLine("");
 
+        //}
 
-        public void ShowVector(double[] vector, int decimals,
-          int lineLen, bool newLine)
+        public void PrintWeights(int decimals,
+            int lineLen, bool newLine)
         {
+            var vector = _nn.GetAllWeights();
+
             for (int i = 0; i < vector.Length; ++i)
             {
                 if (i > 0 && i % lineLen == 0) Console.WriteLine("");
@@ -190,7 +267,7 @@ namespace Persistence
         }
 
         public void ShowMatrix(double[][] matrix, int numRows,
-      int decimals, bool indices)
+            int decimals, bool indices)
         {
             int len = matrix.Length.ToString().Length;
             for (int i = 0; i < numRows; ++i)
@@ -224,15 +301,12 @@ namespace Persistence
             Console.WriteLine("\n");
         }
 
-
-
-        public void SplitTrainTest(double trainPct, int seed)
+        public void SplitTrainTest(int seed)
         {
-            Console.WriteLine("\nCreating train (80%) and test (20%) matrices");
-
+            Console.WriteLine("\nCreating train {0} and test {1} matrices", Partition, 1 - Partition);
             Random rnd = new Random(seed);
             int totRows = AllData.Length;
-            int numTrainRows = (int)(totRows * trainPct); // usually 0.80
+            int numTrainRows = (int)(totRows * Partition); // usually 0.80
             int numTestRows = totRows - numTrainRows;
             TrainData = new double[numTrainRows][];
             TestData = new double[numTestRows][];
@@ -259,8 +333,5 @@ namespace Persistence
 
             Console.WriteLine("Done\n");
         } // SplitTrainTest
-
-
-
     }
 }

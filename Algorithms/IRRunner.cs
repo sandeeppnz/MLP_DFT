@@ -1,12 +1,21 @@
 ﻿using System;
+using System.Collections.Generic;
 using System.Diagnostics;
 using System.IO;
+using System.Linq;
+using System.Text;
+using System.Threading.Tasks;
 
 namespace BackPropProgram
 {
     //https://stackoverflow.com/questions/14021055/r-script-form-c-passing-arguments-running-script-retrieving-results
 
-    public static class RScript
+    public interface IRRunner
+    {
+        string RunFromCmd(string rCodeFilePath, string rScriptExecutablePath, string args, string filePathAndName);
+    }
+
+    public class RRunner: IRRunner
     {
         //public RScript()
         //{  }
@@ -36,7 +45,7 @@ namespace BackPropProgram
         //}
 
 
-        public static string RunFromCmd(string rCodeFilePath, string rScriptExecutablePath, string args, string filePathAndName)
+        public string RunFromCmd(string rCodeFilePath, string rScriptExecutablePath, string args, string filePathAndName)
         {
             string file = rCodeFilePath;
             string result = string.Empty;

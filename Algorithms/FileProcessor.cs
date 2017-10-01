@@ -1,18 +1,30 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.IO;
+using System.Linq;
+using System.Text;
+using System.Threading.Tasks;
 
-namespace Persistence
+namespace BackPropProgram
 {
     public interface IFileProcessor
     {
+        string GetDataPath();
         void ReadInputDatasetCSV(int numInputs, int numRows, out float[][] fullDataset, out float[][] tValueFile, string inputFilePathName);
 
     }
 
 
-    public class FileProcessor: IFileProcessor
+    public class FileProcessor : IFileProcessor
     {
+        public string DataPath {get;set;}
+
+        public string GetDataPath() { return DataPath; }
+
+        public FileProcessor(string dataPath)
+        {
+            DataPath = dataPath;
+        }
 
         public void ReadInputDatasetCSV(int numInputs, int numRows, out float[][] fullDataset, out float[][] tValueFile, string inputFilePathName)
         {
@@ -20,7 +32,7 @@ namespace Persistence
             //System.IO.StreamReader file = new System.IO.StreamReader(@"d:\Data.csv");
             //System.IO.StreamReader file = new System.IO.StreamReader(@"d:\Data_withY-CS.csv");
             //System.IO.StreamReader file = new System.IO.StreamReader(@"d:\irisCSV.csv");
-            System.IO.StreamReader file = new System.IO.StreamReader(inputFilePathName);
+            System.IO.StreamReader file = new System.IO.StreamReader(DataPath + inputFilePathName);
             fullDataset = new float[numRows][];
             tValueFile = new float[numRows][];
             for (int i = 0; i < numRows; i++)

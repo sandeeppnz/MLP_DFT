@@ -1,5 +1,4 @@
 ﻿using Algorithms;
-using Persistence;
 using System;
 using System.Collections.Generic;
 using System.Text.RegularExpressions;
@@ -8,20 +7,15 @@ namespace BackPropProgram
 {
     /*  
      * https://visualstudiomagazine.com/Articles/2015/04/01/Back-Propagation-Using-C.aspx?Page=3 
-     * Dataset: 10000
-     * Train: 8000
-     * Test: 2000
-     * Features: 11
-     * Class: 0,1
      */
 
 
 
     class Program
     {
-        const int NUMINPUT = 7; //11; // number features
-        const int NUMHIDDEN = 8;
-        const int NUMOUTPUT = 2; // number of classes for Y
+        const int numInput = 7; //11; // number features
+        const int numHidden = 8;
+        const int numOutput = 2; // number of classes for Y
         const bool ISFEATURESELECTION = false;
 
 
@@ -29,57 +23,40 @@ namespace BackPropProgram
         {
             int seed = 1;
             int numRows = 45312; //10000;
-            //float[][] fullDataset, tValueFile;
-            int maxEpochs = 100;
-            double learnRate = 0.3;
-            double momentum = 0.2;
-            string inputFilePathAndName = @"d:/ann_project_aut_sem3/microsoft/backpropprogram/hotellingr/Data_withYEle.csv";
-            //string inputFilePathAndName = @"d:/ann_project_aut_sem3/microsoft/backpropprogram/hotellingr/Data_withY.csv";
-            double p_val = 0;
+            const int maxEpochs = 100;
+            const double learnRate = 0.3;
+            const double momentum = 0.2;
             double partition = 0;
+            const double partitionIncrement = 0.01;
+            const double hotellingTestThreshold = 0.05;
+
+            string rBin = @"C:\Program Files\R\R-3.4.1\bin\rscript.exe";
+            string rScripFileName = @"hotellingttest3.r";
+            string dataPath = @"D:\ANN_Project_AUT_Sem3\Microsoft\BackPropProgram\Data\";
+            string inputDatasetFileName = @"Data_withYEle.csv";
+
+            //string inputFilePathAndName = @"d:/ann_project_aut_sem3/microsoft/backpropprogram/hotellingr/Data_withY.csv";
+            //string filePath = @"D:\ANN_Project_AUT_Sem3\Microsoft\BackPropProgram\HotellingR";
+            
+
+            MLPModel model = new MLPModel(new FileProcessor(dataPath), new Logger(), new NeuralNetwork(numInput, numHidden, numOutput, ISFEATURESELECTION),
+                numInput, seed, partition, hotellingTestThreshold, partitionIncrement, new RRunner());
+
+            model.ReadDataset(inputDatasetFileName, numRows);
+            model.RunHotellingTTest(inputDatasetFileName, rScripFileName, rBin);
 
 
-            #region sample test R
-            //string path = @"D:\ANN_Project_AUT_Sem3\Microsoft\BackPropProgram\HotellingR";
-            //var result = RScript.RunFromCmd(path + @"\rcodeTest.r", @"C:\Program Files\R\R-3.4.1\bin\rscript.exe", "3");
-            #endregion
+            Console.WriteLine("\nBegin neural network back-propagation");
 
-            while (p_val <= 0.05)
-            {
-                partition += 0.1;
-                string path = @"D:\ANN_Project_AUT_Sem3\Microsoft\BackPropProgram\HotellingR";
-                var result = RScript.RunFromCmd(path + @"\hotellingttest3.r", @"C:\Program Files\R\R-3.4.1\bin\rscript.exe", partition.ToString(), inputFilePathAndName);
-
-                var res2 = result.Substring(result.IndexOf(']') + 1);
-                var res3 = res2.Substring(res2.IndexOf(']') + 1);
-                var res = Regex.Split(res3, @"[^0-9\.]+");
+            model.GenerateArtificalDataUsingNN(numInput, numHidden, numOutput);
+            model.PrintWeights(2, 10, true);
 
 
-                foreach (string s in res)
-                {
-                    if (!string.IsNullOrEmpty(s))
-                    {
-                        p_val = double.Parse(s);
-                        break;
-                    }
-                }
-            }
-
-            Problem problem = new Problem(new FileProcessor(), new Logger(), new NeuralNetwork(NUMINPUT, NUMHIDDEN, NUMOUTPUT, ISFEATURESELECTION),
-                NUMINPUT, seed);
-
-            problem.ReadDataset(inputFilePathAndName, numRows);
-            //FileProcessor.ReadInputDatasetCSV(NUMINPUT, numRows, out fullDataset, out tValueFile, inputFilePathAndName);
-
-            Console.WriteLine("\nBegin neural network back-propagation demo");
-            problem.GenerateArtificalDataUsingNN(NUMINPUT, NUMHIDDEN, NUMOUTPUT);
-            //double[][] allData = GenerateInitialMLPModel(NUMINPUT, NUMHIDDEN, NUMOUTPUT,
-            //  problem.NumRows, seed, problem.RawFullDataset, problem.TValueFile);
-            //NeuralNetwork.SplitTrainTest(allData, partition, seed, out trainData, out testData);
-            problem.SplitTrainTest(partition, seed);
-            problem.PrintTrain();
-            problem.PrintTest();
-            problem.CreateAndTrainMLP(NUMINPUT, NUMHIDDEN, NUMOUTPUT, ISFEATURESELECTION, maxEpochs, learnRate, momentum);
+            model.SplitTrainTest(seed);
+            model.PrintTrain();
+            model.PrintTest();
+            model.CreateAndTrainMLP(numInput, numHidden, numOutput, ISFEATURESELECTION, maxEpochs, learnRate, momentum);
+            model.PrintWeights(2, 10, true);
 
 
 
@@ -102,8 +79,11 @@ namespace BackPropProgram
             //Investigate Changes HERE
             //double trainAcc = neuralNetwork.Accuracy(trainData, rankArray);
 
-            Console.WriteLine("\nFinal accuracy on training data = " + problem.TrainAcc.ToString("F4"));
-            Console.WriteLine("Final accuracy on test data     = " + problem.TestAcc.ToString("F4"));
+
+            Console.WriteLine("\nFinal accuracy on training data = " + model.TrainAcc.ToString("F4"));
+            Console.WriteLine("Final accuracy on test data     = " + model.TestAcc.ToString("F4"));
+            Console.WriteLine("\nEnd back-propagation\n");
+
 
 
             ////TODO: not used
@@ -119,10 +99,11 @@ namespace BackPropProgram
 
             #endregion
 
-
-
-
             //#region Main DFT processing begins
+            Console.WriteLine();
+            Console.WriteLine("\nDFT Processing...");
+
+
             //var redundantSchema = DFT.GetUniqueRedudantSchema(NUMINPUT, ISFEATURESELECTION, trainData, rankArray); //unique combinations
             //var convertedArray = DFT.MakeArrayBasedSchema(NUMINPUT, redundantSchema);
 
@@ -176,7 +157,6 @@ namespace BackPropProgram
 
 
 
-            Console.WriteLine("\nEnd back-propagation demo\n");
             Console.ReadLine();
         }
 

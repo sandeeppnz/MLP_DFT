@@ -9,6 +9,12 @@ namespace BackPropProgram
     {
         int GetTotalWeights();
         void SetWeights(double[] weights);
+
+
+        void SetAllWeights(double[] weights);
+        double[] GetAllWeights();
+
+
         double[] ComputeOutputs(double[] xValues);
         double[] Train(double[][] trainData, int maxEpochs, double learnRate, double momentum);
         double Accuracy(double[][] data, double[] rankArray = null);
@@ -23,6 +29,7 @@ namespace BackPropProgram
         public int numHidden { get; set; }
         public int numOutput { get; set; }
 
+        public double[] AllWeights { get; set; }
 
         private double[] inputs;
         private double[][] ihWeights; // input-hidden
@@ -109,6 +116,18 @@ namespace BackPropProgram
                 initialWeights[i] = (0.001 - 0.0001) * rnd.NextDouble() + 0.0001;
             this.SetWeights(initialWeights);
         }
+
+        public void SetAllWeights(double[] weights)
+        {
+            AllWeights = weights;
+        }
+
+        public double[] GetAllWeights()
+        {
+            return AllWeights;
+        }
+
+
 
         public void SetWeights(double[] weights)
         {
