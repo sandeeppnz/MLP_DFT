@@ -1,43 +1,40 @@
 ﻿using Algorithms;
 using System;
 using System.Collections.Generic;
+using System.Diagnostics;
 using System.Text.RegularExpressions;
 
 namespace BackPropProgram
 {
-    /*  
-     * https://visualstudiomagazine.com/Articles/2015/04/01/Back-Propagation-Using-C.aspx?Page=3 
-     */
-
-
-
     class Program
     {
-        const int numInput = 7; //11; // number features
-        const int numHidden = 8;
-        const int numOutput = 2; // number of classes for Y
-        const bool ISFEATURESELECTION = false;
-
 
         static void Main(string[] args)
         {
-            int seed = 1;
-            int numRows = 45312; //10000;
+            const int seed = 1;
             const int maxEpochs = 100;
             const double learnRate = 0.3;
             const double momentum = 0.2;
-            double partition = 0;
             const double partitionIncrement = 0.01;
             const double hotellingTestThreshold = 0.05;
 
-            string rBin = @"C:\Program Files\R\R-3.4.1\bin\rscript.exe";
-            string rScripFileName = @"hotellingttest3.r";
-            string dataPath = @"D:\ANN_Project_AUT_Sem3\Microsoft\BackPropProgram\Data\";
-            string inputDatasetFileName = @"Data_withYEle.csv";
+            const string rBin = @"C:\Program Files\R\R-3.4.1\bin\rscript.exe";
+            const string rScripFileName = "hotellingttest3.r";
+            const string dataPath = @"D:\ANN_Project_AUT_Sem3\Microsoft\BackPropProgram\Data\";
 
-            //string inputFilePathAndName = @"d:/ann_project_aut_sem3/microsoft/backpropprogram/hotellingr/Data_withY.csv";
-            //string filePath = @"D:\ANN_Project_AUT_Sem3\Microsoft\BackPropProgram\HotellingR";
+            double partition = 0;
+            //Files
+            const int numInput = 7; //11; // number features
+            const int numHidden = 8;
+            const int numOutput = 2; // number of classes for Y
+            const bool ISFEATURESELECTION = false;
+
+            int numRows = 45312; //10000;
+            string inputDatasetFileName = "Data_withYEle.csv";
+            //string inputDatasetFileName = "Data_withY.csv";
             
+
+
 
             MLPModel model = new MLPModel(new FileProcessor(dataPath), new Logger(), new NeuralNetwork(numInput, numHidden, numOutput, ISFEATURESELECTION),
                 numInput, seed, partition, hotellingTestThreshold, partitionIncrement, new RRunner());
@@ -46,6 +43,8 @@ namespace BackPropProgram
             model.RunHotellingTTest(inputDatasetFileName, rScripFileName, rBin);
 
 
+            Stopwatch sw = new Stopwatch();
+            sw.Start();
             Console.WriteLine("\nBegin neural network back-propagation");
 
             model.GenerateArtificalDataUsingNN(numInput, numHidden, numOutput);
@@ -83,6 +82,8 @@ namespace BackPropProgram
             Console.WriteLine("\nFinal accuracy on training data = " + model.TrainAcc.ToString("F4"));
             Console.WriteLine("Final accuracy on test data     = " + model.TestAcc.ToString("F4"));
             Console.WriteLine("\nEnd back-propagation\n");
+            sw.Stop();
+            Console.WriteLine("Elapsed={0}", sw.Elapsed);
 
 
 
@@ -99,18 +100,18 @@ namespace BackPropProgram
 
             #endregion
 
-            //#region Main DFT processing begins
+            #region Main DFT processing begins
             Console.WriteLine();
             Console.WriteLine("\nDFT Processing...");
 
+            //Exit if the data is continuous
+            var redundantSchema = DFT.GetUniqueRedudantSchema(numInput, ISFEATURESELECTION, trainData, rankArray); //unique combinations
+            var convertedArray = DFT.MakeArrayBasedSchema(numInput, redundantSchema);
 
-            //var redundantSchema = DFT.GetUniqueRedudantSchema(NUMINPUT, ISFEATURESELECTION, trainData, rankArray); //unique combinations
-            //var convertedArray = DFT.MakeArrayBasedSchema(NUMINPUT, redundantSchema);
-
-            //List<string> allSchemaSxClass0 = null;
-            //List<string> allSchemaSxClass1 = null;
-            //neuralNetwork.CalculateAccuracyAndAppendYValMy(trainData, rankArray, out allSchemaSxClass0, out allSchemaSxClass1);
-            //#endregion
+            List<string> allSchemaSxClass0 = null;
+            List<string> allSchemaSxClass1 = null;
+            neuralNetwork.CalculateAccuracyAndAppendYValMy(trainData, rankArray, out allSchemaSxClass0, out allSchemaSxClass1);
+            #endregion
 
 
             //int numInputs_temp = NUMINPUT;

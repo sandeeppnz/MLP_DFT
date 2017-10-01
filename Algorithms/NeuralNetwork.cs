@@ -5,6 +5,11 @@ using System.Linq;
 
 namespace BackPropProgram
 {
+    /*  
+ * https://visualstudiomagazine.com/Articles/2015/04/01/Back-Propagation-Using-C.aspx?Page=3 
+ */
+
+
     public interface INeuralNetwork
     {
         int GetTotalWeights();
