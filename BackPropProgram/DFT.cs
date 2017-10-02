@@ -701,31 +701,31 @@ namespace BackPropProgram
             return coeffArray;
         }
 
-        /// <summary>
-        /// 
-        /// </summary>
-        /// <param name="numInput"></param>
-        /// <param name="sjVectorArray"></param>
-        /// <returns></returns>
-        public static List<string> DeriveSjVectors(int numInput, bool[,] sjVectorArray)
-        {
-            int arrayLength = (int)Math.Pow(2, (double)numInput);
-            List<string> sjVectorList = new List<string>();
-            for (int i = 0; i < arrayLength; i++)
-            {
-                string sjString = string.Empty;
-                for (int j = 0; j < numInput; j++)
-                {
-                    if (sjVectorArray[i, j] == false)
-                        sjString += '0';
-                    else
-                        sjString += '1';
-                }
-                sjVectorList.Add(sjString);
-            }
+        ///// <summary>
+        ///// 
+        ///// </summary>
+        ///// <param name="numInput"></param>
+        ///// <param name="sjVectorArray"></param>
+        ///// <returns></returns>
+        //public static List<string> DeriveSjVectors(int numInput, bool[,] sjVectorArray)
+        //{
+        //    int arrayLength = (int)Math.Pow(2, (double)numInput);
+        //    List<string> sjVectorList = new List<string>();
+        //    for (int i = 0; i < arrayLength; i++)
+        //    {
+        //        string sjString = string.Empty;
+        //        for (int j = 0; j < numInput; j++)
+        //        {
+        //            if (sjVectorArray[i, j] == false)
+        //                sjString += '0';
+        //            else
+        //                sjString += '1';
+        //        }
+        //        sjVectorList.Add(sjString);
+        //    }
 
-            return sjVectorList;
-        }
+        //    return sjVectorList;
+        //}
 
 
         /// <summary>

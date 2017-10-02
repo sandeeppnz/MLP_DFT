@@ -23,13 +23,14 @@ namespace BackPropProgram
 
             double partition = 0.8;
             //Files
-            const int numInput = 7; //11; // number features
+            const int numInput = 30; //7; //11; // number features
             const int numHidden = 8;
             const int numOutput = 2; // number of classes for Y
             const bool ISFEATURESELECTION = false;
 
-            int numRows = 45312; //10000;
-            string inputDatasetFileName = "Data_withYEle.csv";
+            int numRows = 25043; //45312; // //10000;
+            //string inputDatasetFileName = "Data_withYEle.csv";
+            string inputDatasetFileName = "Allflight.csv";
             //string inputDatasetFileName = "Data_withY.csv";
 
 
@@ -39,8 +40,7 @@ namespace BackPropProgram
                 numInput, seed, partition, hotellingTestThreshold, partitionIncrement, new RRunner());
 
             mlpModel.ReadDataset(inputDatasetFileName, numRows);
-            mlpModel.RunHotellingTTest(inputDatasetFileName, rScripFileName, rBin);
-
+            //mlpModel.RunHotellingTTest(inputDatasetFileName, rScripFileName, rBin);
 
             Stopwatch sw = new Stopwatch();
             sw.Start();
@@ -105,15 +105,21 @@ namespace BackPropProgram
 
             //Exit if the data is continuous
             //Add rank array
-            DFTModel dftModel = new DFTModel(nn, numInput, mlpModel.TrainData, ISFEATURESELECTION, null);
+            DFTModel dftModel = new DFTModel(mlpModel.GetNeuralNetwork(), mlpModel.TrainData, ISFEATURESELECTION, null);
 
             dftModel.SplitSchemasByClass();
             dftModel.GenerateClusteredSchemas();
             dftModel.GenerateSjVectors();
             dftModel.FindRedundantAttributeFromPatterns(dftModel.SjVectors); //ToDo: integrate with Coeff Cal
+  
+            //TODO: Implement Redundant coeff calc
+            //TODO: Parition logic
+            //Energy Thresholding
 
-            var energyCoffs = dftModel.CalculateDFTCoeffs(dftModel.ClusteredSchemaSxClass1);
+
+            var energyCoffs = dftModel.CalculateDftEnergyCoeffs(dftModel.ClusteredSchemaSxClass1);
             //#region Find redundant attributes from patterns
+
             ////TODO: not used
             //var redundantAttibuteIndexList = DFT.FindRedundantAttributeFromPatterns(clusteredSchemaSxClass1);
             //#endregion
@@ -122,14 +128,16 @@ namespace BackPropProgram
 
 
             //#region Calculate f(x) directly by looking at the pattern
-            var fxShortcutClass0 = dftModel.CalculateFxByPatternDirectly(dftModel.AllSchemaSxClass0, dftModel.ClusteredSchemaSxClass0, "0");
-            var fxShortcutClass1 = dftModel.CalculateFxByPatternDirectly(dftModel.AllSchemaSxClass1, dftModel.ClusteredSchemaSxClass1, "1");
+
+            InverseDFTModel inverseDftModel = new InverseDFTModel();
+            var fxShortcutClass0 = inverseDftModel.CalculateFxByPatternDirectly(dftModel.AllSchemaSxClass0, dftModel.ClusteredSchemaSxClass0, "0");
+            var fxShortcutClass1 = inverseDftModel.CalculateFxByPatternDirectly(dftModel.AllSchemaSxClass1, dftModel.ClusteredSchemaSxClass1, "1");
             //#endregion
 
 
             //#region Calculate f(x) by Inverse DFT 
-            var fxClass0ByInvDFT = dftModel.GetFxByInverseDFT(dftModel.AllSchemaSxClass0, dftModel.SjVectors, energyCoffs);
-            var fxClass1ByInvDFT = dftModel.GetFxByInverseDFT(dftModel.AllSchemaSxClass1, dftModel.SjVectors, energyCoffs);
+            var fxClass0ByInvDFT = inverseDftModel.GetFxByInverseDFT(dftModel.AllSchemaSxClass0, dftModel.SjVectors, energyCoffs);
+            var fxClass1ByInvDFT = inverseDftModel.GetFxByInverseDFT(dftModel.AllSchemaSxClass1, dftModel.SjVectors, energyCoffs);
             //#endregion
 
             ////FileProcessor.WriteCoeffArraToCsv(coeffsDFT);

@@ -12,6 +12,7 @@ namespace BackPropProgram
 
 
         public int NumAttributes { get; set; }
+        public int NumOutputs { get; set; }
 
         public double[][] TrainData;
         public bool IsFeatureSelection { get; set; }
@@ -36,10 +37,11 @@ namespace BackPropProgram
         public DFTModel()
         { }
 
-        public DFTModel(NeuralNetwork nn, int numInput, double[][] trainData, bool featureSelection, double[] rankArray = null)
+        public DFTModel(NeuralNetwork nn, double[][] trainData, bool featureSelection, double[] rankArray = null)
         {
             _nn = nn;
-            NumAttributes = numInput;
+            NumAttributes = nn.NumInputNodes;
+            NumOutputs = nn.NumOutputNodes;
             TrainData = trainData;
             IsFeatureSelection = featureSelection;
             RankArray = rankArray;
@@ -60,6 +62,156 @@ namespace BackPropProgram
             var convertedArray = MakeArrayBasedSchema(redundantSchema);
 
         }
+
+
+
+
+        /// <summary>
+        /// GetRedudantInstanceSchemas
+        /// </summary>
+        /// <param name="redundantAttributes"></param>
+        /// <returns></returns>
+        public List<string> CalculateEnergyThresholding(int bitStringLength, int order)
+        {
+            //var tblMatrix = GenerateTruthTable(bitStringLength);
+            //var table = DeriveSjVectors(bitStringLength, tblMatrix);
+
+            var table = GenerateSjVectors();
+
+            var list = new List<string>();
+
+            if (order == 1)
+            {
+                list.Add(table[0]);
+            }
+
+            foreach (var entry in table)
+            {
+                if (entry.Replace("0", string.Empty).Length == order)
+                {
+                    list.Add(entry);
+                }
+            }
+
+            return list;
+        }
+
+
+
+
+        /// <summary>
+        /// 
+        /// </summary>
+        /// <param name="NumAttributes"></param>
+        /// <param name="sjVectorArray"></param>
+        /// <returns></returns>
+        public List<string> GenerateSjVectors()
+        {
+            bool[,] sjVectorArray = GenerateTruthTable(NumAttributes);
+
+            int arrayLength = (int)Math.Pow(2, (double)NumAttributes);
+            for (int i = 0; i < arrayLength; i++)
+            {
+                string sjString = string.Empty;
+                for (int j = 0; j < NumAttributes; j++)
+                {
+                    if (sjVectorArray[i, j] == false)
+                        sjString += '0';
+                    else
+                        sjString += '1';
+                }
+                SjVectors.Add(sjString);
+            }
+
+            return SjVectors;
+        }
+
+
+
+        /// <summary>
+        /// GenerateTruthTable
+        /// </summary>
+        /// <param name="NumAttributes"></param>
+        /// <returns></returns>
+        public bool[,] GenerateTruthTable(int NumAttributes)
+        {
+            bool[,] table;
+            int row = (int)Math.Pow(2, NumAttributes);
+
+            table = new bool[row, NumAttributes];
+
+            int divider = row;
+
+            // iterate by column
+            for (int c = 0; c < NumAttributes; c++)
+            {
+                divider /= 2;
+                bool cell = false;
+                // iterate every row by this column's index:
+                for (int r = 0; r < row; r++)
+                {
+                    table[r, c] = cell;
+                    if ((divider == 1) || ((r + 1) % divider == 0))
+                    {
+                        cell = !cell;
+                    }
+                }
+            }
+
+            return table;
+        }
+
+
+
+        /// <summary>
+        /// Optimisation:
+        /// If each pattern has a recurring wildcharacter in same position, the position correpsonding to the attribute can be considered a redundant feature
+        /// e.g. if the 2nd attribute is redudant, and the following patterns are derived initially
+        /// (**0,0*1,1*1), then w(*1*) = 0 but w(*1*) is not zero 
+        /// </summary>
+        /// <param name="SjVectors"></param>
+        /// <returns> Returns redundant attributes (i.e. attributes that have a wild card character) in each pattern
+        /// </returns>
+        public List<int> FindRedundantAttributeFromPatterns(List<string> SjVectors)
+        {
+            string p1 = SjVectors[0];
+            List<int> redundantIndexList = new List<int>();
+            List<int> redudantIdenxLocalList = null;
+
+            for (int i = 1; i < SjVectors.Count(); i++)
+            {
+                string s = SjVectors[i];
+                redudantIdenxLocalList = new List<int>();
+
+                for (int j = 0; j < s.Length; j++)
+                {
+                    if ((p1[j] == '*') && (s[j] == '*'))
+                    {
+                        redudantIdenxLocalList.Add(j + 1);
+
+                    }
+                }
+
+                if (i != 1) // the global list will be empty in the beginning
+                {
+                    redundantIndexList = redundantIndexList.Intersect(redudantIdenxLocalList).ToList();
+                }
+                else
+                {
+                    redundantIndexList = redudantIdenxLocalList;
+                }
+            }
+
+            redundantIndexList.Sort();
+
+            //return redundantIndexList;
+
+            RedundantIndexList = redundantIndexList;
+            return redundantIndexList;
+        }
+
+
+
 
 
 
@@ -147,11 +299,14 @@ namespace BackPropProgram
         {
             // percentage correct using winner-takes all
             double[] xValues = new double[NumAttributes]; // inputs
-            double[] tValues = new double[NumAttributes]; // targets
+            double[] tValues = new double[NumOutputs]; // targets
             double[] yValues; // computed Y
 
             //List<string> dataList = new List<string>();
             int binaryResult = 0;
+
+            AllSchemaSxClass0 = new List<string>();
+            AllSchemaSxClass1 = new List<string>();
 
             var yZeroTemp = new List<string>();
             var yOneTemp = new List<string>();
@@ -160,7 +315,7 @@ namespace BackPropProgram
             for (int i = 0; i < TrainData.Length; i++)
             {
                 Array.Copy(TrainData[i], xValues, NumAttributes); // get x-values
-                Array.Copy(TrainData[i], NumAttributes + 2, tValues, 0, _nn.GetNumOutputNodes()); // get target values from array
+                Array.Copy(TrainData[i], NumAttributes + 2, tValues, 0, NumOutputs); // get target values from array
 
                 //Set X values to zero if ranking...
 
@@ -395,12 +550,33 @@ namespace BackPropProgram
         }
 
         /// <summary>
+        /// Calculate the Coefficient value
+        /// </summary>
+        /// <param name="j"></param>
+        /// <param name="patterns"></param>
+        /// <returns></returns>
+        private double GetCoefficientValue(string j, List<string> patterns)
+        {
+            double denominator = Math.Pow(2, j.Length);
+            double coefficientValue = 0.0;
+            foreach (string x in patterns)
+            {
+                double dotProduct = Helper.CalculateDotProduct(j, x);
+                if (dotProduct != 0)
+                {
+                    coefficientValue = coefficientValue + (dotProduct / denominator);
+                }
+            }
+            return coefficientValue;
+        }
+
+        /// <summary>
         /// Calculate the coeffcients of DFT
         /// </summary>
         /// <param name="clusteredSchemaSxClass1"></param>
         /// <param name="SjVectors"></param>
         /// <returns></returns>
-        public Dictionary<string, double> CalculateDFTCoeffs(List<string> clusteredSchemaSxClass1)
+        public Dictionary<string, double> CalculateDftEnergyCoeffs(List<string> clusteredSchemaSxClass1)
         {
             Dictionary<string, double> coeffArray = new Dictionary<string, double>();
 
@@ -425,42 +601,8 @@ namespace BackPropProgram
 
 
 
-        /// <summary>
-        // Calculate Inverse DFT for each sXVectvor
-        // Input: CoffArray, AllSjVectors,  AllSxVectors in the patterns
-        // Output: f(x)  
-        /// </summary>
-        /// <param name="allSchemaSxClass0"></param>
-        /// <param name="sjVectors"></param>
-        /// <param name="coeffsDFT"></param>
-        /// <returns></returns>
-        public Dictionary<string, double> GetFxByInverseDFT(List<string> allSchemaSxClass0, List<string> sjVectors, Dictionary<string, double> coeffDft)
-        {
-            var fxs = new Dictionary<string, double>();
-            foreach (string x in allSchemaSxClass0)
-            {
-                double coeff = GetCoeffInverseDft(x, sjVectors, coeffDft);
-                fxs[x] = coeff;
-            }
-            return fxs;
-        }
 
 
-        /// <summary>
-        /// </summary>
-        /// <param name="uniqueSchemaList"></param>
-        /// <param name="patternList"></param>
-        /// <returns></returns>
-        public Dictionary<string, double> CalculateFxByPatternDirectly(List<string> uniqueSchemaList, List<string> patternList, string classLabel)
-        {
-            var fxArray = new Dictionary<string, double>();
-            foreach (string schemaInstance in uniqueSchemaList)
-            {
-                double coeff = GetFxByWildcardCharacterCheck(schemaInstance, patternList, classLabel);
-                fxArray[schemaInstance] = coeff;
-            }
-            return fxArray;
-        }
 
 
         /// <summary>
@@ -633,54 +775,6 @@ namespace BackPropProgram
 
 
 
-        /// <summary>
-        /// Optimisation:
-        /// If each pattern has a recurring wildcharacter in same position, the position correpsonding to the attribute can be considered a redundant feature
-        /// e.g. if the 2nd attribute is redudant, and the following patterns are derived initially
-        /// (**0,0*1,1*1), then w(*1*) = 0 but w(*1*) is not zero 
-        /// </summary>
-        /// <param name="SjVectors"></param>
-        /// <returns> Returns redundant attributes (i.e. attributes that have a wild card character) in each pattern
-        /// </returns>
-        public List<int> FindRedundantAttributeFromPatterns(List<string> SjVectors)
-        {
-            string p1 = SjVectors[0];
-            List<int> redundantIndexList = new List<int>();
-            List<int> redudantIdenxLocalList = null;
-
-            for (int i = 1; i < SjVectors.Count(); i++)
-            {
-                string s = SjVectors[i];
-                redudantIdenxLocalList = new List<int>();
-
-                for (int j = 0; j < s.Length; j++)
-                {
-                    if ((p1[j] == '*') && (s[j] == '*'))
-                    {
-                        redudantIdenxLocalList.Add(j + 1);
-
-                    }
-                }
-
-                if (i != 1) // the global list will be empty in the beginning
-                {
-                    redundantIndexList = redundantIndexList.Intersect(redudantIdenxLocalList).ToList();
-                }
-                else
-                {
-                    redundantIndexList = redudantIdenxLocalList;
-                }
-            }
-
-            redundantIndexList.Sort();
-
-            //return redundantIndexList;
-
-            RedundantIndexList = redundantIndexList;
-            return redundantIndexList;
-        }
-
-
         ///// <summary>
         ///// 
         ///// </summary>
@@ -708,123 +802,7 @@ namespace BackPropProgram
         //}
 
 
-        /// <summary>
-        /// 
-        /// </summary>
-        /// <param name="NumAttributes"></param>
-        /// <param name="sjVectorArray"></param>
-        /// <returns></returns>
-        public List<string> GenerateSjVectors()
-        {
-            bool[,] sjVectorArray = GenerateTruthTable(NumAttributes);
 
-            int arrayLength = (int)Math.Pow(2, (double)NumAttributes);
-            for (int i = 0; i < arrayLength; i++)
-            {
-                string sjString = string.Empty;
-                for (int j = 0; j < NumAttributes; j++)
-                {
-                    if (sjVectorArray[i, j] == false)
-                        sjString += '0';
-                    else
-                        sjString += '1';
-                }
-                SjVectors.Add(sjString);
-            }
-
-            return SjVectors;
-        }
-
-
-
-        /// <summary>
-        /// GenerateTruthTable
-        /// </summary>
-        /// <param name="NumAttributes"></param>
-        /// <returns></returns>
-        public bool[,] GenerateTruthTable(int NumAttributes)
-        {
-            bool[,] table;
-            int row = (int)Math.Pow(2, NumAttributes);
-
-            table = new bool[row, NumAttributes];
-
-            int divider = row;
-
-            // iterate by column
-            for (int c = 0; c < NumAttributes; c++)
-            {
-                divider /= 2;
-                bool cell = false;
-                // iterate every row by this column's index:
-                for (int r = 0; r < row; r++)
-                {
-                    table[r, c] = cell;
-                    if ((divider == 1) || ((r + 1) % divider == 0))
-                    {
-                        cell = !cell;
-                    }
-                }
-            }
-
-            return table;
-        }
-
-
-
-        /// <summary>
-        /// Check the each schema and return the fx value from based on the pattern it can be accomdated to
-        /// </summary>
-        /// <param name="schemaInstance"></param>
-        /// <param name="patternList"></param>
-        /// <returns></returns>
-        public double GetFxByWildcardCharacterCheck(string schemaInstance, List<string> patternList, string classLabel)
-        {
-            double fx = -1;
-            foreach (string pattern in patternList)
-            {
-                if (pattern.Equals(schemaInstance))
-                {
-                    return double.Parse(classLabel.ToString());
-                }
-                else
-                {
-                    //it would contain wildcard character
-                    bool isMatch = true; //resetting for each pattern
-
-                    for (int j = 0; j < pattern.Length; j++)
-                    {
-
-                        if (pattern[j] != '*' && pattern[j] != schemaInstance[j])
-                        {
-                            isMatch = false;
-                        }
-                        else
-                        {
-                            if (pattern[j] == '*')
-                            {
-                                // can be matched
-                            }
-                            else if (pattern[j] != schemaInstance[j])
-                            {
-                                isMatch = false;
-                                return fx;
-                            }
-                            else
-                            {
-                                //pattern[j] == schemaInstance[j]
-                            }
-                        }
-                    }
-
-                    if (isMatch)
-                    {
-                        return double.Parse(classLabel.ToString());
-                    }
-                }
-            }
-            return fx;
-        }
 
 
         ///// <summary>
@@ -899,172 +877,6 @@ namespace BackPropProgram
 
 
  
-
-        /// <summary>
-        /// Calculate the Coefficient value
-        /// </summary>
-        /// <param name="j"></param>
-        /// <param name="patterns"></param>
-        /// <returns></returns>
-        private double GetCoefficientValue(string j, List<string> patterns)
-        {
-            double denominator = Math.Pow(2, j.Length);
-            double coefficientValue = 0.0;
-            foreach (string x in patterns)
-            {
-                double dotProduct = CalculateDotProduct(j, x);
-                if (dotProduct != 0)
-                {
-                    coefficientValue = coefficientValue + (dotProduct / denominator);
-                }
-            }
-            return coefficientValue;
-        }
-
-        /// <summary>
-        /// Calculate the f(x) value i.e. Inverse of DFT
-        /// </summary>
-        /// <param name="xVector"></param>
-        /// <param name="jPatterns"></param>
-        /// <param name="coeffArray"></param>
-        /// <returns></returns>
-        public double GetCoeffInverseDft(string xVector, List<string> jPatterns, Dictionary<string, double> coeffArray)
-        {
-            double fx = 0.0;
-            foreach (string j in jPatterns)
-            {
-                double dotProduct = CalculateDotProduct(j, xVector);
-                double coeff = coeffArray[j];
-                fx += dotProduct * coeff;
-            }
-            return fx;
-        }
-
-
-
-        // All DFT models
-        //************************************************************************************************************************************
-        //Calculates dot product between two binary strings with wild card characters. sjVector can not have wildcard characters
-        /// <summary>
-        /// 
-        /// </summary>
-        /// <param name="sjVector"></param>
-        /// <param name="sxVector"></param>
-        /// <returns></returns>
-        private int CalculateDotProduct(string sjVector, string sxVector)
-        {
-            if (sjVector.Length != sxVector.Length)
-            {
-                //MessageBox.Show("In Calculating dot product the j vector length and x vector length are not equal.", "Error");
-                //TODO: Error
-            }
-
-            CharEnumerator ojCharEnum = sjVector.GetEnumerator();
-            CharEnumerator oxCharEnum = sxVector.GetEnumerator();
-
-            int i11Count = 0;
-            int i00Count = 0;
-            int i1WildcardCount = 0;
-            int i0WildcardCount = 0;
-
-            while (ojCharEnum.MoveNext() && oxCharEnum.MoveNext())
-            {
-                if (oxCharEnum.Current == '*')
-                {
-                    if (ojCharEnum.Current == '1')
-                    {
-                        ++i1WildcardCount;
-                        return 0;
-                    }
-
-                    else if (ojCharEnum.Current == '0')
-                    {
-                        ++i0WildcardCount;
-                    }
-                    else
-                    {
-                        Console.WriteLine("* * combination Impossible");
-                    }
-                }
-                else
-                {
-                    if (ojCharEnum.Current == '1' && oxCharEnum.Current == '1')
-                    {
-                        ++i11Count;
-                    }
-                    else if (ojCharEnum.Current == '0' && oxCharEnum.Current == '0')
-                    {
-                        ++i00Count;
-                    }
-                }
-            }
-            if (i1WildcardCount != 0) //all are 1 * combinations or there exists a 1 * combination 
-            {
-                return 0;
-            }
-            else if (i0WildcardCount != 0)
-            {
-                if (i0WildcardCount == sjVector.Length) //all are 0 * combinations
-                {
-                    return (int)Math.Pow(2, i0WildcardCount);
-                }
-                else if (i0WildcardCount < sjVector.Length)
-                {
-                    if (i11Count % 2 == 0) //there exists some 1 1 combinations
-                    {
-                        return (int)Math.Pow(2, i0WildcardCount);
-                    }
-                    else
-                    {
-                        return -(int)Math.Pow(2, i0WildcardCount);
-                    }
-                }
-            }
-            else
-            {
-                if (i11Count % 2 == 0)
-                {
-                    return 1;
-                }
-                else
-                {
-                    return -1;
-                }
-            }
-            return 10000;
-        }
-
-
-
-        /// <summary>
-        /// GetRedudantInstanceSchemas
-        /// </summary>
-        /// <param name="redundantAttributes"></param>
-        /// <returns></returns>
-        public List<string> CalculateEnergyThresholding(int bitStringLength, int order)
-        {
-            //var tblMatrix = GenerateTruthTable(bitStringLength);
-            //var table = DeriveSjVectors(bitStringLength, tblMatrix);
-
-            var table = GenerateSjVectors();
-
-            var list = new List<string>();
-
-            if (order == 1)
-            {
-                list.Add(table[0]);
-            }
-
-            foreach (var entry in table)
-            {
-                if (entry.Replace("0", string.Empty).Length == order)
-                {
-                    list.Add(entry);
-                }
-            }
-
-            return list;
-        }
 
 
         //public static string getBinaryString(int number, out int numberOfOnes)

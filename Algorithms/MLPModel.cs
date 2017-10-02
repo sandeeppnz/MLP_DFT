@@ -22,6 +22,11 @@ namespace BackPropProgram
         public double Partition { get; set; }
         public double PartitionIncrement { get; set; }
 
+        public NeuralNetwork GetNeuralNetwork()
+        {
+            return (NeuralNetwork) _nn;
+        }
+
         public double HotellingTestPValue { get; set; }
         public double HotellingTestThreshold { get; set; }
 

@@ -212,7 +212,7 @@ namespace BackPropProgram.Tests
             int numInput = 3;
             DFTModel model = new DFTModel();
 
-            var actualList = model.CalculateDFTCoeffs(clusteredSchemaSxClass1);
+            var actualList = model.CalculateDftEnergyCoeffs(clusteredSchemaSxClass1);
 
             var expectedList = new Dictionary<string, double>();
             var fullExp = new List<string>();
@@ -247,7 +247,7 @@ namespace BackPropProgram.Tests
             string sxString1 = "0000000,0000001,0000010,0000011,0001001,0100000,0100001,0100010,0100011,0101000,0101001,1000000,1000001,1000010,1000011,1100000,1100001,1100010,1100011,1101000,1101001,1101011";
 
             //arrange
-            DFTModel model = new DFTModel();
+            InverseDFTModel model = new InverseDFTModel();
 
 
             var fullCoeffString = inputString.Split(',').ToList();
@@ -285,7 +285,7 @@ namespace BackPropProgram.Tests
         public static void GetCoeffInverseDft_ReturnFx0(string inputString)
         {
 
-            DFTModel model = new DFTModel();
+            InverseDFTModel model = new InverseDFTModel();
 
 
             string sxString0 = "0001000,0001010,0001011,0011010,0101010,0101011,0101110,0111010,0111110,1001000,1001001,1001010,1001011,1010001,1011000,1011001,1011010,1011011,1101010,1110000,1110001,1111000,1111001,1111010,1111011";
@@ -331,7 +331,7 @@ namespace BackPropProgram.Tests
         public static void GetFxByWildcardCharacterCheck_ReturnFx1(string x)
         {
 
-            DFTModel model = new DFTModel();
+            InverseDFTModel model = new InverseDFTModel();
 
             //arrange
             string patterns = "0**1*1*,*0010*0,10010**,1101010,1*1*0**";
