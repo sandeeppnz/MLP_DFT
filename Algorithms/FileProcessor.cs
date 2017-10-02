@@ -11,13 +11,14 @@ namespace BackPropProgram
     {
         string GetDataPath();
         void ReadInputDatasetCSV(int numInputs, int numRows, out float[][] fullDataset, out float[][] tValueFile, string inputFilePathName);
+        void ReadInputDatasetCSVOther(int numInputs, int numRows, out float[][] fullDataset, out float[][] tValueFile, string inputFilePathName);
 
     }
 
 
     public class FileProcessor : IFileProcessor
     {
-        public string DataPath {get;set;}
+        public string DataPath { get; set; }
 
         public string GetDataPath() { return DataPath; }
 
@@ -50,6 +51,63 @@ namespace BackPropProgram
                 for (int i = 0; i < numInputs + 1; i++)
                 {
                     fullDataset[r][i] = float.Parse(parts_of_line[i]);
+                }
+                //tValueFile[r] = float.Parse(parts_of_line[11]);
+                r++;
+            }
+
+            //NEW
+            for (int i = 0; i < numRows; i++)
+                tValueFile[i] = new float[2];
+
+            for (int i = 0; i < numRows; i++)
+            {
+                //TODO: 
+                if (fullDataset[i][numInputs] == 0)
+                {
+                    tValueFile[i][1] = 0;
+                    tValueFile[i][0] = 1;
+                }
+                else
+                {
+                    tValueFile[i][0] = 0;
+                    tValueFile[i][1] = 1;
+
+                }
+            }
+        }
+
+
+        public void ReadInputDatasetCSVOther(int numInputs, int numRows, out float[][] fullDataset, out float[][] tValueFile, string inputFilePathName)
+        {
+            String line = String.Empty;
+            //System.IO.StreamReader file = new System.IO.StreamReader(@"d:\Data.csv");
+            //System.IO.StreamReader file = new System.IO.StreamReader(@"d:\Data_withY-CS.csv");
+            //System.IO.StreamReader file = new System.IO.StreamReader(@"d:\irisCSV.csv");
+            System.IO.StreamReader file = new System.IO.StreamReader(DataPath + inputFilePathName);
+            fullDataset = new float[numRows][];
+            tValueFile = new float[numRows][];
+            for (int i = 0; i < numRows; i++)
+                fullDataset[i] = new float[numInputs + 1];
+            int r = 0;
+            while ((line = file.ReadLine()) != null)
+            {
+                String[] parts_of_line = line.Split(',');
+                for (int i = 0; i < parts_of_line.Length; i++)
+                {
+                    parts_of_line[i] = parts_of_line[i].Trim();
+                }
+                // do with the parts of the line whatever you like
+                //TODO
+                for (int i = 0; i < numInputs + 1; i++)
+                {
+                    float val = float.Parse(parts_of_line[i]);
+                    if (val == 1)
+                        fullDataset[r][i] = 0;
+                    else if (val == 2)
+                        fullDataset[r][i] = 1;
+
+
                 }
                 //tValueFile[r] = float.Parse(parts_of_line[11]);
                 r++;

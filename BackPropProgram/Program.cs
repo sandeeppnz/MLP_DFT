@@ -21,18 +21,23 @@ namespace BackPropProgram
             const string rScripFileName = "hotellingttest3.r";
             const string dataPath = @"D:\ANN_Project_AUT_Sem3\Microsoft\BackPropProgram\Data\";
 
-            double partition = 0.8;
+            double partition = 0.01;
             //Files
-            const int numInput = 30; //7; //11; // number features
+            const int numInput = 7;//54; //30;//7;  // //11; // number features
             const int numHidden = 8;
             const int numOutput = 2; // number of classes for Y
             const bool ISFEATURESELECTION = false;
 
-            int numRows = 25043; //45312; // //10000;
-            //string inputDatasetFileName = "Data_withYEle.csv";
-            string inputDatasetFileName = "Allflight.csv";
+            int numRows = 453120;//45312; //495140; //25043; //// //45312; // //10000;
+            //string inputDatasetFileName = "01-Data_withYEle.csv";
+            //string inputDatasetFileName = "02-Allflightdatadiscretized_30Att_25043Ins_CBDT.csv";
+            //string inputDatasetFileName = "03-Covertype_TwoClass_49514_Initial10%ofMost frequent classesInstances_54Att_my_CBDT.csv";
+            //string inputDatasetFileName = "04-Covertype_TwoClass_All_495141_Instances_54Att_my_CBDT.csv";
             //string inputDatasetFileName = "Data_withY.csv";
-
+            //string inputDatasetFileName = "05-CovertypeExt_TwCls_495140_Init10PercMost_freq_classesInstances_54Att_my_CBDT.csv";
+            string inputDatasetFileName = "06-electricityData_Extended_453120Instances_7Att_CBDT.csv";
+            //string inputDatasetFileName = "07-electricitydiscretized-7Att_45312Ins_CBDT.csv";
+            //
 
             NeuralNetwork nn = new NeuralNetwork(numInput, numHidden, numOutput, ISFEATURESELECTION);
 
@@ -109,7 +114,7 @@ namespace BackPropProgram
 
             dftModel.SplitSchemasByClass();
             dftModel.GenerateClusteredSchemas();
-            dftModel.GenerateSjVectors();
+            dftModel.GenerateSjVectorsOptimized();
             dftModel.FindRedundantAttributeFromPatterns(dftModel.SjVectors); //ToDo: integrate with Coeff Cal
   
             //TODO: Implement Redundant coeff calc
@@ -127,18 +132,16 @@ namespace BackPropProgram
 
 
 
-            //#region Calculate f(x) directly by looking at the pattern
-
+            #region 
+            //Calculate f(x) directly by looking at the pattern
             InverseDFTModel inverseDftModel = new InverseDFTModel();
             var fxShortcutClass0 = inverseDftModel.CalculateFxByPatternDirectly(dftModel.AllSchemaSxClass0, dftModel.ClusteredSchemaSxClass0, "0");
             var fxShortcutClass1 = inverseDftModel.CalculateFxByPatternDirectly(dftModel.AllSchemaSxClass1, dftModel.ClusteredSchemaSxClass1, "1");
-            //#endregion
+            
 
-
-            //#region Calculate f(x) by Inverse DFT 
+            //Calculate f(x) by Inverse DFT 
             var fxClass0ByInvDFT = inverseDftModel.GetFxByInverseDFT(dftModel.AllSchemaSxClass0, dftModel.SjVectors, energyCoffs);
             var fxClass1ByInvDFT = inverseDftModel.GetFxByInverseDFT(dftModel.AllSchemaSxClass1, dftModel.SjVectors, energyCoffs);
-            //#endregion
 
             ////FileProcessor.WriteCoeffArraToCsv(coeffsDFT);
             ////FileProcessor.WritesXVectorsToCsv(allSchemaSxClass1);
@@ -146,13 +149,15 @@ namespace BackPropProgram
 
 
             ////Console.ReadLine();
+            #endregion
 
 
 
-            //#region write to csv
+            #region 
+            //write to csv
             //FileProcessor.WriteCSVOutput(numInputs_temp, allSchemaSxClass0, "0", fxClass0ByInvDFT, fxShortcutClass0, true);
             //FileProcessor.WriteCSVOutput(numInputs_temp, allSchemaSxClass1, "1", fxClass1ByInvDFT, fxShortcutClass1, false);
-            //#endregion
+            #endregion
 
 
 

@@ -16,3 +16,6 @@ D:\ANN_Project_AUT_Sem3\Microsoft\BackPropProgram\BackPropProgram.Tests\obj\Debu
 D:\ANN_Project_AUT_Sem3\Microsoft\BackPropProgram\BackPropProgram.Tests\obj\Debug\BackPropProgram.Tests.csproj.CoreCompileInputs.cache
 D:\ANN_Project_AUT_Sem3\Microsoft\BackPropProgram\BackPropProgram.Tests\obj\Debug\BackPropProgram.Tests.dll
 D:\ANN_Project_AUT_Sem3\Microsoft\BackPropProgram\BackPropProgram.Tests\obj\Debug\BackPropProgram.Tests.pdb
+D:\ANN_Project_AUT_Sem3\Microsoft\BackPropProgram\BackPropProgram.Tests\bin\Debug\BackPropProgram.exe
+D:\ANN_Project_AUT_Sem3\Microsoft\BackPropProgram\BackPropProgram.Tests\bin\Debug\BackPropProgram.pdb
+D:\ANN_Project_AUT_Sem3\Microsoft\BackPropProgram\BackPropProgram.Tests\bin\Debug\BackPropProgram.exe.config

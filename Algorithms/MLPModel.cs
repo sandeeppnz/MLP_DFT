@@ -114,6 +114,7 @@ namespace BackPropProgram
         {
             NumRows = numRows;
             _fileProcessor.ReadInputDatasetCSV(NumAttributes, NumRows, out RawFullDataset, out TValueFile, inputFileName);
+            //_fileProcessor.ReadInputDatasetCSVOther(NumAttributes, NumRows, out RawFullDataset, out TValueFile, inputFileName);
 
         }
 

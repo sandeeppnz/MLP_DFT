@@ -2,6 +2,7 @@
 using System.Collections;
 using System.Collections.Generic;
 using System.Linq;
+using System.Text;
 
 namespace BackPropProgram
 {
@@ -26,7 +27,7 @@ namespace BackPropProgram
         public List<string> ClusteredSchemaSxClass0 { get; set; }
         public List<string> ClusteredSchemaSxClass1 { get; set; }
 
-        public Dictionary<string,double> EnergyCoeffs { get; set; }
+        public Dictionary<string, double> EnergyCoeffs { get; set; }
         public List<string> SjVectors { get; set; }
 
 
@@ -135,12 +136,10 @@ namespace BackPropProgram
         /// <returns></returns>
         public bool[,] GenerateTruthTable(int NumAttributes)
         {
-            bool[,] table;
-            int row = (int)Math.Pow(2, NumAttributes);
+            long row = (int)Math.Pow(2, NumAttributes);
+            bool[,] table = new bool[row, NumAttributes];
 
-            table = new bool[row, NumAttributes];
-
-            int divider = row;
+            long divider = row;
 
             // iterate by column
             for (int c = 0; c < NumAttributes; c++)
@@ -161,6 +160,85 @@ namespace BackPropProgram
             return table;
         }
 
+        /// <summary>
+        /// 
+        /// </summary>
+        /// <param name="NumAttributes"></param>
+        /// <param name="sjVectorArray"></param>
+        /// <returns></returns>
+        public List<string> GenerateSjVectorsOptimized()
+        {
+            var sjVectorArray = GenerateTruthTableOptimized(NumAttributes, 4);
+            SjVectors = sjVectorArray.ToList();
+            return SjVectors;
+        }
+        /// <summary>
+        /// GenerateTruthTable
+        /// </summary>
+        /// <param name="NumAttributes"></param>
+        /// <returns></returns>
+        public HashSet<string> GenerateTruthTableOptimized(int NumAttributes, int maxOrder)
+        {
+            List<HashSet<string>> list = new List<HashSet<string>>();
+
+            HashSet<string> firstOrder = new HashSet<string>();
+            HashSet<string> secondOrder = new HashSet<string>();
+            HashSet<string> thirdOrder = new HashSet<string>();
+            HashSet<string> fourthOrder = new HashSet<string>();
+
+            string original = string.Empty;
+            original = original.PadLeft(NumAttributes, '0');
+
+            firstOrder.Add(original); // 0th order
+
+            //1st Order
+            for (int i = NumAttributes - 1; i >= 0; i--)
+            {
+                StringBuilder sb = new StringBuilder(original);
+
+                sb[i] = '1';
+                firstOrder.Add(sb.ToString());
+            }
+
+            list.Add(firstOrder);
+
+
+            for (int i = 2; i <= maxOrder; i++)
+            {
+                firstOrder = OrderIterator(NumAttributes, firstOrder, i);
+                list.Add(firstOrder);
+            }
+
+            HashSet<string> final = new HashSet<string>();
+
+            foreach (var itemList in list)
+            {
+                foreach (var item in itemList)
+                {
+                    final.Add(item);
+                }
+            }
+
+
+            return final;
+        }
+
+        private static HashSet<string> OrderIterator(int NumAttributes, HashSet<string> firstOrder, int order)
+        {
+            HashSet<string> array = new HashSet<string>();
+            for (int k = 0; k < firstOrder.Count(); k++)
+            {
+                string s = firstOrder.ElementAt(k);
+                for (int i = NumAttributes - order; i >= 0; i--)
+                {
+                    StringBuilder sb = new StringBuilder(s);
+                    sb[i] = '1';
+                    array.Add(sb.ToString());
+                }
+
+            }
+            return array;
+        }
 
 
         /// <summary>
@@ -346,20 +424,20 @@ namespace BackPropProgram
             }
 
             int k = 0;
-            int[] outputZero = new int[yZeroTemp.Count];
+            long[] outputZero = new long[yZeroTemp.Count];
             foreach (string s in yZeroTemp)
             {
-                outputZero[k] = Convert.ToInt32(s, 2);
+                outputZero[k] = Convert.ToInt64(s, 2);
                 k++;
             }
             Array.Sort(outputZero);
             var outputZeroDistinct = outputZero.Distinct().ToArray();
 
             k = 0;
-            int[] outputOne = new int[yOneTemp.Count];
+            long[] outputOne = new long[yOneTemp.Count];
             foreach (string s in yOneTemp)
             {
-                outputOne[k] = Convert.ToInt32(s, 2);
+                outputOne[k] = Convert.ToInt64(s, 2);
                 k++;
             }
             Array.Sort(outputOne);
@@ -876,7 +954,7 @@ namespace BackPropProgram
 
 
 
- 
+
 
 
         //public static string getBinaryString(int number, out int numberOfOnes)
