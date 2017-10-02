@@ -32,7 +32,7 @@ namespace BackPropProgram
 
 
         public List<int> RedundantIndexList { get; set; }
-
+        public List<string> RedundantSchemas { get; set; }
 
 
         public DFTModel()
@@ -166,9 +166,9 @@ namespace BackPropProgram
         /// <param name="NumAttributes"></param>
         /// <param name="sjVectorArray"></param>
         /// <returns></returns>
-        public List<string> GenerateSjVectorsOptimized()
+        public List<string> SetSjVectorsWithEnergyThresholding(int order)
         {
-            var sjVectorArray = GenerateTruthTableOptimized(NumAttributes, 4);
+            var sjVectorArray = GenerateTruthTableOptimized(NumAttributes, order);
             SjVectors = sjVectorArray.ToList();
             return SjVectors;
         }
@@ -180,11 +180,9 @@ namespace BackPropProgram
         public HashSet<string> GenerateTruthTableOptimized(int NumAttributes, int maxOrder)
         {
             List<HashSet<string>> list = new List<HashSet<string>>();
-
+            HashSet<string> final = new HashSet<string>();
             HashSet<string> firstOrder = new HashSet<string>();
-            HashSet<string> secondOrder = new HashSet<string>();
-            HashSet<string> thirdOrder = new HashSet<string>();
-            HashSet<string> fourthOrder = new HashSet<string>();
+
 
             string original = string.Empty;
             original = original.PadLeft(NumAttributes, '0');
@@ -209,7 +207,6 @@ namespace BackPropProgram
                 list.Add(firstOrder);
             }
 
-            HashSet<string> final = new HashSet<string>();
 
             foreach (var itemList in list)
             {
@@ -218,7 +215,6 @@ namespace BackPropProgram
                     final.Add(item);
                 }
             }
-
 
             return final;
         }
@@ -657,11 +653,25 @@ namespace BackPropProgram
         public Dictionary<string, double> CalculateDftEnergyCoeffs(List<string> clusteredSchemaSxClass1)
         {
             Dictionary<string, double> coeffArray = new Dictionary<string, double>();
+            double coeff = 0;
+            double? checkRedundantCoeffVal = null;
+
+            var redundantAttIndex = FindRedundantAttributeFromPatterns(clusteredSchemaSxClass1); //ToDo: integrate with Coeff Cal
+
 
             foreach (string j in SjVectors)
             {
-                double coeff = GetCoefficientValue(j, clusteredSchemaSxClass1);
-                coeffArray[j] = coeff;
+                //Optimisation of Energy Calculation
+                checkRedundantCoeffVal = EvaluateIfRedudantInstanceSchemas(redundantAttIndex, j);
+                if (checkRedundantCoeffVal == null)
+                {
+                    coeff = GetCoefficientValue(j, clusteredSchemaSxClass1);
+                    coeffArray[j] = coeff;
+                }
+                else
+                {
+                    coeffArray[j] = 0;
+                }
             }
 
             EnergyCoeffs = coeffArray;
@@ -884,18 +894,17 @@ namespace BackPropProgram
 
 
         ///// <summary>
-        ///// SkipCalculatingDftCofficient
         ///// </summary>
-        ///// <param name="redundantAttributes"></param>
+        ///// <param name="GetRedudantInstanceSchemas"></param>
         ///// <returns></returns>
-        //public static List<string> GetRedudantInstanceSchemas(int bitStringLength, List<int> positions)
+        //public List<string> GetRedudantInstanceSchemas(List<int> positions, List<string> sJvectors)
         //{
-        //    var tblMatrix = GenerateTruthTable(bitStringLength);
-        //    var table = DeriveSjVectors(bitStringLength, tblMatrix);
-        //    var redundantInstances = new List<string>();
+        //    //var tblMatrix = GenerateTruthTable(bitStringLength);
+        //    //var table = DeriveSjVectors(bitStringLength, tblMatrix);
 
+        //    //Make the comparison string
         //    string emptyString = string.Empty;
-        //    string selectionString = emptyString.PadLeft(bitStringLength, '0');
+        //    string selectionString = emptyString.PadLeft(NumAttributes, '*');
 
 
         //    foreach (int position in positions)
@@ -905,57 +914,85 @@ namespace BackPropProgram
         //        selectionString = sb.ToString();
         //    }
 
+        //    //
+        //    /*
+        //     *1* => {010,011,110,111}
+        //     1*1* => {1010,1110,1011,1111}
+        //     */
 
-        //    foreach (string s in table)
+        //    var redundantInstances = new List<string>();
+
+        //    foreach (string s in SjVectors)
         //    {
 
 
-        //        if(s == selectionString)
-        //        redundantInstances.Add(s);
+        //        if (s == selectionString)
+        //            redundantInstances.Add(s);
 
         //    }
 
+        //    RedundantSchemas = redundantInstances;
 
         //    return redundantInstances;
         //}
 
-
         /// <summary>
-        /// GetRedudantInstanceSchemas
         /// </summary>
-        /// <param name="redundantAttributes"></param>
+        /// <param name="GetRedudantInstanceSchemas"></param>
         /// <returns></returns>
-        public List<string> GetRedudantInstanceSchemas(int bitStringLength, int position)
+        public double? EvaluateIfRedudantInstanceSchemas(List<int> positions, string sJvector)
         {
-            var table = GenerateSjVectors();
+            //
+            /*
+             *1* => {010,011,110,111}
+             1*1* => {1010,1110,1011,1111}
+             */
+            if (positions.Count == 0) return null;
 
-            //var tblMatrix = GenerateTruthTable(bitStringLength);
-            //var table = DeriveSjVectors(bitStringLength, tblMatrix);
-            var redundantInstances = new List<string>();
-
-            foreach (var s in table)
+            int currMatches = 0;
+            foreach (int position in positions)
             {
-                if (s[position] == '1')
+                if (sJvector[position - 1] == '1')
                 {
-                    redundantInstances.Add(s);
+                    currMatches++;
                 }
+
+            }
+            if (currMatches == positions.Count)
+            {
+                return 0;
             }
 
-            return redundantInstances;
+
+            return null;
         }
 
 
 
 
+        ///// <summary>
+        ///// GetRedudantInstanceSchemas
+        ///// </summary>
+        ///// <param name="GetRedudantInstanceSchemas"></param>
+        ///// <returns></returns>
+        //public List<string> GetRedudantInstanceSchemas(int bitStringLength, int position)
+        //{
+        //    var table = GenerateSjVectors();
 
+        //    //var tblMatrix = GenerateTruthTable(bitStringLength);
+        //    //var table = DeriveSjVectors(bitStringLength, tblMatrix);
+        //    var redundantInstances = new List<string>();
 
+        //    foreach (var s in table)
+        //    {
+        //        if (s[position] == '1')
+        //        {
+        //            redundantInstances.Add(s);
+        //        }
+        //    }
 
-
-
-
-
-
-
+        //    return redundantInstances;
+        //}
 
         //public static string getBinaryString(int number, out int numberOfOnes)
         //{

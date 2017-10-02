@@ -23,19 +23,19 @@ namespace BackPropProgram
 
             double partition = 0.01;
             //Files
-            const int numInput = 7;//54; //30;//7;  // //11; // number features
+            const int numInput = 54; //7;////30;//7;  // //11; // number features
             const int numHidden = 8;
             const int numOutput = 2; // number of classes for Y
             const bool ISFEATURESELECTION = false;
 
-            int numRows = 453120;//45312; //495140; //25043; //// //45312; // //10000;
+            int numRows = 495140; //453120;//45312; // //25043; //// //45312; // //10000;
             //string inputDatasetFileName = "01-Data_withYEle.csv";
             //string inputDatasetFileName = "02-Allflightdatadiscretized_30Att_25043Ins_CBDT.csv";
             //string inputDatasetFileName = "03-Covertype_TwoClass_49514_Initial10%ofMost frequent classesInstances_54Att_my_CBDT.csv";
             //string inputDatasetFileName = "04-Covertype_TwoClass_All_495141_Instances_54Att_my_CBDT.csv";
             //string inputDatasetFileName = "Data_withY.csv";
-            //string inputDatasetFileName = "05-CovertypeExt_TwCls_495140_Init10PercMost_freq_classesInstances_54Att_my_CBDT.csv";
-            string inputDatasetFileName = "06-electricityData_Extended_453120Instances_7Att_CBDT.csv";
+            string inputDatasetFileName = "05-CovertypeExt_TwCls_495140_Init10PercMost_freq_classesInstances_54Att_my_CBDT.csv";
+            //string inputDatasetFileName = "06-electricityData_Extended_453120Instances_7Att_CBDT.csv";
             //string inputDatasetFileName = "07-electricitydiscretized-7Att_45312Ins_CBDT.csv";
             //
 
@@ -114,9 +114,11 @@ namespace BackPropProgram
 
             dftModel.SplitSchemasByClass();
             dftModel.GenerateClusteredSchemas();
-            dftModel.GenerateSjVectorsOptimized();
-            dftModel.FindRedundantAttributeFromPatterns(dftModel.SjVectors); //ToDo: integrate with Coeff Cal
-  
+            //dftModel.FindRedundantAttributeFromPatterns(dftModel.SjVectors); //ToDo: integrate with Coeff Cal
+
+
+
+            dftModel.SetSjVectorsWithEnergyThresholding(4);//concept of energy thresholding and order
             //TODO: Implement Redundant coeff calc
             //TODO: Parition logic
             //Energy Thresholding
