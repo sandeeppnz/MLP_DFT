@@ -8,7 +8,6 @@ namespace BackPropProgram
 {
     class Program
     {
-
         static void Main(string[] args)
         {
             const int seed = 1;
@@ -21,18 +20,18 @@ namespace BackPropProgram
             const int numOutput = 2; // number of classes for Y
             const bool ISFEATURESELECTION = false;
             const string rBin = @"C:\Program Files\R\R-3.4.1\bin\rscript.exe";
-            const string rScripFileName = "hotellingttest3.r";
+            //const string rScripFileName = "hotellingttest3.r";
+            const string rScripFileName = "Script.r";
             string dataPath = @"D:\ANN_Project_AUT_Sem3\Microsoft\BackPropProgram\Data\";
-
+            string rScriptPath = @"D:\ANN_Project_AUT_Sem3\Microsoft\BackPropProgram\HotellingTTest\";
+            bool shuffleDataset = false;
 
             //Files
-            InputFile iif = new ElectricityExtended();
+            InputFile iif = new CoverTypeSmall();
             int numInput = iif.NumAttributes; //54; //7;//54; //7;////30;//7;  // //11; // number features
             string inputDatasetFileName = iif.InputDatasetFileName;
             int numRows = iif.NumRows; //49514; //102800;//20560;//130073; //45312; //495140; //453120;//// //25043; //// //45312; // //10000;
             //
-
-
 
             try
             {
@@ -47,12 +46,11 @@ namespace BackPropProgram
                     ResultsStatistics mlpResults = new ResultsStatistics();
                     NeuralNetwork nn = new NeuralNetwork(numInput, numHidden, numOutput, ISFEATURESELECTION);
 
-                    MLPModel mlpModel = new MLPModel(new FileProcessor(dataPath), new Logger(), nn,
+                    MLPModel mlpModel = new MLPModel(new FileProcessor(dataPath,rScriptPath), new Logger(), nn,
                         numInput, seed, partition, hotellingTestThreshold, partitionIncrement, new RRunner());
 
                     mlpModel.ReadDataset(inputDatasetFileName, numRows);
 
-                    //mlpModel.RunHotellingTTest(inputDatasetFileName, rScripFileName, rBin);
 
                     Console.WriteLine("\nBegin neural network back-propagation");
 
@@ -60,7 +58,11 @@ namespace BackPropProgram
                     //mlpModel.PrintWeights(2, 10, true);
 
 
-                    mlpModel.SplitTrainTest(seed);
+                    mlpModel.SplitTrainTest(seed, shuffleDataset);
+                    mlpModel.RunHotellingTTest(mlpModel.TrainingFileName, mlpModel.TestingFileName, rScripFileName, rBin);
+
+
+
                     //mlpModel.PrintTrain();
                     //mlpModel.PrintTest();
                     mlpModel.CreateAndTrainMLP(numInput, numHidden, numOutput, ISFEATURESELECTION, maxEpochs, learnRate, momentum);
@@ -92,7 +94,7 @@ namespace BackPropProgram
                     Console.WriteLine("\nEnd back-propagation\n");
 
                     mlpResults.FileName = inputDatasetFileName;
-                    mlpResults.TotalSize = mlpModel.TotalDataSize;
+                    //mlpResults.TotalSize = mlpModel.TotalDataSize;
                     mlpResults.TrainSize = mlpModel.TrainDataSize;
                     mlpResults.TestSize = mlpModel.TestDataSize;
 

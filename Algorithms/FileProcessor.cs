@@ -10,41 +10,49 @@ namespace Algorithms
     public interface IFileProcessor
     {
         string GetDataPath();
+        string GetRScriptPath();
         void ReadInputDatasetCSV(int numInputs, int numRows, out float[][] fullDataset, out float[][] tValueFile, string inputFilePathName);
-        void ReadInputDatasetCSVOther(int numInputs, int numRows, out float[][] fullDataset, out float[][] tValueFile, string inputFilePathName);
+        //void ReadInputDatasetCSVOther(int numInputs, int numRows, out float[][] fullDataset, out float[][] tValueFile, string inputFilePathName);
+        string WriteMLPInputDataset(int numCols, double[][] data, string fileName);
 
     }
 
 
     public class FileProcessor : IFileProcessor
     {
+        public string Header { get; set; }
+
         public string DataPath { get; set; }
+        public string RScriptPath { get; set; }
 
         public string GetDataPath() { return DataPath; }
 
-        public FileProcessor(string dataPath)
+        public string GetRScriptPath() { return RScriptPath; }
+
+
+
+        public FileProcessor(string dataPath, string rScriptPath)
         {
             DataPath = dataPath;
+            RScriptPath = rScriptPath;
         }
 
         public void ReadInputDatasetCSV(int numInputs, int numRows, out float[][] fullDataset, out float[][] tValueFile, string inputFilePathName)
         {
             String line = String.Empty;
-            //System.IO.StreamReader file = new System.IO.StreamReader(@"d:\Data.csv");
-            //System.IO.StreamReader file = new System.IO.StreamReader(@"d:\Data_withY-CS.csv");
-            //System.IO.StreamReader file = new System.IO.StreamReader(@"d:\irisCSV.csv");
             System.IO.StreamReader file = new System.IO.StreamReader(DataPath + inputFilePathName);
             fullDataset = new float[numRows][];
             tValueFile = new float[numRows][];
             for (int i = 0; i < numRows; i++)
                 fullDataset[i] = new float[numInputs + 1];
             int r = 0;
-            int headerPassed = 0;
+            int headerPassed = 0; //assumes first line is a header
             while ((line = file.ReadLine()) != null)
             {
                 if (headerPassed == 0)
                 {
                     headerPassed = 1;
+                    Header = line;
                     continue;
                 }
 
@@ -57,7 +65,7 @@ namespace Algorithms
                 //TODO
                 for (int i = 0; i < numInputs + 1; i++)
                 {
-                        fullDataset[r][i] = float.Parse(parts_of_line[i]);
+                    fullDataset[r][i] = float.Parse(parts_of_line[i]);
                 }
                 //tValueFile[r] = float.Parse(parts_of_line[11]);
                 r++;
@@ -69,7 +77,7 @@ namespace Algorithms
 
             for (int i = 0; i < numRows; i++)
             {
-                //TODO: 
+                //if the class is 0, set the first element as 1 (kinda like 0 is activated)
                 if (fullDataset[i][numInputs] == 0)
                 {
                     tValueFile[i][1] = 0;
@@ -84,71 +92,128 @@ namespace Algorithms
             }
         }
 
+        //public void ReadInputDatasetCSVOther(int numInputs, int numRows, out float[][] fullDataset, out float[][] tValueFile, string inputFilePathName)
+        //{
+        //    String line = String.Empty;
+        //    //System.IO.StreamReader file = new System.IO.StreamReader(@"d:\Data.csv");
+        //    //System.IO.StreamReader file = new System.IO.StreamReader(@"d:\Data_withY-CS.csv");
+        //    //System.IO.StreamReader file = new System.IO.StreamReader(@"d:\irisCSV.csv");
+        //    System.IO.StreamReader file = new System.IO.StreamReader(DataPath + inputFilePathName);
+        //    fullDataset = new float[numRows][];
+        //    tValueFile = new float[numRows][];
 
-        public void ReadInputDatasetCSVOther(int numInputs, int numRows, out float[][] fullDataset, out float[][] tValueFile, string inputFilePathName)
+        //    for (int i = 0; i < numRows; i++)
+        //        fullDataset[i] = new float[numInputs + 1];
+        //    int r = 0;
+
+        //    while ((line = file.ReadLine()) != null)
+        //    {
+        //        String[] parts_of_line = line.Split(',');
+        //        for (int i = 0; i < parts_of_line.Length; i++)
+        //        {
+        //            try
+        //            {
+        //                parts_of_line[i] = parts_of_line[i].Trim();
+
+        //            }
+        //            catch (Exception ex)
+        //            {
+        //                continue;
+        //            }
+        //        }
+        //        // do with the parts of the line whatever you like
+        //        //TODO
+        //        for (int i = 0; i < numInputs + 1; i++)
+        //        {
+        //            float val = float.Parse(parts_of_line[i]);
+        //            if (val == 1)
+        //                fullDataset[r][i] = 0;
+        //            else if (val == 2)
+        //                fullDataset[r][i] = 1;
+
+
+        //        }
+        //        //tValueFile[r] = float.Parse(parts_of_line[11]);
+        //        r++;
+        //    }
+
+        //    //NEW
+        //    for (int i = 0; i < numRows; i++)
+        //        tValueFile[i] = new float[2];
+
+        //    for (int i = 0; i < numRows; i++)
+        //    {
+        //        //TODO: 
+        //        if (fullDataset[i][numInputs] == 0)
+        //        {
+        //            tValueFile[i][1] = 0;
+        //            tValueFile[i][0] = 1;
+        //        }
+        //        else
+        //        {
+        //            tValueFile[i][0] = 0;
+        //            tValueFile[i][1] = 1;
+
+        //        }
+        //    }
+        //}
+
+
+        public string WriteMLPInputDataset(int numCols, double[][] data, string fileName)
         {
-            String line = String.Empty;
-            //System.IO.StreamReader file = new System.IO.StreamReader(@"d:\Data.csv");
-            //System.IO.StreamReader file = new System.IO.StreamReader(@"d:\Data_withY-CS.csv");
-            //System.IO.StreamReader file = new System.IO.StreamReader(@"d:\irisCSV.csv");
-            System.IO.StreamReader file = new System.IO.StreamReader(DataPath + inputFilePathName);
-            fullDataset = new float[numRows][];
-            tValueFile = new float[numRows][];
+            string fileNameAndPath = GetDataPath() + "Output-" + fileName + ".csv";
 
-            for (int i = 0; i < numRows; i++)
-                fullDataset[i] = new float[numInputs + 1];
-            int r = 0;
-
-            while ((line = file.ReadLine()) != null)
+            if (File.Exists(fileNameAndPath))
             {
-                String[] parts_of_line = line.Split(',');
-                for (int i = 0; i < parts_of_line.Length; i++)
-                {
-                    try
-                    {
-                        parts_of_line[i] = parts_of_line[i].Trim();
-
-                    }
-                    catch (Exception ex)
-                    {
-                        continue;
-                    }
-                }
-                // do with the parts of the line whatever you like
-                //TODO
-                for (int i = 0; i < numInputs + 1; i++)
-                {
-                    float val = float.Parse(parts_of_line[i]);
-                    if (val == 1)
-                        fullDataset[r][i] = 0;
-                    else if (val == 2)
-                        fullDataset[r][i] = 1;
-
-
-                }
-                //tValueFile[r] = float.Parse(parts_of_line[11]);
-                r++;
+                File.Delete(fileNameAndPath);
             }
 
-            //NEW
-            for (int i = 0; i < numRows; i++)
-                tValueFile[i] = new float[2];
+            var sw = new StreamWriter(fileNameAndPath, true);
 
-            for (int i = 0; i < numRows; i++)
+
+            sw.Write(Header);
+            sw.Write("\r\n");
+
+            //if (header)
+            //{
+            //    sw.Write("SchemaFull,fx-MLP,");
+            //    for (int j = 0; j < numCols; j++)
+            //    {
+            //        sw.Write(",X" + j);
+            //    }
+            //    sw.Write(",fx-MLP");
+
+            //    sw.Write(",,fx-InvDFT");
+            //    sw.Write(",,fx-Shortcut");
+            //    sw.Write("\r\n");
+            //}
+
+            for (int row = 0; row < data.Length; row++)
             {
-                //TODO: 
-                if (fullDataset[i][numInputs] == 0)
+                for (int col = 0; col < numCols; col++)
                 {
-                    tValueFile[i][1] = 0;
-                    tValueFile[i][0] = 1;
+                    sw.Write(data[row][col].ToString());
+                    sw.Write(",");
+
+                    //if (col != numCols - 1)
+                    //    sw.Write(",");
+                    //else
+                    //    sw.Write("\r\n");
+
                 }
+
+                if (data[row][numCols + 2] == 1) //class value zero is activated
+                    sw.Write(0);
                 else
-                {
-                    tValueFile[i][0] = 0;
-                    tValueFile[i][1] = 1;
-
-                }
+                    sw.Write(1);
+                sw.Write("\r\n");
             }
+
+            sw.Flush();
+            sw.Close();
+            sw = null;
+
+            return "Output-" + fileName + ".csv";
         }
 
 

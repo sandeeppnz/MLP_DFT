@@ -47,7 +47,7 @@ namespace Algorithms
         INeuralNetwork _nn;
         IRRunner _rRunner;
 
-        public int TotalDataSize { get; set; }
+        //public int TotalDataSize { get; set; }
         public int TrainDataSize { get; set; }
         public int TestDataSize { get; set; }
         public string TrainingTime { get; set; }
@@ -78,7 +78,10 @@ namespace Algorithms
         //The refined dataset
         public double[][] AllData;
         public double[][] TrainData;
+        public string TrainingFileName { get; set; }
+
         public double[][] TestData;
+        public string TestingFileName { get; set; }
 
         public double TrainAcc { get; set; }
         public double TestAcc { get; set; }
@@ -100,7 +103,7 @@ namespace Algorithms
 
         }
 
-        public void RunHotellingTTest(string inputDatasetFile, string rScriptFile, string rBin)
+        public void RunHotellingTTest(string trainingFile, string testingFile, string rScriptFile, string rBin)
         {
             #region sample test R
             //string path = @"D:\ANN_Project_AUT_Sem3\Microsoft\BackPropProgram\HotellingR";
@@ -112,7 +115,7 @@ namespace Algorithms
             sw.Start();
             while (HotellingTestPValue <= HotellingTestThreshold)
             {
-                var result = _rRunner.RunFromCmd(this._fileProcessor.GetDataPath() + rScriptFile, rBin, Partition.ToString(), this._fileProcessor.GetDataPath() + inputDatasetFile);
+                var result = _rRunner.RunFromCmd(this._fileProcessor.GetRScriptPath() + rScriptFile, rBin, Partition.ToString(), this._fileProcessor.GetDataPath() + trainingFile, this._fileProcessor.GetDataPath() + testingFile);
 
                 if (string.IsNullOrEmpty(result))
                 {
@@ -150,10 +153,7 @@ namespace Algorithms
         public void ReadDataset(string inputFileName, int numRows)
         {
             NumRows = numRows;
-            TotalDataSize = numRows;
             _fileProcessor.ReadInputDatasetCSV(NumAttributes, NumRows, out RawFullDataset, out TValueFile, inputFileName);
-            //_fileProcessor.ReadInputDatasetCSVOther(NumAttributes, NumRows, out RawFullDataset, out TValueFile, inputFileName);
-
         }
 
         public void GenerateArtificalDataUsingNN(int numInput, int numHidden, int numOutput)
@@ -287,6 +287,7 @@ namespace Algorithms
             TrainAcc = _nn.Accuracy(TrainData);
             TestAcc = _nn.Accuracy(TestData);
 
+
         }
 
         //public void ShowVector(double[] vector, int decimals,
@@ -354,7 +355,7 @@ namespace Algorithms
             Console.WriteLine("\n");
         }
 
-        public void SplitTrainTest(int seed)
+        public void SplitTrainTest(int seed, bool shuffle = true)
         {
             Console.WriteLine("\nCreating train {0} and test {1} matrices", Partition, 1 - Partition);
             Random rnd = new Random(seed);
@@ -375,19 +376,26 @@ namespace Algorithms
                 copy[i] = AllData[i];
             }
 
-            //TODO: shuffle
-            for (int i = 0; i < copy.Length; ++i) // scramble order
+            if (shuffle)
             {
-                int r = rnd.Next(i, copy.Length); // use Fisher-Yates
-                double[] tmp = copy[r];
-                copy[r] = copy[i];
-                copy[i] = tmp;
+                for (int i = 0; i < copy.Length; ++i) // scramble order
+                {
+                    int r = rnd.Next(i, copy.Length); // use Fisher-Yates
+                    double[] tmp = copy[r];
+                    copy[r] = copy[i];
+                    copy[i] = tmp;
+                }
             }
+
             for (int i = 0; i < numTrainRows; ++i)
                 TrainData[i] = copy[i];
 
             for (int i = 0; i < numTestRows; ++i)
                 TestData[i] = copy[i + numTrainRows];
+
+            TrainingFileName = _fileProcessor.WriteMLPInputDataset(NumAttributes, TrainData, "Train-" + Partition.ToString());
+            TestingFileName = _fileProcessor.WriteMLPInputDataset(NumAttributes, TestData, "Test-" + Partition.ToString());
+
 
             Console.WriteLine("Done\n");
         } // SplitTrainTest

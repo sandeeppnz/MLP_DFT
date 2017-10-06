@@ -7,6 +7,8 @@ Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "BackPropProgram", "BackProp
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Algorithms", "Algorithms\Algorithms.csproj", "{3E0FCE76-CEF0-410D-ABF4-B89A6F9930D6}"
 EndProject
+Project("{DA7A21FA-8162-4350-AD77-A8D1B671F3ED}") = "HotellingTTest", "HotellingTTest\HotellingTTest.rxproj", "{46A76EB6-1ED8-4BEF-8643-07ACB19E8D2C}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -21,6 +23,10 @@ Global
 		{3E0FCE76-CEF0-410D-ABF4-B89A6F9930D6}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{3E0FCE76-CEF0-410D-ABF4-B89A6F9930D6}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{3E0FCE76-CEF0-410D-ABF4-B89A6F9930D6}.Release|Any CPU.Build.0 = Release|Any CPU
+		{46A76EB6-1ED8-4BEF-8643-07ACB19E8D2C}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{46A76EB6-1ED8-4BEF-8643-07ACB19E8D2C}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{46A76EB6-1ED8-4BEF-8643-07ACB19E8D2C}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{46A76EB6-1ED8-4BEF-8643-07ACB19E8D2C}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE

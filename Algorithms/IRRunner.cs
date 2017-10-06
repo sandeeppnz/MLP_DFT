@@ -12,7 +12,7 @@ namespace Algorithms
 
     public interface IRRunner
     {
-        string RunFromCmd(string rCodeFilePath, string rScriptExecutablePath, string args, string filePathAndName);
+        string RunFromCmd(string rCodeFilePath, string rScriptExecutablePath, string args, string trainingFilePathAndName, string testingFilePathAndName);
     }
 
     public class RRunner: IRRunner
@@ -45,7 +45,7 @@ namespace Algorithms
         //}
 
 
-        public string RunFromCmd(string rCodeFilePath, string rScriptExecutablePath, string args, string filePathAndName)
+        public string RunFromCmd(string rCodeFilePath, string rScriptExecutablePath, string args, string trainingPathAndFile, string testingPathAndFile)
         {
             string file = rCodeFilePath;
             string result = string.Empty;
@@ -56,7 +56,7 @@ namespace Algorithms
                 var info = new ProcessStartInfo();
                 info.FileName = rScriptExecutablePath;
                 info.WorkingDirectory = Path.GetDirectoryName(rScriptExecutablePath);
-                info.Arguments = rCodeFilePath + " " + args + " " + filePathAndName;
+                info.Arguments = rCodeFilePath + " " + args + " " + trainingPathAndFile + " " + testingPathAndFile;
 
                 info.RedirectStandardInput = false;
                 info.RedirectStandardOutput = true;
