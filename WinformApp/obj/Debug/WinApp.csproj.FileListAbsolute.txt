@@ -1,6 +1,7 @@
 D:\ANN_Project_AUT_Sem3\Microsoft\BackPropProgram\WinformApp\bin\Debug\MLP_DFT.exe.config
 D:\ANN_Project_AUT_Sem3\Microsoft\BackPropProgram\WinformApp\bin\Debug\MLP_DFT.exe
 D:\ANN_Project_AUT_Sem3\Microsoft\BackPropProgram\WinformApp\bin\Debug\MLP_DFT.pdb
+D:\ANN_Project_AUT_Sem3\Microsoft\BackPropProgram\WinformApp\obj\Debug\WinApp.csprojResolveAssemblyReference.cache
 D:\ANN_Project_AUT_Sem3\Microsoft\BackPropProgram\WinformApp\obj\Debug\MLP_DFT.Properties.Resources.resources
 D:\ANN_Project_AUT_Sem3\Microsoft\BackPropProgram\WinformApp\obj\Debug\WinApp.csproj.GenerateResource.Cache
 D:\ANN_Project_AUT_Sem3\Microsoft\BackPropProgram\WinformApp\obj\Debug\WinApp.csproj.CoreCompileInputs.cache

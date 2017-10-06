@@ -58,7 +58,6 @@
     <ProjectReference Include="..\Algorithms\Algorithms.csproj">
       <Project>{3e0fce76-cef0-410d-abf4-b89a6f9930d6}</Project>
       <Name>Algorithms</Name>
-      <Private>True</Private>
     </ProjectReference>
   </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />

@@ -6,7 +6,7 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 
-namespace BackPropProgram
+namespace Algorithms
 {
     //https://stackoverflow.com/questions/14021055/r-script-form-c-passing-arguments-running-script-retrieving-results
 

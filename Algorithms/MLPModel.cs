@@ -7,7 +7,7 @@ using System.Text;
 using System.Text.RegularExpressions;
 using System.Threading.Tasks;
 
-namespace BackPropProgram
+namespace Algorithms
 {
     public class MLPModel : IDisposable
     {

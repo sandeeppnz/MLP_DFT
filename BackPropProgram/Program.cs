@@ -1,4 +1,5 @@
-﻿using System;
+﻿using Algorithms;
+using System;
 using System.Collections.Generic;
 using System.Diagnostics;
 using System.Text.RegularExpressions;
@@ -16,27 +17,19 @@ namespace BackPropProgram
             const double momentum = 0.2;
             const decimal partitionIncrement = 0.01M;
             const double hotellingTestThreshold = 0.05;
-
-            const string rBin = @"C:\Program Files\R\R-3.4.1\bin\rscript.exe";
-            const string rScripFileName = "hotellingttest3.r";
-            const string dataPath = @"D:\ANN_Project_AUT_Sem3\Microsoft\BackPropProgram\Data\";
-
-            //Files
-            const int numInput = 5; //54; //7;//54; //7;////30;//7;  // //11; // number features
             const int numHidden = 8;
             const int numOutput = 2; // number of classes for Y
             const bool ISFEATURESELECTION = false;
+            const string rBin = @"C:\Program Files\R\R-3.4.1\bin\rscript.exe";
+            const string rScripFileName = "hotellingttest3.r";
+            string dataPath = @"D:\ANN_Project_AUT_Sem3\Microsoft\BackPropProgram\Data\";
 
-            int numRows = 102800; //49514; //102800;//20560;//130073; //45312; //495140; //453120;//// //25043; //// //45312; // //10000;
-            //string inputDatasetFileName = "07-electricitydiscretized-7Att_45312Ins_CBDT.csv";
-            //string inputDatasetFileName = "08-IntelLabSensorStream_5Att_130073Instances_two_majority_classes_29_and_31_CBDT.csv";
-            //string inputDatasetFileName = "09-occupancyData_20560_Instances_5Attributes_CBDT.csv";
-            string inputDatasetFileName = "10-occupancyData_Extended_102800_Instances_5Attributes_CBDT.csv";
-            //string inputDatasetFileName = "11-Covertype_TwoClass_49514_Initial_Most_frequent_classesInstances_54Att_my_CBDT.csv";
 
-            //string inputDatasetFileName = "Data_withY.csv";
-            //string inputDatasetFileName = "05-CovertypeExt_TwCls_495140_Init10PercMost_freq_classesInstances_54Att_my_CBDT.csv";
-            //string inputDatasetFileName = "06-electricityData_Extended_453120Instances_7Att_CBDT.csv";
+            //Files
+            InputFile iif = new RH();
+            int numInput = iif.NumAttributes; //54; //7;//54; //7;////30;//7;  // //11; // number features
+            string inputDatasetFileName = iif.InputDatasetFileName;
+            int numRows = iif.NumRows; //49514; //102800;//20560;//130073; //45312; //495140; //453120;//// //25043; //// //45312; // //10000;
             //
 
 
@@ -209,7 +202,7 @@ namespace BackPropProgram
                         Console.WriteLine("Dataset: {0}", r.FileName); i++;
                     }
 
-                    Console.WriteLine("Training size:{0}\tTest size:{1}\tPercentage:{2}\tTrainingAcc:{3}\tTestAcc:{4}\tTime:{5}", r.TrainSize, r.TestSize, r.PerSplit, r.TrainingAccuracy.ToString("F2"), r.TestingAccuracy.ToString("F2"), r.TrainingTime);
+                    Console.WriteLine("TrSize:{0}\tTestSize:{1}\tPartitionSize:{2}\tTrAcc:{3}\tTestAcc:{4}\tTrTime:{5}", r.TrainSize, r.TestSize, r.PerSplit, r.TrainingAccuracy.ToString("F2"), r.TestingAccuracy.ToString("F2"), r.TrainingTime);
                 }
 
 

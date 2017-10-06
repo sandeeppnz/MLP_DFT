@@ -2,6 +2,7 @@
 using NUnit.Framework;
 using System.Collections.Generic;
 using System.Linq;
+using BackPropProgram;
 
 namespace BackPropProgram.Tests
 {

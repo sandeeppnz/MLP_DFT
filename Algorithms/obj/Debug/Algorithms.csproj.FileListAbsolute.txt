@@ -1,6 +1,6 @@
+D:\ANN_Project_AUT_Sem3\Microsoft\BackPropProgram\Algorithms\obj\Debug\Algorithms.csproj.CoreCompileInputs.cache
 D:\ANN_Project_AUT_Sem3\Microsoft\BackPropProgram\Algorithms\bin\Debug\Algorithms.dll
 D:\ANN_Project_AUT_Sem3\Microsoft\BackPropProgram\Algorithms\bin\Debug\Algorithms.pdb
-D:\ANN_Project_AUT_Sem3\Microsoft\BackPropProgram\Algorithms\obj\Debug\Algorithms.csproj.CoreCompileInputs.cache
 D:\ANN_Project_AUT_Sem3\Microsoft\BackPropProgram\Algorithms\obj\Debug\Algorithms.dll
 D:\ANN_Project_AUT_Sem3\Microsoft\BackPropProgram\Algorithms\obj\Debug\Algorithms.pdb
 D:\ANN_Project_AUT_Sem3\Microsoft\BackPropProgram\Algorithms\obj\Debug\Algorithms.csprojResolveAssemblyReference.cache
