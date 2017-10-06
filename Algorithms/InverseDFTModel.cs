@@ -6,8 +6,25 @@ using System.Threading.Tasks;
 
 namespace BackPropProgram
 {
-    public class InverseDFTModel
+    public class InverseDFTModel: IDisposable
     {
+        private bool disposed = false;
+        protected virtual void Dispose(bool disposing)
+        {
+            if (!this.disposed)
+            {
+                if (disposing)
+                {
+                }
+            }
+            this.disposed = true;
+        }
+        public void Dispose()
+        {
+            Dispose(true);
+            //GC.SuppressFinalize(this);
+        }
+
         /// <summary>
         /// Check the each schema and return the fx value from based on the pattern it can be accomdated to
         /// </summary>

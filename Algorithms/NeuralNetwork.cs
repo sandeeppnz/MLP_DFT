@@ -11,7 +11,7 @@ namespace BackPropProgram
 
     public interface INeuralNetwork
     {
-        
+
         int GetTotalWeights();
         void SetWeights(double[] weights);
 
@@ -26,11 +26,13 @@ namespace BackPropProgram
         double[] ComputeOutputs(double[] xValues);
         double[] Train(double[][] trainData, int maxEpochs, double learnRate, double momentum);
         double Accuracy(double[][] data, double[] rankArray = null);
+        void Dispose(bool disposing);
+
 
     }
 
 
-    public partial class NeuralNetwork : INeuralNetwork
+    public partial class NeuralNetwork : INeuralNetwork, IDisposable
     {
 
 
@@ -600,11 +602,51 @@ namespace BackPropProgram
         //    }
         //}
 
-        
+
 
         public int GetTotalWeights()
         {
             return this._totalWeights;
+        }
+
+
+        private bool disposed = false;
+        protected void Dispose(bool disposing)
+        {
+            if (!this.disposed)
+            {
+                if (disposing)
+                {
+                    AllWeights = null;
+                    inputs = null;
+                    ihWeights = null;
+                    hBiases = null;
+                    hOutputs = null;
+                    hoWeights = null;
+                    oBiases = null;
+                    outputs = null;
+                    //Dispose(true);
+                    //GC.SuppressFinalize(this);
+
+                }
+            }
+            this.disposed = true;
+        }
+
+        public void Dispose()
+        {
+            Dispose(true);
+            //GC.SuppressFinalize(this);
+        }
+
+
+
+
+        void INeuralNetwork.Dispose(bool disposing)
+        {
+            //Dispose(true);
+            GC.SuppressFinalize(this);
+            //throw new NotImplementedException();
         }
     } // NeuralNetwork
 

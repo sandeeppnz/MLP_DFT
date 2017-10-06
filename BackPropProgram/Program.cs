@@ -14,153 +14,210 @@ namespace BackPropProgram
             const int maxEpochs = 100;
             const double learnRate = 0.3;
             const double momentum = 0.2;
-            const double partitionIncrement = 0.01;
+            const decimal partitionIncrement = 0.01M;
             const double hotellingTestThreshold = 0.05;
 
             const string rBin = @"C:\Program Files\R\R-3.4.1\bin\rscript.exe";
             const string rScripFileName = "hotellingttest3.r";
             const string dataPath = @"D:\ANN_Project_AUT_Sem3\Microsoft\BackPropProgram\Data\";
 
-            double partition = 0.8;
             //Files
-            const int numInput = 5; //7;//54; //7;////30;//7;  // //11; // number features
+            const int numInput = 5; //54; //7;//54; //7;////30;//7;  // //11; // number features
             const int numHidden = 8;
             const int numOutput = 2; // number of classes for Y
             const bool ISFEATURESELECTION = false;
 
-            int numRows = 102800;//20560;//130073; //45312; //495140; //453120;//// //25043; //// //45312; // //10000;
+            int numRows = 102800; //49514; //102800;//20560;//130073; //45312; //495140; //453120;//// //25043; //// //45312; // //10000;
             //string inputDatasetFileName = "07-electricitydiscretized-7Att_45312Ins_CBDT.csv";
             //string inputDatasetFileName = "08-IntelLabSensorStream_5Att_130073Instances_two_majority_classes_29_and_31_CBDT.csv";
             //string inputDatasetFileName = "09-occupancyData_20560_Instances_5Attributes_CBDT.csv";
             string inputDatasetFileName = "10-occupancyData_Extended_102800_Instances_5Attributes_CBDT.csv";
-
+            //string inputDatasetFileName = "11-Covertype_TwoClass_49514_Initial_Most_frequent_classesInstances_54Att_my_CBDT.csv";
 
             //string inputDatasetFileName = "Data_withY.csv";
             //string inputDatasetFileName = "05-CovertypeExt_TwCls_495140_Init10PercMost_freq_classesInstances_54Att_my_CBDT.csv";
             //string inputDatasetFileName = "06-electricityData_Extended_453120Instances_7Att_CBDT.csv";
             //
 
-            NeuralNetwork nn = new NeuralNetwork(numInput, numHidden, numOutput, ISFEATURESELECTION);
-
-            MLPModel mlpModel = new MLPModel(new FileProcessor(dataPath), new Logger(), nn,
-                numInput, seed, partition, hotellingTestThreshold, partitionIncrement, new RRunner());
-
-            mlpModel.ReadDataset(inputDatasetFileName, numRows);
-            //mlpModel.RunHotellingTTest(inputDatasetFileName, rScripFileName, rBin);
-
-            Stopwatch sw = new Stopwatch();
-            sw.Start();
-            Console.WriteLine("\nBegin neural network back-propagation");
-
-            mlpModel.GenerateArtificalDataUsingNN(numInput, numHidden, numOutput);
-            mlpModel.PrintWeights(2, 10, true);
 
 
-            mlpModel.SplitTrainTest(seed);
-            mlpModel.PrintTrain();
-            mlpModel.PrintTest();
-            mlpModel.CreateAndTrainMLP(numInput, numHidden, numOutput, ISFEATURESELECTION, maxEpochs, learnRate, momentum);
-            mlpModel.PrintWeights(2, 10, true);
+            try
+            {
+                decimal partition = 0.8M;
+                List<ResultsStatistics> stats = new List<ResultsStatistics>();
 
 
+                while (partition >= 0)
+                {
+                    if (partition < 0.01M) break;
 
-            #region MLP
+                    ResultsStatistics mlpResults = new ResultsStatistics();
+                    NeuralNetwork nn = new NeuralNetwork(numInput, numHidden, numOutput, ISFEATURESELECTION);
 
-            ////TODO: not used
-            // NOT MIGRATED
-            //double[] inputNodeTotalWeightsArray = DFT.ShowVectorWInput(NUMINPUT, NUMHIDDEN, NUMOUTPUT, weights, 2);
+                    MLPModel mlpModel = new MLPModel(new FileProcessor(dataPath), new Logger(), nn,
+                        numInput, seed, partition, hotellingTestThreshold, partitionIncrement, new RRunner());
 
-            ////TODO: not used
-            //double[] rankArray = null;
-            //if (ISFEATURESELECTION)
-            //{
-            //    rankArray = DFT.GenerateRankArray(NUMINPUT, inputNodeTotalWeightsArray);
-            //    weights = DFT.UpdateWeightsArrayByRank(NUMINPUT, NUMHIDDEN, weights, rankArray);
-            //    inputNodeTotalWeightsArray = DFT.ShowVectorWInput(NUMINPUT, NUMHIDDEN, NUMOUTPUT, weights, 2);
-            //    neuralNetwork.SetWeights(weights);
-            //}
+                    mlpModel.ReadDataset(inputDatasetFileName, numRows);
 
-            //Investigate Changes HERE
-            //double trainAcc = neuralNetwork.Accuracy(trainData, rankArray);
+                    //mlpModel.RunHotellingTTest(inputDatasetFileName, rScripFileName, rBin);
 
+                    Console.WriteLine("\nBegin neural network back-propagation");
 
-            Console.WriteLine("\nFinal accuracy on training data = " + mlpModel.TrainAcc.ToString("F4"));
-            Console.WriteLine("Final accuracy on test data     = " + mlpModel.TestAcc.ToString("F4"));
-            Console.WriteLine("\nEnd back-propagation\n");
-            sw.Stop();
-            Console.WriteLine("Elapsed={0}", sw.Elapsed);
+                    mlpModel.GenerateArtificalDataUsingNN(numInput, numHidden, numOutput);
+                    //mlpModel.PrintWeights(2, 10, true);
 
 
-
-            ////TODO: not used
-            //bool[,] inputTable = DFT.GenerateTruthTable(NUMINPUT);
-            //bool[] answer1 = new bool[inputTable.GetLength(0)];
-
-            ////TODO: not used
-            //if (ISFEATURESELECTION)
-            //{
-            //    inputTable = DFT.SetIrrelevantVariables(NUMINPUT, inputTable, rankArray);
-            //}
+                    mlpModel.SplitTrainTest(seed);
+                    //mlpModel.PrintTrain();
+                    //mlpModel.PrintTest();
+                    mlpModel.CreateAndTrainMLP(numInput, numHidden, numOutput, ISFEATURESELECTION, maxEpochs, learnRate, momentum);
+                    //mlpModel.PrintWeights(2, 10, true);
 
 
-            #endregion
+                    #region MLP
 
-            #region Main DFT processing begins
-            Console.WriteLine();
-            Console.WriteLine("\nDFT Processing...");
+                    ////TODO: not used
+                    // NOT MIGRATED
+                    //double[] inputNodeTotalWeightsArray = DFT.ShowVectorWInput(NUMINPUT, NUMHIDDEN, NUMOUTPUT, weights, 2);
 
-            //Exit if the data is continuous
-            //Add rank array
-            DFTModel dftModel = new DFTModel(mlpModel.GetNeuralNetwork(), mlpModel.TrainData, ISFEATURESELECTION, null);
+                    ////TODO: not used
+                    //double[] rankArray = null;
+                    //if (ISFEATURESELECTION)
+                    //{
+                    //    rankArray = DFT.GenerateRankArray(NUMINPUT, inputNodeTotalWeightsArray);
+                    //    weights = DFT.UpdateWeightsArrayByRank(NUMINPUT, NUMHIDDEN, weights, rankArray);
+                    //    inputNodeTotalWeightsArray = DFT.ShowVectorWInput(NUMINPUT, NUMHIDDEN, NUMOUTPUT, weights, 2);
+                    //    neuralNetwork.SetWeights(weights);
+                    //}
 
-            dftModel.SplitSchemasByClass();
-            dftModel.GenerateClusteredSchemas();
-            //dftModel.FindRedundantAttributeFromPatterns(dftModel.SjVectors); //ToDo: integrate with Coeff Cal
-            dftModel.SetSjVectorsWithEnergyThresholding(4);//concept of energy thresholding and order
-            //TODO: Implement Redundant coeff calc
-            //TODO: Parition logic
-            //Energy Thresholding
+                    //Investigate Changes HERE
+                    //double trainAcc = neuralNetwork.Accuracy(trainData, rankArray);
 
 
-            var energyCoffs = dftModel.CalculateDftEnergyCoeffs(dftModel.ClusteredSchemaSxClass1);
-            //#region Find redundant attributes from patterns
+                    Console.WriteLine("\nFinal accuracy on training data = " + mlpModel.TrainAcc.ToString("F4"));
+                    Console.WriteLine("Final accuracy on test data     = " + mlpModel.TestAcc.ToString("F4"));
+                    Console.WriteLine("\nEnd back-propagation\n");
 
-            ////TODO: not used
-            //var redundantAttibuteIndexList = DFT.FindRedundantAttributeFromPatterns(clusteredSchemaSxClass1);
-            //#endregion
-            #endregion
+                    mlpResults.FileName = inputDatasetFileName;
+                    mlpResults.TotalSize = mlpModel.TotalDataSize;
+                    mlpResults.TrainSize = mlpModel.TrainDataSize;
+                    mlpResults.TestSize = mlpModel.TestDataSize;
+
+                    mlpResults.PerSplit = partition;
+                    mlpResults.TrainingAccuracy = mlpModel.TrainAcc;
+                    mlpResults.TestingAccuracy = mlpModel.TestAcc;
+                    mlpResults.TrainingTime = mlpModel.TrainingTime;
 
 
 
-            #region 
-            //Calculate f(x) directly by looking at the pattern
-            InverseDFTModel inverseDftModel = new InverseDFTModel();
-            var fxShortcutClass0 = inverseDftModel.CalculateFxByPatternDirectly(dftModel.AllSchemaSxClass0, dftModel.ClusteredSchemaSxClass0, "0");
-            var fxShortcutClass1 = inverseDftModel.CalculateFxByPatternDirectly(dftModel.AllSchemaSxClass1, dftModel.ClusteredSchemaSxClass1, "1");
-            
+                    ////TODO: not used
+                    //bool[,] inputTable = DFT.GenerateTruthTable(NUMINPUT);
+                    //bool[] answer1 = new bool[inputTable.GetLength(0)];
 
-            //Calculate f(x) by Inverse DFT 
-            var fxClass0ByInvDFT = inverseDftModel.GetFxByInverseDFT(dftModel.AllSchemaSxClass0, dftModel.SjVectors, energyCoffs);
-            var fxClass1ByInvDFT = inverseDftModel.GetFxByInverseDFT(dftModel.AllSchemaSxClass1, dftModel.SjVectors, energyCoffs);
-
-            ////FileProcessor.WriteCoeffArraToCsv(coeffsDFT);
-            ////FileProcessor.WritesXVectorsToCsv(allSchemaSxClass1);
-            ////FileProcessor.WriteCoeffArraToCsv(coeffsDFT);
+                    ////TODO: not used
+                    //if (ISFEATURESELECTION)
+                    //{
+                    //    inputTable = DFT.SetIrrelevantVariables(NUMINPUT, inputTable, rankArray);
+                    //}
 
 
-            ////Console.ReadLine();
-            #endregion
+                    #endregion
+
+                    #region Main DFT processing begins
+                    Console.WriteLine();
+                    Console.WriteLine("\nDFT Processing...");
+
+                    //Exit if the data is continuous
+                    //Add rank array
+                    DFTModel dftModel = new DFTModel(mlpModel.GetNeuralNetwork(), mlpModel.TrainData, ISFEATURESELECTION, null);
+
+                    dftModel.SplitSchemasByClass();
+                    dftModel.GenerateClusteredSchemas();
+                    //dftModel.FindRedundantAttributeFromPatterns(dftModel.SjVectors); //ToDo: integrate with Coeff Cal
+                    dftModel.SetSjVectorsWithEnergyThresholding(4);//concept of energy thresholding and order
+                                                                   //TODO: Parition logic
+
+
+                    var energyCoffs = dftModel.CalculateDftEnergyCoeffs(dftModel.ClusteredSchemaSxClass1);
+                    //#region Find redundant attributes from patterns
+
+                    ////TODO: not used
+                    //var redundantAttibuteIndexList = DFT.FindRedundantAttributeFromPatterns(clusteredSchemaSxClass1);
+                    //#endregion
+                    #endregion
 
 
 
-            #region 
-            //write to csv
-            //FileProcessor.WriteCSVOutput(numInputs_temp, allSchemaSxClass0, "0", fxClass0ByInvDFT, fxShortcutClass0, true);
-            //FileProcessor.WriteCSVOutput(numInputs_temp, allSchemaSxClass1, "1", fxClass1ByInvDFT, fxShortcutClass1, false);
-            #endregion
+                    #region 
+                    //Calculate f(x) directly by looking at the pattern
+                    InverseDFTModel inverseDftModel = new InverseDFTModel();
+                    var fxShortcutClass0 = inverseDftModel.CalculateFxByPatternDirectly(dftModel.AllSchemaSxClass0, dftModel.ClusteredSchemaSxClass0, "0");
+                    var fxShortcutClass1 = inverseDftModel.CalculateFxByPatternDirectly(dftModel.AllSchemaSxClass1, dftModel.ClusteredSchemaSxClass1, "1");
+
+
+                    //Calculate f(x) by Inverse DFT 
+                    var fxClass0ByInvDFT = inverseDftModel.GetFxByInverseDFT(dftModel.AllSchemaSxClass0, dftModel.SjVectors, energyCoffs);
+                    var fxClass1ByInvDFT = inverseDftModel.GetFxByInverseDFT(dftModel.AllSchemaSxClass1, dftModel.SjVectors, energyCoffs);
+
+                    ////FileProcessor.WriteCoeffArraToCsv(coeffsDFT);
+                    ////FileProcessor.WritesXVectorsToCsv(allSchemaSxClass1);
+                    ////FileProcessor.WriteCoeffArraToCsv(coeffsDFT);
+
+
+                    ////Console.ReadLine();
+                    #endregion
 
 
 
+                    #region 
+                    //write to csv
+                    //FileProcessor.WriteCSVOutput(numInputs_temp, allSchemaSxClass0, "0", fxClass0ByInvDFT, fxShortcutClass0, true);
+                    //FileProcessor.WriteCSVOutput(numInputs_temp, allSchemaSxClass1, "1", fxClass1ByInvDFT, fxShortcutClass1, false);
+                    #endregion
+
+                    stats.Add(mlpResults);
+
+                    energyCoffs = null;
+                    fxShortcutClass0 = null;
+                    fxShortcutClass1 = null;
+                    fxClass0ByInvDFT = null;
+                    fxClass1ByInvDFT = null;
+                    inverseDftModel.Dispose();
+                    inverseDftModel = null;
+
+                    mlpModel.Dispose();
+                    dftModel.Dispose();
+                    mlpModel = null;
+                    dftModel = null;
+
+                    if (partition > 0.1M)
+                    {
+                        partition -= 0.1M;
+                    }
+                    else
+                    {
+                        partition -= 0.01M;
+                    }
+                }
+
+
+                int i = 0;
+                foreach (var r in stats)
+                {
+                    if (i == 0)
+                    {
+                        Console.WriteLine("Dataset: {0}", r.FileName); i++;
+                    }
+
+                    Console.WriteLine("Training size:{0}\tTest size:{1}\tPercentage:{2}\tTrainingAcc:{3}\tTestAcc:{4}\tTime:{5}", r.TrainSize, r.TestSize, r.PerSplit, r.TrainingAccuracy.ToString("F2"), r.TestingAccuracy.ToString("F2"), r.TrainingTime);
+                }
+
+
+            }
+            catch (Exception ex)
+            {
+                Console.WriteLine(ex.Message);
+            }
 
 
             Console.ReadLine();

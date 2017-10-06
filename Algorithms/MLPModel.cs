@@ -9,22 +9,59 @@ using System.Threading.Tasks;
 
 namespace BackPropProgram
 {
-    public class MLPModel
+    public class MLPModel : IDisposable
     {
+        private bool disposed = false;
+        protected virtual void Dispose(bool disposing)
+        {
+            if (!this.disposed)
+            {
+                if (disposing)
+                {
+
+
+                    RawFullDataset = null;
+                    TValueFile = null;
+                    AllData = null;
+                    TrainData = null;
+                    TestData = null;
+                    _nn.Dispose(true);
+                    _nn = null;
+                    _fileProcessor = null;
+                    _logger = null;
+                    _rRunner = null;
+                }
+            }
+            this.disposed = true;
+        }
+        public void Dispose()
+        {
+            Dispose(true);
+            //GC.SuppressFinalize(this);
+        }
+
+
+
         IFileProcessor _fileProcessor;
         ILogger _logger;
         INeuralNetwork _nn;
         IRRunner _rRunner;
 
+        public int TotalDataSize { get; set; }
+        public int TrainDataSize { get; set; }
+        public int TestDataSize { get; set; }
+        public string TrainingTime { get; set; }
+
+
         public int NumAttributes { get; set; }
         public int NumRows { get; set; }
         public int Seed { get; set; }
-        public double Partition { get; set; }
-        public double PartitionIncrement { get; set; }
+        public decimal Partition { get; set; }
+        public decimal PartitionIncrement { get; set; }
 
         public NeuralNetwork GetNeuralNetwork()
         {
-            return (NeuralNetwork) _nn;
+            return (NeuralNetwork)_nn;
         }
 
         public double HotellingTestPValue { get; set; }
@@ -46,7 +83,7 @@ namespace BackPropProgram
         public double TrainAcc { get; set; }
         public double TestAcc { get; set; }
 
-        public MLPModel(FileProcessor fp, Logger logger, NeuralNetwork nn, int numInput, int seed, double partition, double hotellingTestThreshold, double partitionIncrement, RRunner rRunner)
+        public MLPModel(FileProcessor fp, Logger logger, NeuralNetwork nn, int numInput, int seed, decimal partition, double hotellingTestThreshold, decimal partitionIncrement, RRunner rRunner)
         {
             _fileProcessor = fp;
             _logger = logger;
@@ -113,6 +150,7 @@ namespace BackPropProgram
         public void ReadDataset(string inputFileName, int numRows)
         {
             NumRows = numRows;
+            TotalDataSize = numRows;
             _fileProcessor.ReadInputDatasetCSV(NumAttributes, NumRows, out RawFullDataset, out TValueFile, inputFileName);
             //_fileProcessor.ReadInputDatasetCSVOther(NumAttributes, NumRows, out RawFullDataset, out TValueFile, inputFileName);
 
@@ -229,7 +267,16 @@ namespace BackPropProgram
             Console.WriteLine("Setting momentum  = " + momentum.ToString("F2"));
             Console.WriteLine("\nStarting training");
 
+            Stopwatch sw = new Stopwatch();
+            sw.Start();
+
             double[] weights = _nn.Train(TrainData, maxEpochs, learnRate, momentum);
+
+            sw.Stop();
+            TrainingTime = sw.Elapsed.ToString();
+            Console.WriteLine("Elapsed={0}", sw.Elapsed);
+
+
             Console.WriteLine("Done");
             Console.WriteLine("\nFinal neural network model weights and biases:\n");
 
@@ -311,11 +358,16 @@ namespace BackPropProgram
         {
             Console.WriteLine("\nCreating train {0} and test {1} matrices", Partition, 1 - Partition);
             Random rnd = new Random(seed);
+            //Partition = partition;
             int totRows = AllData.Length;
             int numTrainRows = (int)(totRows * Partition); // usually 0.80
             int numTestRows = totRows - numTrainRows;
             TrainData = new double[numTrainRows][];
             TestData = new double[numTestRows][];
+
+            TrainDataSize = numTrainRows;
+            TestDataSize = numTestRows;
+
 
             double[][] copy = new double[AllData.Length][]; // ref copy of data
             for (int i = 0; i < copy.Length; ++i)

@@ -9,6 +9,45 @@ namespace BackPropProgram
 
     public class DFTModel
     {
+        private bool disposed = false;
+        protected virtual void Dispose(bool disposing)
+        {
+            if (!this.disposed)
+            {
+                if (disposing)
+                {
+                    TrainData = null;
+                    RankArray = null;
+
+
+                    AllSchemaSxClass0 = null;
+                    AllSchemaSxClass1 = null;
+
+
+                    ClusteredSchemaSxClass0 = null;
+                    ClusteredSchemaSxClass1 = null;
+
+                    EnergyCoeffs = null;
+                    SjVectors = null;
+
+
+                    RedundantIndexList = null;
+                    RedundantSchemas = null;
+
+                    _nn.Dispose(true);
+                }
+            }
+            this.disposed = true;
+        }
+        public void Dispose()
+        {
+            Dispose(true);
+            //GC.SuppressFinalize(this);
+        }
+
+
+
+
         INeuralNetwork _nn;
 
 
