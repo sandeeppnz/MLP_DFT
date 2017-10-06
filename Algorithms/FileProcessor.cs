@@ -39,8 +39,15 @@ namespace Algorithms
             for (int i = 0; i < numRows; i++)
                 fullDataset[i] = new float[numInputs + 1];
             int r = 0;
+            int headerPassed = 0;
             while ((line = file.ReadLine()) != null)
             {
+                if (headerPassed == 0)
+                {
+                    headerPassed = 1;
+                    continue;
+                }
+
                 String[] parts_of_line = line.Split(',');
                 for (int i = 0; i < parts_of_line.Length; i++)
                 {
@@ -50,7 +57,7 @@ namespace Algorithms
                 //TODO
                 for (int i = 0; i < numInputs + 1; i++)
                 {
-                    fullDataset[r][i] = float.Parse(parts_of_line[i]);
+                        fullDataset[r][i] = float.Parse(parts_of_line[i]);
                 }
                 //tValueFile[r] = float.Parse(parts_of_line[11]);
                 r++;
@@ -87,15 +94,25 @@ namespace Algorithms
             System.IO.StreamReader file = new System.IO.StreamReader(DataPath + inputFilePathName);
             fullDataset = new float[numRows][];
             tValueFile = new float[numRows][];
+
             for (int i = 0; i < numRows; i++)
                 fullDataset[i] = new float[numInputs + 1];
             int r = 0;
+
             while ((line = file.ReadLine()) != null)
             {
                 String[] parts_of_line = line.Split(',');
                 for (int i = 0; i < parts_of_line.Length; i++)
                 {
-                    parts_of_line[i] = parts_of_line[i].Trim();
+                    try
+                    {
+                        parts_of_line[i] = parts_of_line[i].Trim();
+
+                    }
+                    catch (Exception ex)
+                    {
+                        continue;
+                    }
                 }
                 // do with the parts of the line whatever you like
                 //TODO

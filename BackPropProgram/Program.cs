@@ -26,7 +26,7 @@ namespace BackPropProgram
 
 
             //Files
-            InputFile iif = new RH();
+            InputFile iif = new ElectricityExtended();
             int numInput = iif.NumAttributes; //54; //7;//54; //7;////30;//7;  // //11; // number features
             string inputDatasetFileName = iif.InputDatasetFileName;
             int numRows = iif.NumRows; //49514; //102800;//20560;//130073; //45312; //495140; //453120;//// //25043; //// //45312; // //10000;
