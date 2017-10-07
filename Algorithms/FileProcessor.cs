@@ -11,11 +11,16 @@ namespace Algorithms
     public interface IFileProcessor
     {
         IInputSpecification GetInputSpecification();
-        string GetDataPath();
+        string GetInputDataPath();
+        string GetOutputDataPath();
+        string GetResultsDataPath();
+        void WriteResultsToCSV(List<ResultsStatistics> list, string path, string fileName);
+
+
         string GetRScriptPath();
         void LoadCSV();
-        string WriteMLPInputDataset(int numCols, float[][] data, string fileName);
-        string WriteRawMLPInputDataset(int numCols, float[][] data, string fileName);
+        //string WriteMLPInputDataset(int numCols, float[][] data, string fileName);
+        string OutputDatasetToCSV(int numCols, float[][] data, string fileName);
         float[][] GetRawDataset();
         void Dispose();
     }
@@ -45,28 +50,24 @@ namespace Algorithms
 
 
         public float[][] RawDataset { get; set; }
-        //public float[][] ClassValFromInputProcessed { get; set; } //ToDo: To be removed
+        public string DatasetHeader { get; set; }
+        public string InputDataPath { get; set; }
+        public string OutputDataPath { get; set; }
+        public string ResultsDataPath { get; set; }
 
-        public string Header { get; set; }
-
-
-
-        public string DataPath { get; set; }
         public string RScriptPath { get; set; }
-
         public IInputSpecification InputSpecification { get; set; }
-
-        public string GetDataPath() { return DataPath; }
+        public string GetInputDataPath() { return InputDataPath; }
+        public string GetOutputDataPath() { return OutputDataPath; }
+        public string GetResultsDataPath() { return ResultsDataPath; }
 
         public string GetRScriptPath() { return RScriptPath; }
-
         public IInputSpecification GetInputSpecification() { return InputSpecification; }
-
-
-
-        public FileProcessor(string dataPath, string rScriptPath, InputSpecification inputSpecification)
+        public FileProcessor(string inputDataPath, string outputDataPath, string resultsDataPath, string rScriptPath, InputSpecification inputSpecification)
         {
-            DataPath = dataPath;
+            InputDataPath = inputDataPath;
+            OutputDataPath = outputDataPath;
+            ResultsDataPath = ResultsDataPath;
             RScriptPath = rScriptPath;
             InputSpecification = inputSpecification;
         }
@@ -76,26 +77,21 @@ namespace Algorithms
             Console.WriteLine("=====================================================");
             Console.WriteLine("Loading data from CSV...");
 
-
             int numInputs = InputSpecification.GetNumAttributes();
             int numRows = InputSpecification.GetNumRows();
             string inputFilePathName = InputSpecification.GetFileName();
 
-            Console.WriteLine("Data folder:\t{0}", DataPath);
+            Console.WriteLine("Data folder:\t{0}", InputDataPath);
             Console.WriteLine("File name:\t{0}", inputFilePathName);
             Console.WriteLine("Attributes:\t{0}", numInputs);
             Console.WriteLine("Instances:\t{0}", numRows);
 
-
             String line = String.Empty;
-            System.IO.StreamReader file = new System.IO.StreamReader(DataPath + inputFilePathName);
+            System.IO.StreamReader file = new System.IO.StreamReader(InputDataPath + inputFilePathName);
             RawDataset = new float[numRows][];
-
-            //ClassValFromInputProcessed = new float[numRows][];
 
             for (int i = 0; i < numRows; i++)
             {
-                //RawDataset[i] = new float[numInputs + 1];
                 //Save attributes, class, calculated output (2 state), class output(2 state) 
                 RawDataset[i] = new float[numInputs + 1 + 2 + 2];
             }
@@ -107,7 +103,7 @@ namespace Algorithms
                 if (headerPassed == 0)
                 {
                     headerPassed = 1;
-                    Header = line;
+                    DatasetHeader = line;
                     continue;
                 }
 
@@ -122,30 +118,19 @@ namespace Algorithms
                 {
                     RawDataset[r][i] = float.Parse(parts_of_line[i]);
                 }
-                //tValueFile[r] = float.Parse(parts_of_line[11]);
                 r++;
             }
-
-            ////TODO: remove after
-            //for (int i = 0; i < numRows; i++)
-            //    ClassValFromInputProcessed[i] = new float[2];
 
             for (int i = 0; i < numRows; i++)
             {
                 //if the class is 0, set the first element as 1 (kinda like 0 is activated)
                 if (RawDataset[i][numInputs] == 0)
                 {
-                    //ClassValFromInputProcessed[i][0] = 1;
-                    //ClassValFromInputProcessed[i][1] = 0;
-
                     RawDataset[i][numInputs + 3] = 1;
                     RawDataset[i][numInputs + 4] = 0;
                 }
                 else
                 {
-                    //ClassValFromInputProcessed[i][1] = 1;
-                    //ClassValFromInputProcessed[i][0] = 0;
-
                     RawDataset[i][numInputs + 3] = 0;
                     RawDataset[i][numInputs + 4] = 1;
                 }
@@ -155,78 +140,67 @@ namespace Algorithms
 
         }
 
-
-
-        //public void ReadInputDatasetCSVOther(int numInputs, int numRows, out float[][] fullDataset, out float[][] tValueFile, string inputFilePathName)
+        //public string WriteMLPInputDataset(int numCols, float[][] data, string fileName)
         //{
-        //    String line = String.Empty;
-        //    //System.IO.StreamReader file = new System.IO.StreamReader(@"d:\Data.csv");
-        //    //System.IO.StreamReader file = new System.IO.StreamReader(@"d:\Data_withY-CS.csv");
-        //    //System.IO.StreamReader file = new System.IO.StreamReader(@"d:\irisCSV.csv");
-        //    System.IO.StreamReader file = new System.IO.StreamReader(DataPath + inputFilePathName);
-        //    fullDataset = new float[numRows][];
-        //    tValueFile = new float[numRows][];
+        //    string fileNameAndPath = GetInputDataPath() + "Output-" + fileName + ".csv";
 
-        //    for (int i = 0; i < numRows; i++)
-        //        fullDataset[i] = new float[numInputs + 1];
-        //    int r = 0;
-
-        //    while ((line = file.ReadLine()) != null)
+        //    if (File.Exists(fileNameAndPath))
         //    {
-        //        String[] parts_of_line = line.Split(',');
-        //        for (int i = 0; i < parts_of_line.Length; i++)
-        //        {
-        //            try
-        //            {
-        //                parts_of_line[i] = parts_of_line[i].Trim();
-
-        //            }
-        //            catch (Exception ex)
-        //            {
-        //                continue;
-        //            }
-        //        }
-        //        // do with the parts of the line whatever you like
-        //        //TODO
-        //        for (int i = 0; i < numInputs + 1; i++)
-        //        {
-        //            float val = float.Parse(parts_of_line[i]);
-        //            if (val == 1)
-        //                fullDataset[r][i] = 0;
-        //            else if (val == 2)
-        //                fullDataset[r][i] = 1;
-
-
-        //        }
-        //        //tValueFile[r] = float.Parse(parts_of_line[11]);
-        //        r++;
+        //        File.Delete(fileNameAndPath);
         //    }
 
-        //    //NEW
-        //    for (int i = 0; i < numRows; i++)
-        //        tValueFile[i] = new float[2];
+        //    var sw = new StreamWriter(fileNameAndPath, true);
 
-        //    for (int i = 0; i < numRows; i++)
+
+        //    sw.Write(Header);
+        //    sw.Write("\r\n");
+
+        //    //if (header)
+        //    //{
+        //    //    sw.Write("SchemaFull,fx-MLP,");
+        //    //    for (int j = 0; j < numCols; j++)
+        //    //    {
+        //    //        sw.Write(",X" + j);
+        //    //    }
+        //    //    sw.Write(",fx-MLP");
+
+        //    //    sw.Write(",,fx-InvDFT");
+        //    //    sw.Write(",,fx-Shortcut");
+        //    //    sw.Write("\r\n");
+        //    //}
+
+        //    for (int row = 0; row < data.Length; row++)
         //    {
-        //        //TODO: 
-        //        if (fullDataset[i][numInputs] == 0)
+        //        for (int col = 0; col < numCols; col++)
         //        {
-        //            tValueFile[i][1] = 0;
-        //            tValueFile[i][0] = 1;
+        //            sw.Write(data[row][col].ToString());
+        //            sw.Write(",");
+
+        //            //if (col != numCols - 1)
+        //            //    sw.Write(",");
+        //            //else
+        //            //    sw.Write("\r\n");
+
         //        }
+
+        //        if (data[row][numCols + 2] == 1) //class value zero is activated
+        //            sw.Write(0);
         //        else
-        //        {
-        //            tValueFile[i][0] = 0;
-        //            tValueFile[i][1] = 1;
-
-        //        }
+        //            sw.Write(1);
+        //        sw.Write("\r\n");
         //    }
+
+        //    sw.Flush();
+        //    sw.Close();
+        //    sw = null;
+
+        //    return "Output-" + fileName + ".csv";
         //}
 
 
-        public string WriteMLPInputDataset(int numCols, float[][] data, string fileName)
+        public string OutputDatasetToCSV(int numCols, float[][] data, string fileName)
         {
-            string fileNameAndPath = GetDataPath() + "Output-" + fileName + ".csv";
+            string fileNameAndPath = GetOutputDataPath() + "Output-" + fileName + ".csv";
 
             if (File.Exists(fileNameAndPath))
             {
@@ -236,80 +210,8 @@ namespace Algorithms
             var sw = new StreamWriter(fileNameAndPath, true);
 
 
-            sw.Write(Header);
+            sw.Write(DatasetHeader);
             sw.Write("\r\n");
-
-            //if (header)
-            //{
-            //    sw.Write("SchemaFull,fx-MLP,");
-            //    for (int j = 0; j < numCols; j++)
-            //    {
-            //        sw.Write(",X" + j);
-            //    }
-            //    sw.Write(",fx-MLP");
-
-            //    sw.Write(",,fx-InvDFT");
-            //    sw.Write(",,fx-Shortcut");
-            //    sw.Write("\r\n");
-            //}
-
-            for (int row = 0; row < data.Length; row++)
-            {
-                for (int col = 0; col < numCols; col++)
-                {
-                    sw.Write(data[row][col].ToString());
-                    sw.Write(",");
-
-                    //if (col != numCols - 1)
-                    //    sw.Write(",");
-                    //else
-                    //    sw.Write("\r\n");
-
-                }
-
-                if (data[row][numCols + 2] == 1) //class value zero is activated
-                    sw.Write(0);
-                else
-                    sw.Write(1);
-                sw.Write("\r\n");
-            }
-
-            sw.Flush();
-            sw.Close();
-            sw = null;
-
-            return "Output-" + fileName + ".csv";
-        }
-
-
-        public string WriteRawMLPInputDataset(int numCols, float[][] data, string fileName)
-        {
-            string fileNameAndPath = GetDataPath() + "Output-" + fileName + ".csv";
-
-            if (File.Exists(fileNameAndPath))
-            {
-                File.Delete(fileNameAndPath);
-            }
-
-            var sw = new StreamWriter(fileNameAndPath, true);
-
-
-            sw.Write(Header);
-            sw.Write("\r\n");
-
-            //if (header)
-            //{
-            //    sw.Write("SchemaFull,fx-MLP,");
-            //    for (int j = 0; j < numCols; j++)
-            //    {
-            //        sw.Write(",X" + j);
-            //    }
-            //    sw.Write(",fx-MLP");
-
-            //    sw.Write(",,fx-InvDFT");
-            //    sw.Write(",,fx-Shortcut");
-            //    sw.Write("\r\n");
-            //}
 
             for (int row = 0; row < data.Length; row++)
             {
@@ -325,11 +227,6 @@ namespace Algorithms
 
                 }
 
-                //if (data[row][numCols + 2] == 1) //class value zero is activated
-                //    sw.Write(0);
-                //else
-                //    sw.Write(1);
-                //sw.Write("\r\n");
             }
 
             sw.Flush();
@@ -338,6 +235,131 @@ namespace Algorithms
 
             return "Output-" + fileName + ".csv";
         }
+
+
+        public void WriteResultsToCSV(List<ResultsStatistics> list, string path, string fileName)
+        {
+
+            string fileNameAndPath = path + "Results-" + fileName + ".csv";
+
+            if (File.Exists(fileNameAndPath))
+            {
+                File.Delete(fileNameAndPath);
+            }
+
+            var sw = new StreamWriter(fileNameAndPath, true);
+            string header = "FileName,NumAttribute,TotalSize,PerSplit,TrainingFile,TrainSize,TestFile,TestSize,TrainingAccuracy,TestingAccuracy,TrainingTime,TestingTime,NumTotalInstancesXClass0,NumTotalInstancesXClass1,NumResolvedUniqueSchemaInstancesXClass0,ResolvedUniqueSchemaInstancesXClass0,NumResolvedUniqueSchemaInstancesXClass1,ResolvedUniqueSchemaInstancesXClass1,NumPatternsXClass0,PatternsXClass0,NumPatternsXClass1,PatternsXClass1,NumEnergyCoefficients,EnergyCoefficients,EnergyCoefficientTime";
+            sw.Write(header);
+            sw.Write("\r\n");
+            string patternSep = "#";
+            foreach (var s in list)
+            {
+                sw.Write(s.FileName);
+                sw.Write(",");
+                sw.Write(s.NumAttribute);
+                sw.Write(",");
+                sw.Write(s.TotalSize);
+                sw.Write(",");
+                sw.Write(s.PerSplit);
+                sw.Write(",");
+                sw.Write(s.TrainingFile);
+                sw.Write(",");
+                sw.Write(s.TrainSize);
+                sw.Write(",");
+                sw.Write(s.TestFile);
+                sw.Write(",");
+                sw.Write(s.TestSize);
+                sw.Write(",");
+                sw.Write(s.TrainingAccuracy);
+                sw.Write(",");
+                sw.Write(s.TestingAccuracy);
+                sw.Write(",");
+                sw.Write(s.TrainingTime);
+                sw.Write(",");
+                sw.Write(s.TestingTime);
+                sw.Write(",");
+
+
+
+
+                sw.Write(s.NumTotalInstancesXClass0);
+                sw.Write(",");
+
+                sw.Write(s.NumTotalInstancesXClass1);
+                sw.Write(",");
+
+
+                sw.Write(s.NumResolvedUniqueSchemaInstancesXClass0);
+                sw.Write(",");
+                string p = string.Empty;
+                foreach (var i in s.ResolvedUniqueSchemaInstancesXClass0)
+                {
+                    p += i.ToString() + patternSep;
+                }
+                sw.Write(p);
+                sw.Write(",");
+
+
+
+                sw.Write(s.NumResolvedUniqueSchemaInstancesXClass1);
+                sw.Write(",");
+                p = string.Empty;
+                foreach (var i in s.ResolvedUniqueSchemaInstancesXClass1)
+                {
+                    p += i.ToString() + patternSep;
+                }
+                sw.Write(p);
+                sw.Write(",");
+
+
+
+                sw.Write(s.NumPatternsXClass0);
+                sw.Write(",");
+                p = string.Empty;
+                foreach (var i in s.PatternsXClass0)
+                {
+                    p += i.ToString() + patternSep;
+                }
+                sw.Write(p);
+                sw.Write(",");
+
+
+
+                sw.Write(s.NumPatternsXClass1);
+                sw.Write(",");
+                p = string.Empty;
+                foreach (var i in s.PatternsXClass1)
+                {
+                    p += i.ToString() + patternSep;
+                }
+                sw.Write(p);
+                sw.Write(",");
+
+
+                sw.Write(s.NumEnergyCoefficients);
+                sw.Write(",");
+                p = string.Empty;
+                foreach (var i in s.EnergyCoefficients)
+                {
+                    p += i.Key.ToString() + ":" + i.Value.ToString() + patternSep;
+                }
+                sw.Write(p);
+                sw.Write(",");
+
+
+                sw.Write(s.EnergyCoefficientTime);
+                sw.Write("\r\n");
+
+            }
+
+
+
+            sw.Flush();
+            sw.Close();
+            sw = null;
+        }
+
+
 
 
         public static void WriteCSVOutput(int numCols, List<string> instanceArray, string classFromMLP,
@@ -393,6 +415,9 @@ namespace Algorithms
             sw.Flush();
             sw.Close();
         }
+
+
+
 
         public static void WriteCoeffArraToCsv(Dictionary<string, double> coeffs)
         {

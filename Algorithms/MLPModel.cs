@@ -63,6 +63,11 @@ namespace Algorithms
         public string TestingTime { get; set; }
         public string TrainingTime { get; set; }
 
+        public void WriteResultsToCSV(List<ResultsStatistics> list, string path, string fileName)
+        {
+            _fileProcessor.WriteResultsToCSV(list, path, fileName);
+        }
+
         public MLPModel(int numHidden, int numOutput, FileProcessor fp, RRunner rRunner, bool isFSActivated = false)
         {
             //Initialize NN
@@ -80,7 +85,7 @@ namespace Algorithms
             Console.WriteLine("Momentum  = " + momentum.ToString("F2"));
 
             Console.WriteLine("Creating a " + _nn.GetNumInputNodes() + "-" + _nn.GetNumHiddenNodes() +
-                  "-" + _nn.GetNumHiddenNodes() + " neural network");
+                  "-" + _nn.GetNumOutputNodes() + " neural network");
 
             //Reinitialize the exisiting NN
             //_nn = new NeuralNetwork(numInput, numHidden, numOutput, featureSelection);
@@ -475,8 +480,8 @@ namespace Algorithms
                 TestData[i] = copy[i + numTrainRows];
             }
 
-            TrainingFileName = _fileProcessor.WriteRawMLPInputDataset(numAttributes, TrainData, "RawTrain-" + partitionSize);
-            TestingFileName = _fileProcessor.WriteRawMLPInputDataset(numAttributes, TestData, "RawTest-" + partitionSize);
+            TrainingFileName = _fileProcessor.OutputDatasetToCSV(numAttributes, TrainData, "RawTrain-" + partitionSize);
+            TestingFileName = _fileProcessor.OutputDatasetToCSV(numAttributes, TestData, "RawTest-" + partitionSize);
 
             Console.WriteLine("\nGenerating files...");
             Console.WriteLine("Training file: {0}", TrainingFileName);

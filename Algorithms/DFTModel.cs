@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections;
 using System.Collections.Generic;
+using System.Diagnostics;
 using System.Linq;
 using System.Text;
 
@@ -54,10 +55,17 @@ namespace Algorithms
         public int NumAttributes { get; set; }
         public int NumOutputs { get; set; }
 
+        public string CoefficientGenerationTime { get; set; }
+
+
         //public double[][] TrainData;
         public float[][] TrainData;
         public bool IsFeatureSelection { get; set; }
         public double[] RankArray { get; set; }
+
+
+        public int NumTotalInstancesXClass0 { get; set; }
+        public int NumTotalInstancesXClass1 { get; set; }
 
 
         public List<string> AllSchemaXVectorClass0 { get; set; }
@@ -232,16 +240,15 @@ namespace Algorithms
         /// <param name="NumAttributes"></param>
         /// <param name="sjVectorArray"></param>
         /// <returns></returns>
-        public List<string> GenerateJVectors(int order)
+        public List<string> GenerateJVectorByEnegryThresholdingLimit(int order)
         {
             var jVectorArray = GenerateTruthTableOptimized(NumAttributes, order);
-
             double actSize = Math.Pow(2.0, (double)NumAttributes);
-
             jVectors = jVectorArray.ToList();
-            Console.WriteLine("...GenerateJVectors {0} vectors upto the order {1}, full coeffcient size:{2}", jVectors.Count, order, actSize);
+            Console.WriteLine("...GenerateJVectorByEnegryThresholdingLimit {0} vectors upto the order {1}, full coeffcient size:{2}", jVectors.Count, order, actSize);
             return jVectors;
         }
+
         /// <summary>
         /// GenerateTruthTable
         /// </summary>
@@ -318,6 +325,8 @@ namespace Algorithms
         /// </returns>
         public List<int> FindRedundantAttributeFromPatterns(List<string> clusteredSchemaXVectorsClass1)
         {
+            if (clusteredSchemaXVectorsClass1.Count <= 0)
+                return new List<int>();
 
             string p1 = clusteredSchemaXVectorsClass1[0];
             List<int> redundantIndexList = new List<int>();
@@ -400,6 +409,11 @@ namespace Algorithms
                 }
                 fullHashSet.Add(s);
             }
+
+            //Console.WriteLine("Total instances: {0}", TrainData.Length);
+            //Console.WriteLine("Unique instances: {0}\n", fullHashSet.Count);
+
+
             return fullHashSet;
         }
 
@@ -447,6 +461,8 @@ namespace Algorithms
         /// <param name="AllSchemaSxClass1"></param>
         public void SpliteInstanceSchemasByClassValue()
         {
+
+            Console.WriteLine("...SpliteInstanceSchemasByClassValue");
 
             // percentage correct using winner-takes all
             double[] xValues = new double[NumAttributes]; // inputs
@@ -496,6 +512,11 @@ namespace Algorithms
                 }
             }
 
+            NumTotalInstancesXClass0 = yZeroTemp.Count;
+            NumTotalInstancesXClass1 = yOneTemp.Count;
+
+
+
             int k = 0;
             long[] outputZero = new long[yZeroTemp.Count];
             foreach (string s in yZeroTemp)
@@ -513,6 +534,8 @@ namespace Algorithms
                 outputOne[k] = Convert.ToInt64(s, 2);
                 k++;
             }
+
+
             Array.Sort(outputOne);
             var outputOneDistinct = outputOne.Distinct().ToArray();
 
@@ -526,7 +549,23 @@ namespace Algorithms
                 AllSchemaXVectorClass1.Add(Convert.ToString(outputOneDistinct[i], 2).PadLeft(NumAttributes, '0'));
             }
 
-            Console.WriteLine("...SpliteInstanceSchemasByClassValue");
+            //Console.WriteLine("No of Class 0 XVector instances: {0}", AllSchemaXVectorClass0.Count);
+            //string s1 = string.Empty;
+            //foreach (var x in AllSchemaXVectorClass0)
+            //{
+            //    s1 += x + ",";
+            //}
+            //Console.WriteLine(s1 + "\n");
+
+            //Console.WriteLine("No of Class 1 XVector instances: {0}", AllSchemaXVectorClass1.Count);
+            //s1 = string.Empty;
+            //foreach (var x in AllSchemaXVectorClass1)
+            //{
+            //    s1 += x + ",";
+            //}
+            //Console.WriteLine(s1 + "\n");
+
+
 
 
         }
@@ -699,8 +738,38 @@ namespace Algorithms
         {
             Console.WriteLine("...GenerateClusteredSchemaPatterns for class 0");
             ClusteredSchemaXVectorClass0 = GetSchemaClustersWithWildcardChars(AllSchemaXVectorClass0, AllSchemaXVectorClass1);
+
+            //Console.WriteLine("No of Class 0 XVector patterns: {0}", ClusteredSchemaXVectorClass0.Count);
+            //string s1 = string.Empty;
+            //s1 = PrintClusterClass2Patterns(s1);
+
             Console.WriteLine("...GenerateClusteredSchemaPatterns for class 1");
             ClusteredSchemaXVectorClass1 = GetSchemaClustersWithWildcardChars(AllSchemaXVectorClass1, AllSchemaXVectorClass0);
+            //s1 = PrintClusterClass1Patterns();
+
+        }
+
+        private string PrintClusterClass2Patterns(string s1)
+        {
+            foreach (var x in ClusteredSchemaXVectorClass0)
+            {
+                s1 += x + ",";
+            }
+            Console.WriteLine(s1 + "\n");
+            return s1;
+        }
+
+        private string PrintClusterClass1Patterns()
+        {
+            string s1;
+            Console.WriteLine("No of Class 1 XVector patterns: {0}", ClusteredSchemaXVectorClass1.Count);
+            s1 = string.Empty;
+            foreach (var x in ClusteredSchemaXVectorClass1)
+            {
+                s1 += x + ",";
+            }
+            Console.WriteLine(s1 + "\n");
+            return s1;
         }
 
         /// <summary>
@@ -732,6 +801,9 @@ namespace Algorithms
         /// <returns></returns>
         public Dictionary<string, double> CalculateDftEnergyCoeffs(List<string> clusteredSchemaXVectorsClass1)
         {
+            Stopwatch sw = new Stopwatch();
+            sw.Start();
+
             Dictionary<string, double> coeffArray = new Dictionary<string, double>();
             double coeff = 0;
             double? checkRedundantCoeffVal = null;
@@ -757,10 +829,26 @@ namespace Algorithms
                     coeffArray[j] = 0;
                 }
             }
+            sw.Stop();
+            CoefficientGenerationTime = sw.Elapsed.ToString();
+
 
             EnergyCoeffs = coeffArray;
-            Console.WriteLine("\nDone calculating {0} energy coefficients, {1} are set by redundant check optimisation...", EnergyCoeffs.Count, numEnergyZerojVectors);
+            Console.WriteLine("\nNo. of Energy Coeffcients: {0}", EnergyCoeffs.Count);
+            Console.WriteLine("Time taken: {0}", CoefficientGenerationTime);
+            Console.WriteLine("No. of redundant attributes: {0}", numEnergyZerojVectors);
+            //PrintEnergyCoeffs();
+
+            Console.WriteLine("\nDone...");
             return coeffArray;
+        }
+
+        private void PrintEnergyCoeffs()
+        {
+            foreach (var item in EnergyCoeffs)
+            {
+                Console.WriteLine(item.Key + " " + item.Value);
+            }
         }
 
 
