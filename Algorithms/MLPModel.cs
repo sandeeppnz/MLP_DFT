@@ -73,18 +73,19 @@ namespace Algorithms
 
         public void NewTrainMLP(int maxEpochs, double learnRate, double momentum)
         {
+            Console.WriteLine("=====================================================");
+            Console.WriteLine("Neural Network Classification...");
+            Console.WriteLine("MaxEpochs = " + maxEpochs);
+            Console.WriteLine("LearnRate = " + learnRate.ToString("F2"));
+            Console.WriteLine("Momentum  = " + momentum.ToString("F2"));
+
             Console.WriteLine("Creating a " + _nn.GetNumInputNodes() + "-" + _nn.GetNumHiddenNodes() +
                   "-" + _nn.GetNumHiddenNodes() + " neural network");
-  
+
             //Reinitialize the exisiting NN
             //_nn = new NeuralNetwork(numInput, numHidden, numOutput, featureSelection);
 
 
-
-            Console.WriteLine("\nSetting maxEpochs = " + maxEpochs);
-            Console.WriteLine("Setting learnRate = " + learnRate.ToString("F2"));
-            Console.WriteLine("Setting momentum  = " + momentum.ToString("F2"));
-            Console.WriteLine("\nStarting training");
 
             Stopwatch sw = new Stopwatch();
             sw.Start();
@@ -94,9 +95,7 @@ namespace Algorithms
             sw.Stop();
             TrainingTime = sw.Elapsed.ToString();
 
-
-            Console.WriteLine("Done");
-            Console.WriteLine("\nFinal neural network model weights and biases:\n");
+            //Console.WriteLine("\nFinal neural network model weights and biases:\n");
 
             _nn.SetAllWeights(weights);
             //ShowVector(weights, 2, 10, true);
@@ -110,12 +109,11 @@ namespace Algorithms
             sw2.Stop();
             TestingTime = sw2.Elapsed.ToString();
 
-            Console.WriteLine("\nFinal accuracy on training data = " + TrainAcc.ToString("F4"));
-            Console.WriteLine("Final accuracy on test data     = " + TestAcc.ToString("F4"));
-            Console.WriteLine("Training time Elapsed={0}", TrainingTime);
-            Console.WriteLine("Testing time Elapsed={0}", TestingTime);
-
-            Console.WriteLine("\nEnd back-propagation\n");
+            Console.WriteLine("Training accuracy =\t{0} ", TrainAcc.ToString("F4"));
+            Console.WriteLine("Testing accuracy =\t{0} ", TestAcc.ToString("F4"));
+            Console.WriteLine("Training time =\t\t{0}", TrainingTime);
+            Console.WriteLine("Testing time =\t\t{0}", TestingTime);
+            Console.WriteLine("Done...\n");
 
         }
 
@@ -428,6 +426,10 @@ namespace Algorithms
 
         public void RawSplitTrainTest(decimal partitionSize, int seed, bool shuffle = false)
         {
+            Console.WriteLine("=====================================================");
+            Console.WriteLine("Generating Datasets...");
+            Console.WriteLine("Random: {0}", shuffle);
+
             Random rnd = new Random(seed);
             //Partition = partition;
             float[][] rawData = _fileProcessor.GetRawDataset();
@@ -437,7 +439,11 @@ namespace Algorithms
             int numTrainRows = (int)(totRows * partitionSize); // usually 0.80
             int numTestRows = totRows - numTrainRows;
 
-            Console.WriteLine("\nCreating train {0} and test {1} matrices: {2},{3}", partitionSize, 1 - partitionSize, numTrainRows, numTestRows);
+            Console.WriteLine("\nSplit ratio: Training({0}) and Testing({1})", partitionSize, 1 - partitionSize);
+            Console.WriteLine("Training instances: {0}", numTrainRows);
+            Console.WriteLine("Testing instances: {0}", numTestRows);
+            Console.WriteLine("Total instances: {0}", totRows);
+
 
             TrainData = new float[numTrainRows][];
             TestData = new float[numTestRows][];
@@ -472,8 +478,11 @@ namespace Algorithms
             TrainingFileName = _fileProcessor.WriteRawMLPInputDataset(numAttributes, TrainData, "RawTrain-" + partitionSize);
             TestingFileName = _fileProcessor.WriteRawMLPInputDataset(numAttributes, TestData, "RawTest-" + partitionSize);
 
-            Console.WriteLine("Done\n");
-        } 
+            Console.WriteLine("\nGenerating files...");
+            Console.WriteLine("Training file: {0}", TrainingFileName);
+            Console.WriteLine("Testing file: {0}", TestingFileName);
+            Console.WriteLine("Done....\n");
+        }
 
     }
 }

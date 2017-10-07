@@ -12,12 +12,9 @@ namespace Algorithms
         public int TotalSize { get; set; }
         public int TrainSize { get; set; }
         public int TestSize { get; set; }
-
         public string TrainingTime { get; set; }
         public double TestingAccuracy { get; set; }
         public double TrainingAccuracy { get; set; }
-
-        //
         public decimal PerSplit { get; set; }
     }
 }

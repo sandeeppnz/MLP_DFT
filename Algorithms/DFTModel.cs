@@ -20,15 +20,15 @@ namespace Algorithms
                     RankArray = null;
 
 
-                    AllSchemaSxClass0 = null;
-                    AllSchemaSxClass1 = null;
+                    AllSchemaXVectorClass0 = null;
+                    AllSchemaXVectorClass1 = null;
 
 
-                    ClusteredSchemaSxClass0 = null;
-                    ClusteredSchemaSxClass1 = null;
+                    ClusteredSchemaXVectorClass0 = null;
+                    ClusteredSchemaXVectorClass1 = null;
 
                     EnergyCoeffs = null;
-                    SjVectors = null;
+                    jVectors = null;
 
 
                     RedundantIndexList = null;
@@ -54,20 +54,21 @@ namespace Algorithms
         public int NumAttributes { get; set; }
         public int NumOutputs { get; set; }
 
-        public double[][] TrainData;
+        //public double[][] TrainData;
+        public float[][] TrainData;
         public bool IsFeatureSelection { get; set; }
         public double[] RankArray { get; set; }
 
 
-        public List<string> AllSchemaSxClass0 { get; set; }
-        public List<string> AllSchemaSxClass1 { get; set; }
+        public List<string> AllSchemaXVectorClass0 { get; set; }
+        public List<string> AllSchemaXVectorClass1 { get; set; }
 
 
-        public List<string> ClusteredSchemaSxClass0 { get; set; }
-        public List<string> ClusteredSchemaSxClass1 { get; set; }
+        public List<string> ClusteredSchemaXVectorClass0 { get; set; }
+        public List<string> ClusteredSchemaXVectorClass1 { get; set; }
 
         public Dictionary<string, double> EnergyCoeffs { get; set; }
-        public List<string> SjVectors { get; set; }
+        public List<string> jVectors { get; set; }
 
 
         public List<int> RedundantIndexList { get; set; }
@@ -77,8 +78,38 @@ namespace Algorithms
         public DFTModel()
         { }
 
-        public DFTModel(NeuralNetwork nn, double[][] trainData, bool featureSelection, double[] rankArray = null)
+        //public DFTModel(NeuralNetwork nn, double[][] trainData, bool featureSelection, double[] rankArray = null)
+        //{
+        //    _nn = nn;
+        //    NumAttributes = nn.NumInputNodes;
+        //    NumOutputs = nn.NumOutputNodes;
+        //    TrainData = trainData;
+        //    IsFeatureSelection = featureSelection;
+        //    RankArray = rankArray;
+
+        //    AllSchemaSxClass0 = new List<string>();
+        //    AllSchemaSxClass1 = new List<string>();
+
+        //    ClusteredSchemaSxClass0 = new List<string>();
+        //    ClusteredSchemaSxClass1 = new List<string>();
+
+
+        //    EnergyCoeffs = new Dictionary<string, double>();
+        //    SjVectors = new List<string>();
+
+        //    //var redundantSchema = dftModel.GetUniqueRedudantSchema(numInput, ISFEATURESELECTION, trainData, rankArray); //unique combinations
+        //    //var convertedArray = dftModel.MakeArrayBasedSchema(numInput, redundantSchema);
+        //    var redundantSchema = RemoveDuplicateSchema();
+        //    var convertedArray = MakeArrayBasedSchema(redundantSchema);
+
+        //}
+
+
+        public DFTModel(NeuralNetwork nn, float[][] trainData, bool featureSelection, double[] rankArray = null)
         {
+            Console.WriteLine("=====================================================");
+            Console.WriteLine("Discrete Fourier Transformation of training dataset...\n");
+
             _nn = nn;
             NumAttributes = nn.NumInputNodes;
             NumOutputs = nn.NumOutputNodes;
@@ -86,24 +117,20 @@ namespace Algorithms
             IsFeatureSelection = featureSelection;
             RankArray = rankArray;
 
-            AllSchemaSxClass0 = new List<string>();
-            AllSchemaSxClass1 = new List<string>();
+            AllSchemaXVectorClass0 = new List<string>();
+            AllSchemaXVectorClass1 = new List<string>();
 
-            ClusteredSchemaSxClass0 = new List<string>();
-            ClusteredSchemaSxClass1 = new List<string>();
+            ClusteredSchemaXVectorClass0 = new List<string>();
+            ClusteredSchemaXVectorClass1 = new List<string>();
 
 
             EnergyCoeffs = new Dictionary<string, double>();
-            SjVectors = new List<string>();
+            jVectors = new List<string>();
 
-            //var redundantSchema = dftModel.GetUniqueRedudantSchema(numInput, ISFEATURESELECTION, trainData, rankArray); //unique combinations
-            //var convertedArray = dftModel.MakeArrayBasedSchema(numInput, redundantSchema);
-            var redundantSchema = RemoveDuplicateSchema();
-            var convertedArray = MakeArrayBasedSchema(redundantSchema);
+            var redundantSchema = RemoveDuplcateSchemaInstances();
+            //var convertedArray = MakeArrayBasedSchema(redundantSchema);
 
         }
-
-
 
 
         /// <summary>
@@ -160,10 +187,10 @@ namespace Algorithms
                     else
                         sjString += '1';
                 }
-                SjVectors.Add(sjString);
+                jVectors.Add(sjString);
             }
 
-            return SjVectors;
+            return jVectors;
         }
 
 
@@ -205,11 +232,15 @@ namespace Algorithms
         /// <param name="NumAttributes"></param>
         /// <param name="sjVectorArray"></param>
         /// <returns></returns>
-        public List<string> SetSjVectorsWithEnergyThresholding(int order)
+        public List<string> GenerateJVectors(int order)
         {
-            var sjVectorArray = GenerateTruthTableOptimized(NumAttributes, order);
-            SjVectors = sjVectorArray.ToList();
-            return SjVectors;
+            var jVectorArray = GenerateTruthTableOptimized(NumAttributes, order);
+
+            double actSize = Math.Pow(2.0, (double)NumAttributes);
+
+            jVectors = jVectorArray.ToList();
+            Console.WriteLine("...GenerateJVectors {0} vectors upto the order {1}, full coeffcient size:{2}", jVectors.Count, order, actSize);
+            return jVectors;
         }
         /// <summary>
         /// GenerateTruthTable
@@ -282,18 +313,19 @@ namespace Algorithms
         /// e.g. if the 2nd attribute is redudant, and the following patterns are derived initially
         /// (**0,0*1,1*1), then w(*1*) = 0 but w(*1*) is not zero 
         /// </summary>
-        /// <param name="SjVectors"></param>
+        /// <param name="clusteredSchemaXVectorsClass1"></param>
         /// <returns> Returns redundant attributes (i.e. attributes that have a wild card character) in each pattern
         /// </returns>
-        public List<int> FindRedundantAttributeFromPatterns(List<string> SjVectors)
+        public List<int> FindRedundantAttributeFromPatterns(List<string> clusteredSchemaXVectorsClass1)
         {
-            string p1 = SjVectors[0];
+
+            string p1 = clusteredSchemaXVectorsClass1[0];
             List<int> redundantIndexList = new List<int>();
             List<int> redudantIdenxLocalList = null;
 
-            for (int i = 1; i < SjVectors.Count(); i++)
+            for (int i = 1; i < clusteredSchemaXVectorsClass1.Count(); i++)
             {
-                string s = SjVectors[i];
+                string s = clusteredSchemaXVectorsClass1[i];
                 redudantIdenxLocalList = new List<int>();
 
                 for (int j = 0; j < s.Length; j++)
@@ -319,6 +351,8 @@ namespace Algorithms
 
             //return redundantIndexList;
 
+            Console.WriteLine("...FindRedundantAttributeFromPatterns from Class 1 clusters, {0} attributes found", redundantIndexList.Count);
+
             RedundantIndexList = redundantIndexList;
             return redundantIndexList;
         }
@@ -334,12 +368,15 @@ namespace Algorithms
         /// <param name="data"></param>
         /// <param name="rankArray"></param>
         /// <returns></returns>
-        public HashSet<string> RemoveDuplicateSchema()
+        public HashSet<string> RemoveDuplcateSchemaInstances()
         {
             /*
              * Get unique schema entries
              * https://www.dotnetperls.com/bitarray
              */
+
+            Console.WriteLine("...RemoveDuplcateSchemaInstances");
+
 
             double[] xValues = new double[NumAttributes]; // inputs
             HashSet<string> fullHashSet = new HashSet<string>();
@@ -408,8 +445,9 @@ namespace Algorithms
         /// <param name="RankArray"></param>
         /// <param name="AllSchemaSxClass0"></param>
         /// <param name="AllSchemaSxClass1"></param>
-        public void SplitSchemasByClass()
+        public void SpliteInstanceSchemasByClassValue()
         {
+
             // percentage correct using winner-takes all
             double[] xValues = new double[NumAttributes]; // inputs
             double[] tValues = new double[NumOutputs]; // targets
@@ -418,8 +456,8 @@ namespace Algorithms
             //List<string> dataList = new List<string>();
             int binaryResult = 0;
 
-            AllSchemaSxClass0 = new List<string>();
-            AllSchemaSxClass1 = new List<string>();
+            AllSchemaXVectorClass0 = new List<string>();
+            AllSchemaXVectorClass1 = new List<string>();
 
             var yZeroTemp = new List<string>();
             var yOneTemp = new List<string>();
@@ -480,14 +518,15 @@ namespace Algorithms
 
             for (int i = 0; i < outputZeroDistinct.Count(); i++)
             {
-                AllSchemaSxClass0.Add(Convert.ToString(outputZeroDistinct[i], 2).PadLeft(NumAttributes, '0'));
+                AllSchemaXVectorClass0.Add(Convert.ToString(outputZeroDistinct[i], 2).PadLeft(NumAttributes, '0'));
             }
 
             for (int i = 0; i < outputOneDistinct.Count(); i++)
             {
-                AllSchemaSxClass1.Add(Convert.ToString(outputOneDistinct[i], 2).PadLeft(NumAttributes, '0'));
+                AllSchemaXVectorClass1.Add(Convert.ToString(outputOneDistinct[i], 2).PadLeft(NumAttributes, '0'));
             }
 
+            Console.WriteLine("...SpliteInstanceSchemasByClassValue");
 
 
         }
@@ -656,10 +695,12 @@ namespace Algorithms
             return clusterPool;
         }
 
-        public void GenerateClusteredSchemas()
+        public void GenerateClusteredSchemaPatterns()
         {
-            ClusteredSchemaSxClass0 = GetSchemaClustersWithWildcardChars(AllSchemaSxClass0, AllSchemaSxClass1);
-            ClusteredSchemaSxClass1 = GetSchemaClustersWithWildcardChars(AllSchemaSxClass1, AllSchemaSxClass0);
+            Console.WriteLine("...GenerateClusteredSchemaPatterns for class 0");
+            ClusteredSchemaXVectorClass0 = GetSchemaClustersWithWildcardChars(AllSchemaXVectorClass0, AllSchemaXVectorClass1);
+            Console.WriteLine("...GenerateClusteredSchemaPatterns for class 1");
+            ClusteredSchemaXVectorClass1 = GetSchemaClustersWithWildcardChars(AllSchemaXVectorClass1, AllSchemaXVectorClass0);
         }
 
         /// <summary>
@@ -686,34 +727,39 @@ namespace Algorithms
         /// <summary>
         /// Calculate the coeffcients of DFT
         /// </summary>
-        /// <param name="clusteredSchemaSxClass1"></param>
+        /// <param name="clusteredSchemaXVectorsClass1"></param>
         /// <param name="SjVectors"></param>
         /// <returns></returns>
-        public Dictionary<string, double> CalculateDftEnergyCoeffs(List<string> clusteredSchemaSxClass1)
+        public Dictionary<string, double> CalculateDftEnergyCoeffs(List<string> clusteredSchemaXVectorsClass1)
         {
             Dictionary<string, double> coeffArray = new Dictionary<string, double>();
             double coeff = 0;
             double? checkRedundantCoeffVal = null;
 
-            var redundantAttIndex = FindRedundantAttributeFromPatterns(clusteredSchemaSxClass1); //ToDo: integrate with Coeff Cal
+            var redundantAttIndex = FindRedundantAttributeFromPatterns(clusteredSchemaXVectorsClass1);
 
+            //Console.WriteLine("...GetCoefficientValue for each j vector..");
 
-            foreach (string j in SjVectors)
+            long numEnergyZerojVectors = 0;
+
+            foreach (string j in jVectors)
             {
                 //Optimisation of Energy Calculation
                 checkRedundantCoeffVal = EvaluateIfRedudantInstanceSchemas(redundantAttIndex, j);
                 if (checkRedundantCoeffVal == null)
                 {
-                    coeff = GetCoefficientValue(j, clusteredSchemaSxClass1);
+                    coeff = GetCoefficientValue(j, clusteredSchemaXVectorsClass1);
                     coeffArray[j] = coeff;
                 }
                 else
                 {
+                    numEnergyZerojVectors++;
                     coeffArray[j] = 0;
                 }
             }
 
             EnergyCoeffs = coeffArray;
+            Console.WriteLine("\nDone calculating {0} energy coefficients, {1} are set by redundant check optimisation...", EnergyCoeffs.Count, numEnergyZerojVectors);
             return coeffArray;
         }
 
@@ -986,6 +1032,8 @@ namespace Algorithms
              *1* => {010,011,110,111}
              1*1* => {1010,1110,1011,1111}
              */
+
+
             if (positions.Count == 0) return null;
 
             int currMatches = 0;

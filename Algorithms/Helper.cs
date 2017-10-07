@@ -55,18 +55,18 @@ namespace Algorithms
         /// 
         /// </summary>
         /// <param name="sjVector"></param>
-        /// <param name="sxVector"></param>
+        /// <param name="xVector"></param>
         /// <returns></returns>
-        public static int CalculateDotProduct(string sjVector, string sxVector)
+        public static int CalculateDotProduct(string jVector, string xVector)
         {
-            if (sjVector.Length != sxVector.Length)
+            if (jVector.Length != xVector.Length)
             {
                 //MessageBox.Show("In Calculating dot product the j vector length and x vector length are not equal.", "Error");
                 //TODO: Error
             }
 
-            CharEnumerator ojCharEnum = sjVector.GetEnumerator();
-            CharEnumerator oxCharEnum = sxVector.GetEnumerator();
+            CharEnumerator ojCharEnum = jVector.GetEnumerator();
+            CharEnumerator oxCharEnum = xVector.GetEnumerator();
 
             int i11Count = 0;
             int i00Count = 0;
@@ -110,11 +110,11 @@ namespace Algorithms
             }
             else if (i0WildcardCount != 0)
             {
-                if (i0WildcardCount == sjVector.Length) //all are 0 * combinations
+                if (i0WildcardCount == jVector.Length) //all are 0 * combinations
                 {
                     return (int)Math.Pow(2, i0WildcardCount);
                 }
-                else if (i0WildcardCount < sjVector.Length)
+                else if (i0WildcardCount < jVector.Length)
                 {
                     if (i11Count % 2 == 0) //there exists some 1 1 combinations
                     {

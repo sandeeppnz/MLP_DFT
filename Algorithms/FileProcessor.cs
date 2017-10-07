@@ -73,9 +73,19 @@ namespace Algorithms
 
         public void LoadCSV()
         {
+            Console.WriteLine("=====================================================");
+            Console.WriteLine("Loading data from CSV...");
+
+
             int numInputs = InputSpecification.GetNumAttributes();
             int numRows = InputSpecification.GetNumRows();
             string inputFilePathName = InputSpecification.GetFileName();
+
+            Console.WriteLine("Data folder:\t{0}", DataPath);
+            Console.WriteLine("File name:\t{0}", inputFilePathName);
+            Console.WriteLine("Attributes:\t{0}", numInputs);
+            Console.WriteLine("Instances:\t{0}", numRows);
+
 
             String line = String.Empty;
             System.IO.StreamReader file = new System.IO.StreamReader(DataPath + inputFilePathName);
@@ -140,6 +150,9 @@ namespace Algorithms
                     RawDataset[i][numInputs + 4] = 1;
                 }
             }
+
+            Console.WriteLine("Done...\n");
+
         }
 
 

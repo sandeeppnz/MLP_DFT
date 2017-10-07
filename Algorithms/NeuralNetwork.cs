@@ -450,6 +450,8 @@ namespace Algorithms
         public double[] NewTrain(float[][] trainData, int maxEpochs,
           double learnRate, double momentum)
         {
+            Console.WriteLine("\nTraining started...");
+
             // train using back-prop
             // back-prop specific arrays
             double[][] hoGrads = MakeMatrix(NumHiddenNodes, NumOutputNodes, 0.0); // hidden-to-output weight gradients
@@ -469,7 +471,7 @@ namespace Algorithms
 
             int epoch = 0;
             double[] xValues = new double[NumInputNodes]; // inputs
-            
+
             double[] tValuesFile = new double[NumOutputNodes]; // TODO: target values
 
 
@@ -481,6 +483,9 @@ namespace Algorithms
                 sequence[i] = i;
 
             int errInterval = maxEpochs / 10; // interval to check error
+
+            bool updatedCal = false;
+
             while (epoch < maxEpochs)
             {
                 ++epoch;
@@ -498,14 +503,46 @@ namespace Algorithms
                 for (int ii = 0; ii < trainData.Length; ++ii)
                 {
                     int idx = sequence[ii];
+                    //int idx = ii;
 
                     Array.Copy(trainData[idx], xValues, NumInputNodes);
                     //Array.Copy(trainData[idx], numInput, tValues, 0, numOutput);
 
                     Array.Copy(trainData[idx], NumInputNodes + 3, tValuesFile, 0, NumOutputNodes);
 
+                    //ComputeOutputs(xValues); // copy xValues in, compute outputs 
 
-                    ComputeOutputs(xValues); // copy xValues in, compute outputs 
+                    ////TODO: added to set the calculated class to dataset, maybe give diff results
+                    //Originally, it was set stored in GenerateArtificalDataUsingNN()
+                    var calOutput = ComputeOutputs(xValues); // copy xValues in, compute outputs 
+
+                    if (!updatedCal)
+                    {
+                        // translate outputs to 1-of-N
+                        float[] oneOfN = new float[NumOutputNodes]; // all 0.0
+
+                        int maxIndex = 0;
+                        double maxValue = calOutput[0];
+                        for (int i = 0; i < NumOutputNodes; ++i)
+                        {
+                            if (calOutput[i] > maxValue)
+                            {
+                                maxIndex = i;
+                                maxValue = calOutput[i];
+                            }
+                        }
+                        oneOfN[maxIndex] = 1;
+
+                        int c = NumInputNodes + 1;
+                        for (int i = 0; i < NumOutputNodes; ++i) // outputs
+                            trainData[ii][c++] = oneOfN[i];
+
+                        updatedCal = true;
+                    }
+
+
+
+
 
                     // indices: i = inputs, j = hiddens, k = outputs
 
@@ -596,6 +633,9 @@ namespace Algorithms
                 } // each training item
 
             } // while
+
+            Console.WriteLine("Training ended...\n");
+
             double[] bestWts = GetWeights();
             return bestWts;
         } // Train
