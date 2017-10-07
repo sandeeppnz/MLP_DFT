@@ -382,6 +382,67 @@ namespace Algorithms
             Console.WriteLine("\n");
         }
 
+        public void FoldingSplitTrainTestData(decimal partitionSize, int fold, int seed, bool shuffle = false)
+        {
+            Console.WriteLine("=====================================================");
+            Console.WriteLine("Generating Datasets by fold...");
+            Console.WriteLine("Random: {0}", shuffle);
+
+            Random rnd = new Random(seed);
+            float[][] rawData = _fileProcessor.GetRawDataset();
+            int numAttributes = _fileProcessor.GetInputSpecification().GetNumAttributes();
+
+            int totRows = rawData.Length;
+            int numTrainRows = (int)(totRows * partitionSize); // usually 0.80
+            int numTestRows = totRows - numTrainRows;
+
+            Console.WriteLine("\nSplit ratio: Training({0}) and Testing({1})", partitionSize, 1 - partitionSize);
+            Console.WriteLine("\nSplit ratio: Training({0}) and Testing({1})", partitionSize, 1 - partitionSize);
+            Console.WriteLine("Training instances: {0}", numTrainRows);
+            Console.WriteLine("Testing instances: {0}", numTestRows);
+            Console.WriteLine("Total instances: {0}", totRows);
+
+
+            TrainData = new float[numTrainRows][];
+            TestData = new float[numTestRows][];
+
+
+            float[][] copy = new float[rawData.Length][]; // ref copy of data
+            for (int i = 0; i < copy.Length; ++i)
+            {
+                copy[i] = rawData[i];
+            }
+
+            if (shuffle)
+            {
+                for (int i = 0; i < copy.Length; ++i) // scramble order
+                {
+                    int r = rnd.Next(i, copy.Length); // use Fisher-Yates
+                    float[] tmp = copy[r];
+                    copy[r] = copy[i];
+                    copy[i] = tmp;
+                }
+            }
+
+            for (int i = 0; i < numTrainRows; ++i)
+            {
+                TrainData[i] = copy[i];
+            }
+            for (int i = 0; i < numTestRows; ++i)
+            {
+                TestData[i] = copy[i + numTrainRows];
+            }
+
+            TrainingFileName = _fileProcessor.OutputDatasetToCSV(numAttributes, TrainData, partitionSize + "_Train_fold");
+            TestingFileName = _fileProcessor.OutputDatasetToCSV(numAttributes, TestData, partitionSize + "_Test_fold");
+
+            Console.WriteLine("\nGenerating files...");
+            Console.WriteLine("Training file: {0}", TrainingFileName);
+            Console.WriteLine("Testing file: {0}", TestingFileName);
+            Console.WriteLine("Done....\n");
+        }
+
+
 
         //public void SplitTrainTest(decimal partitionSize, int seed, bool shuffle = false)
         //{
@@ -477,8 +538,8 @@ namespace Algorithms
                 TestData[i] = copy[i + numTrainRows];
             }
 
-            TrainingFileName = _fileProcessor.OutputDatasetToCSV(numAttributes, TrainData, "RawTrain-" + partitionSize);
-            TestingFileName = _fileProcessor.OutputDatasetToCSV(numAttributes, TestData, "RawTest-" + partitionSize);
+            TrainingFileName = _fileProcessor.OutputDatasetToCSV(numAttributes, TrainData, partitionSize + "_Train");
+            TestingFileName = _fileProcessor.OutputDatasetToCSV(numAttributes, TestData, partitionSize + "_Test");
 
             Console.WriteLine("\nGenerating files...");
             Console.WriteLine("Training file: {0}", TrainingFileName);

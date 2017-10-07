@@ -200,7 +200,22 @@ namespace Algorithms
 
         public string OutputDatasetToCSV(int numCols, float[][] data, string fileName)
         {
-            string fileNameAndPath = GetOutputDataPath() + "Output-" + fileName + ".csv";
+            
+
+            string folderName = InputSpecification.GetFileName();
+            int index = folderName.IndexOf('.');
+            if (index > 0)
+            {
+                folderName = folderName.Substring(0, index);
+            }
+
+
+            if (!Directory.Exists(GetOutputDataPath() + folderName))
+            {
+                Directory.CreateDirectory(GetOutputDataPath() + folderName);
+            }
+
+            string fileNameAndPath = GetOutputDataPath() + folderName+ "\\" + fileName + ".csv";
 
             if (File.Exists(fileNameAndPath))
             {
@@ -239,8 +254,26 @@ namespace Algorithms
 
         public void WriteResultsToCSV(List<ResultsStatistics> list, string path, string fileName)
         {
+            string folderName = fileName;
+            int index = folderName.IndexOf('.');
+            if (index > 0)
+            {
+                folderName = folderName.Substring(0, index);
+            }
 
-            string fileNameAndPath = path + "Results-" + fileName + ".csv";
+
+            if (!Directory.Exists( path + folderName))
+            {
+                Directory.CreateDirectory(path + folderName);
+            }
+
+            string fileNameAndPath = path + folderName + "\\" + fileName + ".csv";
+
+
+
+
+
+            //string fileNameAndPath = path + "Results-" + fileName + ".csv";
 
             if (File.Exists(fileNameAndPath))
             {

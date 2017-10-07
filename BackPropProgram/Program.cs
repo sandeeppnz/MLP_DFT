@@ -35,181 +35,199 @@ namespace BackPropProgram
             string resultsDataPath = @"D:\ANN_Project_AUT_Sem3\Microsoft\BackPropProgram\ResultsData\";
             string rScriptPath = @"D:\ANN_Project_AUT_Sem3\Microsoft\BackPropProgram\HotellingTTest\";
 
-
-
             bool isShuffleOn = false;
             int dftEnergyThresholdingLimit = 4;
 
+            Console.WriteLine("------ Manual Parition Selection --------");
 
-            List<ResultsStatistics> stats = new List<ResultsStatistics>();
-            decimal partitionSize = 0.8M;
-            MLPModel mlpModel = null;
+            
+            List<IInputSpecification> fileList = new List<IInputSpecification>();
+            fileList.Add(new OccupancyExtented());
+            fileList.Add(new OccupancySmall());
 
-            while (partitionSize >= 0)
+            fileList.Add(new ElectricitySmall());
+            fileList.Add(new ElectricityExtended());
+
+
+            fileList.Add(new SensorSmall());
+            fileList.Add(new SensorExtended());
+
+
+            fileList.Add(new CoverTypeSmall());
+            fileList.Add(new CoverTypeIntemediate());
+            fileList.Add(new CoverTypeExtended());
+
+
+
+            fileList.Add(new FlightExtended());
+            fileList.Add(new FlightSmall());
+
+            fileList.Add(new RBF());
+
+            fileList.Add(new RH());
+
+            foreach (var file in fileList)
             {
-                if (partitionSize < 0.01M) break;
+                decimal partitionSize = 0.1M;
+                List<ResultsStatistics> stats = new List<ResultsStatistics>();
+                MLPModel mlpModel = null;
 
+                //InputSpecification inputSpec = new ElectricityExtended();
+                InputSpecification inputSpec = (InputSpecification) file;
 
-                //Setup File
-                InputSpecification inputSpec = new ElectricityExtended();
-
-                //Unoptimized Manual partitional selection and classfication
-                // 1.Set input file and load dataset
-                FileProcessor fp = new FileProcessor(inputDataPath,outputDataPath, resultsDataPath, rScriptPath, inputSpec);
-                fp.LoadCSV();
-                RRunner rn = new RRunner();
-
-
-                // 2. Create MLP model    
-                mlpModel = new MLPModel(numHidden, numOutput, fp, rn);
-                mlpModel.SplitTrainTestData(partitionSize, seed);
-                //mlpModel.PrintTrain();
-                //mlpModel.PrintTest();
-
-                //mlpModel.GenerateArtificalDataUsingNN(numInput, numHidden, numOutput);
-                //mlpModel.PrintWeights(2, 10, true);
-                //mlpModel.RunHotellingTTest(mlpModel.TrainingFileName, mlpModel.TestingFileName, rScripFileName, rBin);
-
-
-                ////TODO: not used
-                // NOT MIGRATED
-                //double[] inputNodeTotalWeightsArray = DFT.ShowVectorWInput(NUMINPUT, NUMHIDDEN, NUMOUTPUT, weights, 2);
-
-                ////TODO: not used
-                //double[] rankArray = null;
-                //if (ISFEATURESELECTION)
-                //{
-                //    rankArray = DFT.GenerateRankArray(NUMINPUT, inputNodeTotalWeightsArray);
-                //    weights = DFT.UpdateWeightsArrayByRank(NUMINPUT, NUMHIDDEN, weights, rankArray);
-                //    inputNodeTotalWeightsArray = DFT.ShowVectorWInput(NUMINPUT, NUMHIDDEN, NUMOUTPUT, weights, 2);
-                //    neuralNetwork.SetWeights(weights);
-                //}
-
-
-
-                mlpModel.TrainByNN(maxEpochs, learnRate, momentum);
-                //mlpModel.PrintWeights(2, 10, true);
-
-                ////TODO: not used
-                //bool[,] inputTable = DFT.GenerateTruthTable(NUMINPUT);
-                //bool[] answer1 = new bool[inputTable.GetLength(0)];
-
-                ////TODO: not used
-                //if (ISFEATURESELECTION)
-                //{
-                //    inputTable = DFT.SetIrrelevantVariables(NUMINPUT, inputTable, rankArray);
-                //}
-
-                #region Main DFT processing begins
-                //Add rank array
-                DFTModel dftModel = new DFTModel(mlpModel.GetNeuralNetwork(), mlpModel.TrainData, isFSOn, null);
-                dftModel.SpliteInstanceSchemasByClassValue();
-                dftModel.GenerateClusteredSchemaPatterns();
-                dftModel.GenerateJVectorByEnegryThresholdingLimit(dftEnergyThresholdingLimit);//concept of energy thresholding and order
-                var energyCoffs = dftModel.CalculateDftEnergyCoeffs(dftModel.ClusteredSchemaXVectorClass1);
-
-                #region save stats
-                ResultsStatistics results = new ResultsStatistics();
-                results.FileName = inputSpec.InputDatasetFileName;
-                results.NumAttribute = inputSpec.NumAttributes;
-                results.TotalSize = inputSpec.NumRows;
-
-                results.TrainingFile = mlpModel.TrainingFileName;
-                results.TrainSize = mlpModel.TrainData.Length;
-                results.TrainingTime = mlpModel.TrainingTime;
-
-                results.TestFile = mlpModel.TestingFileName;
-                results.TestSize = mlpModel.TestData.Length;
-                results.TestingTime = mlpModel.TestingTime;
-
-                results.PerSplit = partitionSize; //????
-
-                results.TrainingAccuracy = mlpModel.TrainAcc;
-                results.TestingAccuracy = mlpModel.TestAcc;
-                results.TrainingTime = mlpModel.TrainingTime;
-
-                results.NumTotalInstancesXClass0 = dftModel.NumTotalInstancesXClass0;
-                results.NumTotalInstancesXClass1 = dftModel.NumTotalInstancesXClass1;
-
-                results.ResolvedUniqueSchemaInstancesXClass0 = dftModel.AllSchemaXVectorClass0;
-                results.ResolvedUniqueSchemaInstancesXClass1 = dftModel.AllSchemaXVectorClass1;
-
-                results.NumResolvedUniqueSchemaInstancesXClass0 = dftModel.AllSchemaXVectorClass0.Count;
-                results.NumResolvedUniqueSchemaInstancesXClass1 = dftModel.AllSchemaXVectorClass1.Count;
-
-                results.PatternsXClass0 = dftModel.ClusteredSchemaXVectorClass0;
-                results.NumPatternsXClass0 = dftModel.ClusteredSchemaXVectorClass0.Count;
-
-                results.PatternsXClass1 = dftModel.ClusteredSchemaXVectorClass1;
-                results.NumPatternsXClass1 = dftModel.ClusteredSchemaXVectorClass1.Count;
-
-                results.EnergyCoefficients = dftModel.EnergyCoeffs;
-                results.NumEnergyCoefficients = dftModel.EnergyCoeffs.Count;
-                results.EnergyCoefficientTime = dftModel.CoefficientGenerationTime;
-                #endregion
-
-
-
-
-
-
-                //#region 
-                ////Calculate f(x) directly by looking at the pattern
-                //InverseDFTModel inverseDftModel = new InverseDFTModel();
-                //var fxShortcutClass0 = inverseDftModel.CalculateFxByPatternDirectly(dftModel.AllSchemaXVectorClass0, dftModel.ClusteredSchemaXVectorClass0, "0");
-                //var fxShortcutClass1 = inverseDftModel.CalculateFxByPatternDirectly(dftModel.AllSchemaXVectorClass1, dftModel.ClusteredSchemaXVectorClass1, "1");
-
-
-                ////Calculate f(x) by Inverse DFT 
-                //var fxClass0ByInvDFT = inverseDftModel.GetFxByInverseDFT(dftModel.AllSchemaXVectorClass0, dftModel.jVectors, energyCoffs);
-                //var fxClass1ByInvDFT = inverseDftModel.GetFxByInverseDFT(dftModel.AllSchemaXVectorClass1, dftModel.jVectors, energyCoffs);
-
-                //////FileProcessor.WriteCoeffArraToCsv(coeffsDFT);
-                //////FileProcessor.WritesXVectorsToCsv(allSchemaSxClass1);
-                //////FileProcessor.WriteCoeffArraToCsv(coeffsDFT);
-
-
-                //////Console.ReadLine();
-                //#endregion
-
-                stats.Add(results);
-
-
-                //mlpModel.Dispose();
-                //dftModel.Dispose();
-                //mlpModel = null;
-                //dftModel = null;
-                dftModel.Dispose();
-                dftModel = null;
-
-
-                if (partitionSize > 0.1M)
+                while (partitionSize >= 0)
                 {
-                    partitionSize -= 0.1M;
-                }
-                else
-                {
-                    partitionSize -= 0.01M;
+                    if (partitionSize < 0.01M) break;
+
+
+                    //Setup File
+
+                    //Unoptimized Manual partitional selection and classfication
+                    // 1.Set input file and load dataset
+                    FileProcessor fp = new FileProcessor(inputDataPath, outputDataPath, resultsDataPath, rScriptPath, inputSpec);
+                    fp.LoadCSV();
+                    RRunner rn = new RRunner();
+
+
+                    // 2. Create MLP model    
+                    mlpModel = new MLPModel(numHidden, numOutput, fp, rn);
+                    mlpModel.SplitTrainTestData(partitionSize, seed);
+                    //mlpModel.PrintTrain();
+                    //mlpModel.PrintTest();
+
+                    //mlpModel.GenerateArtificalDataUsingNN(numInput, numHidden, numOutput);
+                    //mlpModel.PrintWeights(2, 10, true);
+                    //mlpModel.RunHotellingTTest(mlpModel.TrainingFileName, mlpModel.TestingFileName, rScripFileName, rBin);
+
+
+                    ////TODO: not used
+                    // NOT MIGRATED
+                    //double[] inputNodeTotalWeightsArray = DFT.ShowVectorWInput(NUMINPUT, NUMHIDDEN, NUMOUTPUT, weights, 2);
+
+                    ////TODO: not used
+                    //double[] rankArray = null;
+                    //if (ISFEATURESELECTION)
+                    //{
+                    //    rankArray = DFT.GenerateRankArray(NUMINPUT, inputNodeTotalWeightsArray);
+                    //    weights = DFT.UpdateWeightsArrayByRank(NUMINPUT, NUMHIDDEN, weights, rankArray);
+                    //    inputNodeTotalWeightsArray = DFT.ShowVectorWInput(NUMINPUT, NUMHIDDEN, NUMOUTPUT, weights, 2);
+                    //    neuralNetwork.SetWeights(weights);
+                    //}
+
+
+
+                    mlpModel.TrainByNN(maxEpochs, learnRate, momentum);
+                    //mlpModel.PrintWeights(2, 10, true);
+
+                    ////TODO: not used
+                    //bool[,] inputTable = DFT.GenerateTruthTable(NUMINPUT);
+                    //bool[] answer1 = new bool[inputTable.GetLength(0)];
+
+                    ////TODO: not used
+                    //if (ISFEATURESELECTION)
+                    //{
+                    //    inputTable = DFT.SetIrrelevantVariables(NUMINPUT, inputTable, rankArray);
+                    //}
+
+                    #region Main DFT processing begins
+                    //Add rank array
+                    DFTModel dftModel = new DFTModel(mlpModel.GetNeuralNetwork(), mlpModel.TrainData, isFSOn, null);
+                    dftModel.SpliteInstanceSchemasByClassValue();
+                    dftModel.GenerateClusteredSchemaPatterns();
+                    dftModel.GenerateJVectorByEnegryThresholdingLimit(dftEnergyThresholdingLimit);//concept of energy thresholding and order
+                    var energyCoffs = dftModel.CalculateDftEnergyCoeffs(dftModel.ClusteredSchemaXVectorClass1);
+
+                    #region save stats
+                    ResultsStatistics results = new ResultsStatistics();
+                    results.FileName = inputSpec.InputDatasetFileName;
+                    results.NumAttribute = inputSpec.NumAttributes;
+                    results.TotalSize = inputSpec.NumRows;
+
+                    results.TrainingFile = mlpModel.TrainingFileName;
+                    results.TrainSize = mlpModel.TrainData.Length;
+                    results.TrainingTime = mlpModel.TrainingTime;
+
+                    results.TestFile = mlpModel.TestingFileName;
+                    results.TestSize = mlpModel.TestData.Length;
+                    results.TestingTime = mlpModel.TestingTime;
+
+                    results.PerSplit = partitionSize; //????
+
+                    results.TrainingAccuracy = mlpModel.TrainAcc;
+                    results.TestingAccuracy = mlpModel.TestAcc;
+                    results.TrainingTime = mlpModel.TrainingTime;
+
+                    results.NumTotalInstancesXClass0 = dftModel.NumTotalInstancesXClass0;
+                    results.NumTotalInstancesXClass1 = dftModel.NumTotalInstancesXClass1;
+
+                    results.ResolvedUniqueSchemaInstancesXClass0 = dftModel.AllSchemaXVectorClass0;
+                    results.ResolvedUniqueSchemaInstancesXClass1 = dftModel.AllSchemaXVectorClass1;
+
+                    results.NumResolvedUniqueSchemaInstancesXClass0 = dftModel.AllSchemaXVectorClass0.Count;
+                    results.NumResolvedUniqueSchemaInstancesXClass1 = dftModel.AllSchemaXVectorClass1.Count;
+
+                    results.PatternsXClass0 = dftModel.ClusteredSchemaXVectorClass0;
+                    results.NumPatternsXClass0 = dftModel.ClusteredSchemaXVectorClass0.Count;
+
+                    results.PatternsXClass1 = dftModel.ClusteredSchemaXVectorClass1;
+                    results.NumPatternsXClass1 = dftModel.ClusteredSchemaXVectorClass1.Count;
+
+                    results.EnergyCoefficients = dftModel.EnergyCoeffs;
+                    results.NumEnergyCoefficients = dftModel.EnergyCoeffs.Count;
+                    results.EnergyCoefficientTime = dftModel.CoefficientGenerationTime;
+                    #endregion
+
+
+
+
+
+
+                    //#region 
+                    ////Calculate f(x) directly by looking at the pattern
+                    //InverseDFTModel inverseDftModel = new InverseDFTModel();
+                    //var fxShortcutClass0 = inverseDftModel.CalculateFxByPatternDirectly(dftModel.AllSchemaXVectorClass0, dftModel.ClusteredSchemaXVectorClass0, "0");
+                    //var fxShortcutClass1 = inverseDftModel.CalculateFxByPatternDirectly(dftModel.AllSchemaXVectorClass1, dftModel.ClusteredSchemaXVectorClass1, "1");
+
+
+                    ////Calculate f(x) by Inverse DFT 
+                    //var fxClass0ByInvDFT = inverseDftModel.GetFxByInverseDFT(dftModel.AllSchemaXVectorClass0, dftModel.jVectors, energyCoffs);
+                    //var fxClass1ByInvDFT = inverseDftModel.GetFxByInverseDFT(dftModel.AllSchemaXVectorClass1, dftModel.jVectors, energyCoffs);
+
+                    //////FileProcessor.WriteCoeffArraToCsv(coeffsDFT);
+                    //////FileProcessor.WritesXVectorsToCsv(allSchemaSxClass1);
+                    //////FileProcessor.WriteCoeffArraToCsv(coeffsDFT);
+
+
+                    //////Console.ReadLine();
+                    //#endregion
+
+                    stats.Add(results);
+
+
+                    //mlpModel.Dispose();
+                    //dftModel.Dispose();
+                    //mlpModel = null;
+                    //dftModel = null;
+                    dftModel.Dispose();
+                    dftModel = null;
+
+
+                    if (partitionSize > 0.1M)
+                    {
+                        partitionSize -= 0.1M;
+                    }
+                    else
+                    {
+                        partitionSize -= 0.01M;
+                    }
+
                 }
 
+                mlpModel.WriteResultsToCSV(stats, outputDataPath, inputSpec.InputDatasetFileName);
+                mlpModel.Dispose();
+                mlpModel = null; 
             }
 
-            mlpModel.WriteResultsToCSV(stats, resultsDataPath, "Results");
-            mlpModel.Dispose();
-            mlpModel = null;
-
-            //int i = 0;
-            //foreach (var r in stats)
-            //{
-            //    if (i == 0)
-            //    {
-            //        Console.WriteLine("Dataset: {0}", r.FileName); i++;
-            //    }
-
-            //    Console.WriteLine("TrSize:{0}\tTestSize:{1}\tPartitionSize:{2}\tTrAcc:{3}\tTestAcc:{4}\tTrTime:{5}", r.TrainSize, r.TestSize, r.PerSplit, r.TrainingAccuracy.ToString("F2"), r.TestingAccuracy.ToString("F2"), r.TrainingTime);
-            //}
-
-            Console.ReadLine();
         }
 
 
