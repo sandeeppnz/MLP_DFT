@@ -62,7 +62,7 @@ namespace BackPropProgram
 
                 // 2. Create MLP model    
                 mlpModel = new MLPModel(numHidden, numOutput, fp, rn);
-                mlpModel.RawSplitTrainTest(partitionSize, seed);
+                mlpModel.SplitTrainTestData(partitionSize, seed);
                 //mlpModel.PrintTrain();
                 //mlpModel.PrintTest();
 
@@ -87,7 +87,7 @@ namespace BackPropProgram
 
 
 
-                mlpModel.NewTrainMLP(maxEpochs, learnRate, momentum);
+                mlpModel.TrainByNN(maxEpochs, learnRate, momentum);
                 //mlpModel.PrintWeights(2, 10, true);
 
                 ////TODO: not used

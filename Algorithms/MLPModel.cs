@@ -48,9 +48,6 @@ namespace Algorithms
             return (NeuralNetwork)_nn;
         }
 
-        //The refined dataset
-
-        //public float[][] AllData;
         public float[][] TrainData;
         public string TrainingFileName { get; set; }
 
@@ -76,7 +73,7 @@ namespace Algorithms
             _rRunner = rRunner;
         }
 
-        public void NewTrainMLP(int maxEpochs, double learnRate, double momentum)
+        public void TrainByNN(int maxEpochs, double learnRate, double momentum)
         {
             Console.WriteLine("=====================================================");
             Console.WriteLine("Neural Network Classification...");
@@ -429,7 +426,7 @@ namespace Algorithms
         //} // SplitTrainTest
 
 
-        public void RawSplitTrainTest(decimal partitionSize, int seed, bool shuffle = false)
+        public void SplitTrainTestData(decimal partitionSize, int seed, bool shuffle = false)
         {
             Console.WriteLine("=====================================================");
             Console.WriteLine("Generating Datasets...");
