@@ -7,14 +7,14 @@ using System.Threading.Tasks;
 namespace BackPropProgram
 {
 
-    public interface IInputFile
+    public interface IInputSpecification
     {
         string GetFileName();
         int GetNumAttributes();
         int GetNumRows();
     }
 
-    public class InputFile: IInputFile
+    public class InputSpecification: IInputSpecification
     {
         public int NumRows { get; set; }
         public int NumAttributes { get; set; }

@@ -428,7 +428,7 @@ namespace Algorithms
             for (int i = 0; i < TrainData.Length; i++)
             {
                 Array.Copy(TrainData[i], xValues, NumAttributes); // get x-values
-                Array.Copy(TrainData[i], NumAttributes + 2, tValues, 0, NumOutputs); // get target values from array
+                Array.Copy(TrainData[i], NumAttributes + 3, tValues, 0, NumOutputs); // get target values from array
 
                 //Set X values to zero if ranking...
 

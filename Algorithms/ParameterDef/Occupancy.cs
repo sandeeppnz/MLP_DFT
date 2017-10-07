@@ -6,7 +6,7 @@ using System.Threading.Tasks;
 
 namespace BackPropProgram
 {
-    public class OccupancyExtented : InputFile
+    public class OccupancyExtented : InputSpecification
     {
         public OccupancyExtented()
         {
@@ -16,7 +16,7 @@ namespace BackPropProgram
         }
 
     }
-    public class OccupancySmall : InputFile
+    public class OccupancySmall : InputSpecification
     {
         public OccupancySmall()
         {
@@ -29,7 +29,7 @@ namespace BackPropProgram
 
 
 
-    public class ElectricitySmall : InputFile
+    public class ElectricitySmall : InputSpecification
     {
         public ElectricitySmall()
         {
@@ -39,7 +39,7 @@ namespace BackPropProgram
         }
 
     }
-    public class ElectricityExtended : InputFile
+    public class ElectricityExtended : InputSpecification
     {
         public ElectricityExtended()
         {
@@ -53,7 +53,7 @@ namespace BackPropProgram
 
 
 
-    public class SensorSmall : InputFile
+    public class SensorSmall : InputSpecification
     {
         public SensorSmall()
         {
@@ -64,7 +64,7 @@ namespace BackPropProgram
 
     }
 
-    public class SensorExtended : InputFile
+    public class SensorExtended : InputSpecification
     {
         public SensorExtended()
         {
@@ -77,7 +77,7 @@ namespace BackPropProgram
 
 
 
-    public class CoverTypeSmall : InputFile
+    public class CoverTypeSmall : InputSpecification
     {
         public CoverTypeSmall()
         {
@@ -87,7 +87,7 @@ namespace BackPropProgram
         }
     }
 
-    public class CoverTypeIntemediate : InputFile
+    public class CoverTypeIntemediate : InputSpecification
     {
         public CoverTypeIntemediate()
         {
@@ -97,7 +97,7 @@ namespace BackPropProgram
         }
     }
 
-    public class CoverTypeExtended : InputFile
+    public class CoverTypeExtended : InputSpecification
     {
         public CoverTypeExtended()
         {
@@ -109,7 +109,7 @@ namespace BackPropProgram
 
 
 
-    public class FlightExtended : InputFile
+    public class FlightExtended : InputSpecification
     {
         public FlightExtended()
         {
@@ -119,7 +119,7 @@ namespace BackPropProgram
         }
     }
 
-    public class FlightSmall : InputFile
+    public class FlightSmall : InputSpecification
     {
         public FlightSmall()
         {
@@ -130,7 +130,7 @@ namespace BackPropProgram
     }
 
 
-    public class RBF : InputFile
+    public class RBF : InputSpecification
     {
         public RBF()
         {
@@ -140,7 +140,7 @@ namespace BackPropProgram
         }
     }
 
-    public class RH : InputFile
+    public class RH : InputSpecification
     {
         public RH()
         {
