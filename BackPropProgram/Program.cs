@@ -30,8 +30,6 @@ namespace BackPropProgram
             string resultsDataPath = @"D:\ANN_Project_AUT_Sem3\Microsoft\BackPropProgram\ResultsData\";
             string rScriptPath = @"D:\ANN_Project_AUT_Sem3\Microsoft\BackPropProgram\HotellingTTest\";
 
-            bool isShuffleOn = false;
-            int dftEnergyThresholdingLimit = 4;
 
             Console.WriteLine("------ Manual Parition Selection --------");
 
@@ -66,7 +64,9 @@ namespace BackPropProgram
                 //Use the settings below to limit the iterations
                 //Use slip type settings
                 decimal currPartitionSize = 0.01M;
-                decimal partitionLimit = 0.1M;
+                decimal partitionLimit = 0.8M;
+                int dftEnergyThresholdingLimit = 4;
+
                 SplitType split = SplitType.LinearSequence;
                 List<ResultsStatistics> stats = new List<ResultsStatistics>();
 
@@ -78,10 +78,8 @@ namespace BackPropProgram
 
                 RRunner rn = new RRunner();
 
-                int iter = 0;
                 while (currPartitionSize <= partitionLimit)
                 {
-                    iter++;
                     // 2. Create MLP model    
                     MLPModel mlpModel = new MLPModel(numHidden, numOutput, fp, rn);
                     if (split == SplitType.LinearSequence)
@@ -91,6 +89,8 @@ namespace BackPropProgram
                     }
                     else
                     {
+                        //Select the optimum the fold (with a curr partition size) that would give the best accuracy
+                        // by using Hotelling T-Test
                         mlpModel.OptimizeSplit(currPartitionSize, seed, split, rScripFileName, rBin, hotellingTestThreshold);
                     }
 
@@ -135,31 +135,17 @@ namespace BackPropProgram
                     DFTModel dftModel = new DFTModel(mlpModel.GetNeuralNetwork(), mlpModel.TrainData, isFSOn, null); //TODO: Add rank array
                     dftModel.SpliteInstanceSchemasByClassValue();
                     dftModel.GenerateClusteredSchemaPatterns();
-                    dftModel.GenerateJVectorByEnegryThresholdingLimit(dftEnergyThresholdingLimit); //concept of energy thresholding and order
+                    var jVectors = dftModel.GenerateJVectorByEnegryThresholdingLimit(dftEnergyThresholdingLimit); //concept of energy thresholding and order
                     var energyCoffs = dftModel.CalculateDftEnergyCoeffs(dftModel.ClusteredSchemaXVectorClass1);
                     #endregion
 
                     ResultsStatistics results = CreateStats(currPartitionSize, inputSpec, mlpModel, dftModel);
                     stats.Add(results);
 
-                    //#region 
-                    ////Calculate f(x) directly by looking at the pattern
-                    //InverseDFTModel inverseDftModel = new InverseDFTModel();
-                    //var fxShortcutClass0 = inverseDftModel.CalculateFxByPatternDirectly(dftModel.AllSchemaXVectorClass0, dftModel.ClusteredSchemaXVectorClass0, "0");
-                    //var fxShortcutClass1 = inverseDftModel.CalculateFxByPatternDirectly(dftModel.AllSchemaXVectorClass1, dftModel.ClusteredSchemaXVectorClass1, "1");
-
-
-                    ////Calculate f(x) by Inverse DFT 
-                    //var fxClass0ByInvDFT = inverseDftModel.GetFxByInverseDFT(dftModel.AllSchemaXVectorClass0, dftModel.jVectors, energyCoffs);
-                    //var fxClass1ByInvDFT = inverseDftModel.GetFxByInverseDFT(dftModel.AllSchemaXVectorClass1, dftModel.jVectors, energyCoffs);
-
-                    //////FileProcessor.WriteCoeffArraToCsv(coeffsDFT);
-                    //////FileProcessor.WritesXVectorsToCsv(allSchemaSxClass1);
-                    //////FileProcessor.WriteCoeffArraToCsv(coeffsDFT);
-
-
-                    //////Console.ReadLine();
-                    //#endregion
+                    #region 
+                    InverseDFTModel inverseDftModel = new InverseDFTModel(mlpModel,dftModel);
+                    inverseDftModel.Validate(split, currPartitionSize);
+                    #endregion
 
 
 
@@ -170,6 +156,9 @@ namespace BackPropProgram
                     dftModel.Dispose();
                     dftModel = null;
 
+                    inverseDftModel.Dispose();
+                    inverseDftModel = null;
+
                     mlpModel.Dispose();
                     mlpModel = null;
 
@@ -178,7 +167,7 @@ namespace BackPropProgram
                 WriteResultsToCSV(stats, outputDataPath, inputSpec.InputDatasetFileName, split);
             }
 
-            Console.ReadKey();
+            //Console.ReadKey();
 
         }
 

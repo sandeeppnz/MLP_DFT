@@ -47,6 +47,10 @@ namespace Algorithms
         {
             return (NeuralNetwork)_nn;
         }
+        public FileProcessor GetFileProcessor()
+        {
+            return (FileProcessor)_fileProcessor;
+        }
 
         public float[][] TrainData;
         public string TrainingFileName { get; set; }
@@ -78,7 +82,6 @@ namespace Algorithms
             _nn = new NeuralNetwork(fp.InputSpecification.GetNumAttributes(), numHidden, numOutput, isFSActivated);
             _fileProcessor = fp;
             _rRunner = rRunner;
-            //HotellingPValue = new Dictionary<decimal, double>();
         }
 
         public void TrainByNN(int maxEpochs, double learnRate, double momentum)

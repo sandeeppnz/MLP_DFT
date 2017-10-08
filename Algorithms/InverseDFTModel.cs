@@ -6,7 +6,7 @@ using System.Threading.Tasks;
 
 namespace Algorithms
 {
-    public class InverseDFTModel: IDisposable
+    public class InverseDFTModel : IDisposable
     {
         private bool disposed = false;
         protected virtual void Dispose(bool disposing)
@@ -15,6 +15,9 @@ namespace Algorithms
             {
                 if (disposing)
                 {
+                    //_fileProcessor = null;
+                    _mlpModel = null;
+                    _dftModel = null;
                 }
             }
             this.disposed = true;
@@ -25,6 +28,20 @@ namespace Algorithms
             //GC.SuppressFinalize(this);
         }
 
+
+        //IFileProcessor _fileProcessor;
+        MLPModel _mlpModel = null;
+        DFTModel _dftModel = null;
+
+
+        public InverseDFTModel(MLPModel mlpmodel, DFTModel dftModel)
+        {
+            //_fileProcessor = fp;
+            _mlpModel = mlpmodel;
+            _dftModel = dftModel;
+        }
+
+
         /// <summary>
         /// Check the each schema and return the fx value from based on the pattern it can be accomdated to
         /// </summary>
@@ -33,6 +50,8 @@ namespace Algorithms
         /// <returns></returns>
         public double GetFxByWildcardCharacterCheck(string schemaInstance, List<string> patternList, string classLabel)
         {
+            //Checks for a matching pattern for the schema instance, returns the 
+
             double fx = -1;
             foreach (string pattern in patternList)
             {
@@ -87,7 +106,7 @@ namespace Algorithms
         /// <param name="uniqueSchemaList"></param>
         /// <param name="patternList"></param>
         /// <returns></returns>
-        public Dictionary<string, double> CalculateFxByPatternDirectly(List<string> uniqueSchemaList, List<string> patternList, string classLabel)
+        public Dictionary<string, double> ValidateFxByClusterPatternMatching(List<string> uniqueSchemaList, List<string> patternList, string classLabel)
         {
             var fxArray = new Dictionary<string, double>();
             foreach (string schemaInstance in uniqueSchemaList)
@@ -106,7 +125,7 @@ namespace Algorithms
         /// <param name="jPatterns"></param>
         /// <param name="coeffArray"></param>
         /// <returns></returns>
-        public double GetCoeffInverseDft(string xVector, List<string> jPatterns, Dictionary<string, double> coeffArray)
+        public double CalculateFxByInveseDftEquation(string xVector, List<string> jPatterns, Dictionary<string, double> coeffArray)
         {
             double fx = 0.0;
             foreach (string j in jPatterns)
@@ -129,18 +148,42 @@ namespace Algorithms
         /// <param name="sjVectors"></param>
         /// <param name="coeffsDFT"></param>
         /// <returns></returns>
-        public Dictionary<string, double> GetFxByInverseDFT(List<string> allSchemaSxClass0, List<string> sjVectors, Dictionary<string, double> coeffDft)
+        public Dictionary<string, double> ValidateFxByInverseDFT(List<string> allSchemaSxClass0, List<string> sjVectors, Dictionary<string, double> coeffDft)
         {
+            //Calculate the f(x) by inverse dft equation
             var fxs = new Dictionary<string, double>();
             foreach (string x in allSchemaSxClass0)
             {
-                double coeff = GetCoeffInverseDft(x, sjVectors, coeffDft);
-                fxs[x] = coeff;
+                double fx = CalculateFxByInveseDftEquation(x, sjVectors, coeffDft);
+                fxs[x] = fx;
             }
             return fxs;
         }
 
+        //public void Validate(List<string> allSchemaXVectorClass0, List<string> allSchemaXVectorClass1, List<string> clusteredSchemaXVectorClass0, List<string> clusteredSchemaXVectorClass1, Dictionary<string,double> energyCoffs, List<string> jVectors, )
+        public void Validate(SplitType splitType, decimal partitionSize)
+        {
+            //Calculate f(x) directly by looking at the pattern
+            var fxShortcutClass0 = ValidateFxByClusterPatternMatching(_dftModel.AllSchemaXVectorClass0, _dftModel.ClusteredSchemaXVectorClass0, "0");
+            var fxShortcutClass1 = ValidateFxByClusterPatternMatching(_dftModel.AllSchemaXVectorClass1, _dftModel.ClusteredSchemaXVectorClass1, "1");
 
 
+            //Calculate f(x) by Inverse DFT 
+            var fxClass0ByInvDFT = ValidateFxByInverseDFT(_dftModel.AllSchemaXVectorClass0, _dftModel.jVectors, _dftModel.EnergyCoeffs);
+            var fxClass1ByInvDFT = ValidateFxByInverseDFT(_dftModel.AllSchemaXVectorClass1, _dftModel.jVectors, _dftModel.EnergyCoeffs);
+
+            FileProcessor fp = _mlpModel.GetFileProcessor();
+            int numInput = fp.GetInputSpecification().GetNumAttributes();
+
+            fp.OutputModelValidationToCSV(numInput, _dftModel.AllSchemaXVectorClass0, "0", fxClass0ByInvDFT, fxShortcutClass0, true, partitionSize + "_Validation", splitType, false);
+            fp.OutputModelValidationToCSV(numInput, _dftModel.AllSchemaXVectorClass1, "1", fxClass1ByInvDFT, fxShortcutClass1, false, partitionSize + "_Validation", splitType, true);
+
+            //FileProcessor.WritesXVectorsToCsv(allSchemaSxClass1);
+            fp.OutputEnergyCoeffsToCSV(_dftModel.EnergyCoeffs,splitType, partitionSize + "_EnergyCoeffs");
+
+
+
+
+        }
     }
 }

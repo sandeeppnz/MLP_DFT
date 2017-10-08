@@ -72,6 +72,10 @@ namespace Algorithms
             InputSpecification = inputSpecification;
         }
 
+        public float[][] GetRawDataset()
+        {
+            return RawDataset;
+        }
         public void LoadCSV()
         {
             Console.WriteLine("=====================================================");
@@ -250,198 +254,62 @@ namespace Algorithms
         }
 
 
-        //public void WriteResultsToCSV(List<ResultsStatistics> list, string path, string fileName)
-        //{
-        //    string folderName = fileName;
-        //    int index = folderName.IndexOf('.');
-        //    if (index > 0)
-        //    {
-        //        folderName = folderName.Substring(0, index);
-        //    }
-
-        //    if (!Directory.Exists(path + folderName))
-        //    {
-        //        Directory.CreateDirectory(path + folderName);
-        //    }
-
-        //    string fileNameAndPath = path + folderName + "\\" + fileName + ".csv";
-
-        //    //string fileNameAndPath = path + "Results-" + fileName + ".csv";
-
-        //    if (File.Exists(fileNameAndPath))
-        //    {
-        //        File.Delete(fileNameAndPath);
-        //    }
-
-        //    var sw = new StreamWriter(fileNameAndPath, true);
-        //    string header = "FileName,NumAttribute,TotalSize,PerSplit,TrainingFile,TrainSize,TestFile,TestSize,TrainingAccuracy,TestingAccuracy,TrainingTime,TestingTime,NumTotalInstancesXClass0,NumTotalInstancesXClass1,NumResolvedUniqueSchemaInstancesXClass0,ResolvedUniqueSchemaInstancesXClass0,NumResolvedUniqueSchemaInstancesXClass1,ResolvedUniqueSchemaInstancesXClass1,NumPatternsXClass0,PatternsXClass0,NumPatternsXClass1,PatternsXClass1,NumEnergyCoefficients,EnergyCoefficients,EnergyCoefficientTime,PVal_LinearSeqSplit,HotellingTestTime";
-        //    sw.Write(header);
-        //    sw.Write("\r\n");
-        //    string patternSep = "#";
-        //    foreach (var s in list)
-        //    {
-        //        sw.Write(s.FileName);
-        //        sw.Write(",");
-        //        sw.Write(s.NumAttribute);
-        //        sw.Write(",");
-        //        sw.Write(s.TotalSize);
-        //        sw.Write(",");
-        //        sw.Write(s.PerSplit);
-        //        sw.Write(",");
-        //        sw.Write(s.TrainingFile);
-        //        sw.Write(",");
-        //        sw.Write(s.TrainSize);
-        //        sw.Write(",");
-        //        sw.Write(s.TestFile);
-        //        sw.Write(",");
-        //        sw.Write(s.TestSize);
-        //        sw.Write(",");
-        //        sw.Write(s.TrainingAccuracy);
-        //        sw.Write(",");
-        //        sw.Write(s.TestingAccuracy);
-        //        sw.Write(",");
-        //        sw.Write(s.TrainingTime);
-        //        sw.Write(",");
-        //        sw.Write(s.TestingTime);
-        //        sw.Write(",");
-
-        //        sw.Write(s.NumTotalInstancesXClass0);
-        //        sw.Write(",");
-
-        //        sw.Write(s.NumTotalInstancesXClass1);
-        //        sw.Write(",");
-
-        //        sw.Write(s.NumResolvedUniqueSchemaInstancesXClass0);
-        //        sw.Write(",");
-        //        string p = string.Empty;
-        //        foreach (var i in s.ResolvedUniqueSchemaInstancesXClass0)
-        //        {
-        //            p += i.ToString() + patternSep;
-        //        }
-        //        sw.Write(p);
-        //        sw.Write(",");
-
-
-
-        //        sw.Write(s.NumResolvedUniqueSchemaInstancesXClass1);
-        //        sw.Write(",");
-        //        p = string.Empty;
-        //        foreach (var i in s.ResolvedUniqueSchemaInstancesXClass1)
-        //        {
-        //            p += i.ToString() + patternSep;
-        //        }
-        //        sw.Write(p);
-        //        sw.Write(",");
-
-
-
-        //        sw.Write(s.NumPatternsXClass0);
-        //        sw.Write(",");
-        //        p = string.Empty;
-        //        foreach (var i in s.PatternsXClass0)
-        //        {
-        //            p += i.ToString() + patternSep;
-        //        }
-        //        sw.Write(p);
-        //        sw.Write(",");
-
-
-
-        //        sw.Write(s.NumPatternsXClass1);
-        //        sw.Write(",");
-        //        p = string.Empty;
-        //        foreach (var i in s.PatternsXClass1)
-        //        {
-        //            p += i.ToString() + patternSep;
-        //        }
-        //        sw.Write(p);
-        //        sw.Write(",");
-
-
-        //        sw.Write(s.NumEnergyCoefficients);
-        //        sw.Write(",");
-        //        p = string.Empty;
-        //        foreach (var i in s.EnergyCoefficients)
-        //        {
-        //            p += i.Key.ToString() + ":" + i.Value.ToString() + patternSep;
-        //        }
-        //        sw.Write(p);
-        //        sw.Write(",");
-
-
-        //        sw.Write(s.EnergyCoefficientTime);
-        //        sw.Write(",");
-
-
-        //        if (s.PVal.Count == 1)
-        //        {
-        //            sw.Write(s.PVal.ElementAt(0).Value.ToString());
-        //        }
-        //        else
-        //        {
-        //            p = string.Empty;
-        //            foreach (var i in s.PVal)
-        //            {
-        //                p += i.Key.ToString() + ":" + i.Value.ToString() + patternSep;
-        //            }
-        //            sw.Write(p);
-        //        }
-
-        //        sw.Write(",");
-
-        //        sw.Write(s.HotellingTestTime);
-
-
-
-        //        sw.Write("\r\n");
-
-
-        //    }
-        //    sw.Flush();
-        //    sw.Close();
-        //    sw = null;
-        //}
-
-
-
-
-        public static void WriteCSVOutput(int numCols, List<string> instanceArray, string classFromMLP,
-            Dictionary<string, double> invDFT_fx, Dictionary<string, double> patternVerfication_fx, bool header)
+        public void OutputModelValidationToCSV(int numCols, List<string> instanceArray, string classFromMLP,
+            Dictionary<string, double> invDFT_fx, Dictionary<string, double> patternVerfication_fx, bool header, string fileName, SplitType splitType, bool append = false)
         {
-            var sw = new StreamWriter(@"D:\MLP.csv", true);
+            string folderName = splitType.ToString() + "_" + InputSpecification.GetFileName();
+            int index = folderName.IndexOf('.');
+            if (index > 0)
+            {
+                folderName = folderName.Substring(0, index);
+            }
+
+
+            if (!Directory.Exists(GetOutputDataPath() + folderName))
+            {
+                Directory.CreateDirectory(GetOutputDataPath() + folderName);
+            }
+
+            string fileNameAndPath = GetOutputDataPath() + folderName + "\\" + fileName + ".csv";
+
+            if (!append)
+            {
+                if (File.Exists(fileNameAndPath))
+                {
+                    File.Delete(fileNameAndPath);
+                }
+            }
+            var sw = new StreamWriter(fileNameAndPath, true);
+
+
             if (header)
             {
-                sw.Write("SchemaFull,fx-MLP,");
+                sw.Write("SchemaFull");
                 for (int j = 0; j < numCols; j++)
                 {
                     sw.Write(",X" + j);
                 }
                 sw.Write(",fx-MLP");
 
-                sw.Write(",,fx-InvDFT");
-                sw.Write(",,fx-Shortcut");
+                sw.Write(",fx-InvDFT");
+                sw.Write(",fx-Shortcut");
                 sw.Write("\r\n");
             }
+
             foreach (var s in instanceArray)
             {
                 sw.Write(s.ToString());
                 sw.Write(",");
-                sw.Write(classFromMLP);
-                sw.Write(",");
-                sw.Write(",");
                 for (int j = 0; j < numCols; j++)
                 {
-
                     sw.Write(s[j].ToString());
                     sw.Write(",");
                 }
                 sw.Write(classFromMLP);
                 sw.Write(",");
-                sw.Write(",");
 
                 double fx = invDFT_fx[s];
                 sw.Write(fx);
-                sw.Write(",");
                 sw.Write(",");
 
                 fx = patternVerfication_fx[s];
@@ -449,12 +317,6 @@ namespace Algorithms
 
                 sw.Write("\r\n");
             }
-            //for (int i = 0; i < NUMINPUT; i++)
-            //{
-            //        sw.Write(i.ToString());
-            //        sw.Write(",");
-            //}
-            //sw.Write(",");
             sw.Flush();
             sw.Close();
         }
@@ -462,17 +324,34 @@ namespace Algorithms
 
 
 
-        public static void WriteCoeffArraToCsv(Dictionary<string, double> coeffs)
+        public void OutputEnergyCoeffsToCSV(Dictionary<string, double> coeffs, SplitType splitType, string fileName)
         {
-            var sw = new StreamWriter(@"D:\DftCoeffs.csv", true);
+            string folderName = splitType.ToString() + "_" + InputSpecification.GetFileName();
+            int index = folderName.IndexOf('.');
+            if (index > 0)
+            {
+                folderName = folderName.Substring(0, index);
+            }
 
-            sw.Write('"');
+
+            if (!Directory.Exists(GetOutputDataPath() + folderName))
+            {
+                Directory.CreateDirectory(GetOutputDataPath() + folderName);
+            }
+
+            string fileNameAndPath = GetOutputDataPath() + folderName + "\\" + fileName + ".csv";
+
+
+            if (File.Exists(fileNameAndPath))
+            {
+                File.Delete(fileNameAndPath);
+            }
+            var sw = new StreamWriter(fileNameAndPath, true);
             foreach (var s in coeffs)
             {
                 sw.Write(s.Key.ToString());
-                sw.Write(':');
-                sw.Write(s.Value.ToString());
                 sw.Write(',');
+                sw.Write(s.Value.ToString());
                 sw.Write("\r\n");
             }
             sw.Flush();
@@ -494,9 +373,5 @@ namespace Algorithms
             sw.Close();
         }
 
-        public float[][] GetRawDataset()
-        {
-            return RawDataset;
-        }
     }
 }

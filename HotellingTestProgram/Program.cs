@@ -10,6 +10,14 @@ namespace HotellingTestProgram
 {
     class Program
     {
+
+        /*
+         
+            Used as a testing 
+
+             
+             */
+
         static void Main(string[] args)
         {
             Console.WriteLine("++++++ Dynamic Parition Selection using Hotelling +++++++");

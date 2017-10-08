@@ -242,6 +242,11 @@ namespace Algorithms
         /// <returns></returns>
         public List<string> GenerateJVectorByEnegryThresholdingLimit(int order)
         {
+            if (order == -1) //unset order
+            {
+                order = NumAttributes;
+            }
+
             var jVectorArray = GenerateTruthTableOptimized(NumAttributes, order);
             double actSize = Math.Pow(2.0, (double)NumAttributes);
             jVectors = jVectorArray.ToList();
