@@ -25,12 +25,11 @@ namespace BackPropProgram
 
             const int seed = 123;
 
-            SplitType split = SplitType.LinearSequence;
+            SplitType split = SplitType.FixedSizeOptimumSet;
 
             const int maxEpochs = 100;
             const double learnRate = 0.3;
             const double momentum = 0.2;
-            const decimal partitionIncrement = 0.01M;
             const double hotellingTestThreshold = 0.05;
             const int numHidden = 8;
             const int numOutput = 2; // number of classes for Y
@@ -96,23 +95,21 @@ namespace BackPropProgram
                 {
                     iter++;
 
-                    //while (partitionSize >= 0)
-                    //{
-                    //if (partitionSize < 0.01M) break;
-
-
                     //Setup File
-
                     //Unoptimized Manual partitional selection and classfication
                     // 1.Set input file and load dataset
-
-
                     // 2. Create MLP model    
                     MLPModel mlpModel = new MLPModel(numHidden, numOutput, fp, rn);
 
                     if (split == SplitType.LinearSequence)
+                    {
                         mlpModel.LinearSeqTrainTestSplit(startPartitionSize, seed);
-
+                        mlpModel.RunHotellingTTest(mlpModel.TrainingFileName, mlpModel.TestingFileName, rScripFileName, rBin, hotellingTestThreshold, startPartitionSize, split);
+                    }
+                    else
+                    {
+                        mlpModel.OptimizeSplit(startPartitionSize, seed, split, rScripFileName, rBin, hotellingTestThreshold);
+                    }
 
                     //mlpModel.PrintTrain();
                     //mlpModel.PrintTest();
@@ -120,8 +117,7 @@ namespace BackPropProgram
                     //mlpModel.GenerateArtificalDataUsingNN(numInput, numHidden, numOutput);
                     //mlpModel.PrintWeights(2, 10, true);
                     //mlpModel.RunHotellingTTest(mlpModel.TrainingFileName, mlpModel.TestingFileName, rScripFileName, rBin);
-                    bool result = mlpModel.RunFoldingHotellingTTest(mlpModel.TrainingFileName, mlpModel.TestingFileName, rScripFileName, rBin, hotellingTestThreshold, startPartitionSize);
-
+ 
 
                     ////TODO: not used
                     // NOT MIGRATED
@@ -201,7 +197,7 @@ namespace BackPropProgram
                     results.EnergyCoefficientTime = dftModel.CoefficientGenerationTime;
 
 
-                    results.PVal.Add(startPartitionSize, mlpModel.PValLinearSeqSplit);
+                    results.PVal.Add(startPartitionSize, mlpModel.PValue);
                     results.HotellingTestTime = mlpModel.HotellingTestTime;
 
                     #endregion

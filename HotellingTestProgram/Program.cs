@@ -33,7 +33,7 @@ namespace HotellingTestProgram
             bool isShuffleOn = false;
             int dftEnergyThresholdingLimit = 4;
 
-            decimal startPartitionSize = 0.01M;
+            decimal startPartitionSize = 0.1M;
             decimal lastPartitionSize = 0.1M;
 
             const double hotellingTestThreshold = 0.05;
@@ -45,34 +45,47 @@ namespace HotellingTestProgram
             RRunner rn = new RRunner();
             MLPModel mlpModel = null;
 
-            Dictionary<decimal, bool> HotellingResult = new Dictionary<decimal, bool>();
-            Dictionary<decimal, double> PValues = new Dictionary<decimal, double>();
-            Dictionary<decimal, double> TrAcc = new Dictionary<decimal, double>();
-            Dictionary<decimal, double> TsAcc = new Dictionary<decimal, double>();
-            Dictionary<decimal, string> TrTime = new Dictionary<decimal, string>();
+            Dictionary<string, bool> HotellingResult = new Dictionary<string, bool>();
+            Dictionary<string, double> PValues = new Dictionary<string, double>();
+            Dictionary<string, double> TrAcc = new Dictionary<string, double>();
+            Dictionary<string, double> TsAcc = new Dictionary<string, double>();
+            Dictionary<string, string> TrTime = new Dictionary<string, string>();
 
             int iter = 0;
             while (startPartitionSize <= lastPartitionSize)
             {
-                iter++;
                 //if (startPartitionSize < 0.01M)
                 //{
                 //    break;
                 //}
                 mlpModel = new MLPModel(numHidden, numOutput, fp, rn);
 
+                int numTakeFolds = (int)(1.0M / startPartitionSize);
 
-                mlpModel.LinearSeqTrainTestSplit(startPartitionSize, seed);
-                bool result = mlpModel.RunFoldingHotellingTTest(mlpModel.TrainingFileName, mlpModel.TestingFileName, rScripFileName, rBin, hotellingTestThreshold, startPartitionSize);
+                //mlpModel.FixedSizeOptimumSetTrainTestSplit(startPartitionSize, seed, 9);
 
-                PValues.Add(startPartitionSize, mlpModel.PValLinearSeqSplit);
-                HotellingResult.Add(startPartitionSize, result);
 
-                mlpModel.TrainByNN(maxEpochs, learnRate, momentum);
-                TsAcc.Add(startPartitionSize, mlpModel.TestAcc);
-                TrAcc.Add(startPartitionSize, mlpModel.TrainAcc);
-                TrTime.Add(startPartitionSize, mlpModel.TrainingTime.ToString());
+                for (int f = 0; f < numTakeFolds; f++)
+                {
+                    Console.WriteLine("******** fold {0} ****", f);
 
+                    iter++;
+                    mlpModel.FixedSizeOptimumSetTrainTestSplit(startPartitionSize, seed, f);
+
+
+                    mlpModel.RunHotellingTTest(mlpModel.TrainingFileName, mlpModel.TestingFileName, rScripFileName, rBin, hotellingTestThreshold, startPartitionSize, SplitType.FixedSizeOptimumSet);
+
+                    string keyA = startPartitionSize + "_" + f;
+
+                    PValues.Add(keyA, mlpModel.PValue);
+
+                    mlpModel.TrainByNN(maxEpochs, learnRate, momentum);
+
+
+                    TsAcc.Add(keyA, mlpModel.TestAcc);
+                    TrAcc.Add(keyA, mlpModel.TrainAcc);
+                    TrTime.Add(keyA, mlpModel.TrainingTime.ToString());
+                }
 
                 if (startPartitionSize < 0.1M)
                 {
@@ -87,9 +100,9 @@ namespace HotellingTestProgram
 
             }
 
-            for (int i = 0; i < iter - 1; i++)
+            for (int i = 0; i < iter; i++)
             {
-                Console.WriteLine("%:{0}, R:{1}, TrAcc:{2}, TsAcc:{3}, PVal:{4}, TrTime:{5}", PValues.ElementAt(i).Key, HotellingResult.ElementAt(i).Value, TrAcc.ElementAt(i).Value, TsAcc.ElementAt(i).Value, PValues.ElementAt(i).Value, TrTime.ElementAt(i).Value);
+                Console.WriteLine("%:{0}, TrAcc:{1}, TsAcc:{2}, PVal:{3}, TrTime:{4}", PValues.ElementAt(i).Key, TrAcc.ElementAt(i).Value, TsAcc.ElementAt(i).Value, PValues.ElementAt(i).Value, TrTime.ElementAt(i).Value);
             }
 
 

@@ -200,8 +200,6 @@ namespace Algorithms
 
         public string OutputDatasetToCSV(int numCols, float[][] data, string fileName, SplitType splitType)
         {
-
-
             string folderName = splitType.ToString() + "_" + InputSpecification.GetFileName();
             int index = folderName.IndexOf('.');
             if (index > 0)
