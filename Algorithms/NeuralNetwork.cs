@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Diagnostics;
 using System.Linq;
 
 namespace Algorithms
@@ -451,6 +452,9 @@ namespace Algorithms
           double learnRate, double momentum)
         {
             Console.WriteLine("\nTraining started...");
+            Stopwatch sw = new Stopwatch();
+            sw.Start();
+
 
             // train using back-prop
             // back-prop specific arrays
@@ -633,6 +637,9 @@ namespace Algorithms
                 } // each training item
 
             } // while
+
+            sw.Stop();
+            Console.WriteLine("Time taken:{0}", sw.Elapsed);
 
             Console.WriteLine("Training ended...\n");
 

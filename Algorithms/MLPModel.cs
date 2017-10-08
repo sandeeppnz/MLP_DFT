@@ -57,12 +57,19 @@ namespace Algorithms
         public double TrainAcc { get; set; }
         public double TestAcc { get; set; }
 
-        public string TestingTime { get; set; }
-        public string TrainingTime { get; set; }
+        public double TestingTime { get; set; }
+        public double TrainingTime { get; set; }
+
+        public double PValLinearSeqSplit { get; set; }
+        public double HotellingTestTime { get; set; }
+
+        //public Dictionary<decimal, double> HotellingPValue { get; set; }
+
 
         public void WriteResultsToCSV(List<ResultsStatistics> list, string path, string fileName)
         {
-            _fileProcessor.WriteResultsToCSV(list, path, fileName);
+            throw new Exception();
+            //_fileProcessor.WriteResultsToCSV(list, path, fileName);
         }
 
         public MLPModel(int numHidden, int numOutput, FileProcessor fp, RRunner rRunner, bool isFSActivated = false)
@@ -71,6 +78,7 @@ namespace Algorithms
             _nn = new NeuralNetwork(fp.InputSpecification.GetNumAttributes(), numHidden, numOutput, isFSActivated);
             _fileProcessor = fp;
             _rRunner = rRunner;
+            //HotellingPValue = new Dictionary<decimal, double>();
         }
 
         public void TrainByNN(int maxEpochs, double learnRate, double momentum)
@@ -95,7 +103,7 @@ namespace Algorithms
             double[] weights = _nn.NewTrain(TrainData, maxEpochs, learnRate, momentum);
 
             sw.Stop();
-            TrainingTime = sw.Elapsed.ToString();
+            TrainingTime = sw.Elapsed.TotalSeconds;
 
             //Console.WriteLine("\nFinal neural network model weights and biases:\n");
 
@@ -109,7 +117,7 @@ namespace Algorithms
             sw2.Start();
             TestAcc = _nn.NewAccuracy(TestData);
             sw2.Stop();
-            TestingTime = sw2.Elapsed.ToString();
+            TestingTime = sw2.Elapsed.TotalSeconds;
 
             Console.WriteLine("Training accuracy =\t{0} ", TrainAcc.ToString("F4"));
             Console.WriteLine("Testing accuracy =\t{0} ", TestAcc.ToString("F4"));
@@ -160,6 +168,59 @@ namespace Algorithms
         //    sw.Stop();
         //    Console.WriteLine("Elapsed={0}", sw.Elapsed);
         //}
+
+
+        public bool RunFoldingHotellingTTest(string trainingFile, string testingFile, string rScriptFile, string rBin, double hotellingTestThreshold, decimal partitionSize)
+        {
+            double HotellingTestPValue = 0;
+
+            Stopwatch sw = new Stopwatch();
+            Console.WriteLine("Hotelling Test...");
+            sw.Start();
+
+            string folderName = _fileProcessor.GetInputSpecification().GetFileName();
+            int index = folderName.IndexOf('.');
+            if (index > 0)
+            {
+                folderName = folderName.Substring(0, index);
+            }
+
+
+            var result = _rRunner.RunFromCmd(this._fileProcessor.GetRScriptPath() + rScriptFile, rBin, partitionSize.ToString(), this._fileProcessor.GetOutputDataPath() + folderName + "\\" + trainingFile, this._fileProcessor.GetOutputDataPath() + folderName + "\\" + testingFile);
+
+            if (string.IsNullOrEmpty(result))
+            {
+                return false;
+            }
+
+            var res2 = result.Substring(result.IndexOf(']') + 1);
+            var res3 = res2.Substring(res2.IndexOf(']') + 1);
+            var res = Regex.Split(res3, @"[^0-9\.]+");
+
+
+            foreach (string s in res)
+            {
+                if (!string.IsNullOrEmpty(s))
+                {
+                    HotellingTestPValue = double.Parse(s);
+                    break;
+                }
+            }
+            sw.Stop();
+
+            Console.WriteLine("PValue: {0} and Time taken:{1}", HotellingTestPValue, sw.Elapsed);
+            PValLinearSeqSplit = HotellingTestPValue;
+            HotellingTestTime = sw.Elapsed.TotalSeconds;
+
+            if (HotellingTestPValue <= hotellingTestThreshold)
+            {
+                //Partition += PartitionIncrement;
+                return false;
+            }
+            //}
+            return true;
+        }
+
 
 
         //public void GenerateArtificalDataUsingNN(int numInput, int numHidden, int numOutput)
@@ -487,10 +548,11 @@ namespace Algorithms
         //} // SplitTrainTest
 
 
-        public void SplitTrainTestData(decimal partitionSize, int seed, bool shuffle = false)
+        public void LinearSeqTrainTestSplit(decimal partitionSize, int seed, bool shuffle = false)
         {
             Console.WriteLine("=====================================================");
             Console.WriteLine("Generating Datasets...");
+            Console.WriteLine("Sequential Incremental Split");
             Console.WriteLine("Random: {0}", shuffle);
 
             Random rnd = new Random(seed);
@@ -546,6 +608,8 @@ namespace Algorithms
             Console.WriteLine("Testing file: {0}", TestingFileName);
             Console.WriteLine("Done....\n");
         }
+
+
 
     }
 }

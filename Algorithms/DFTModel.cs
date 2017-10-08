@@ -55,7 +55,7 @@ namespace Algorithms
         public int NumAttributes { get; set; }
         public int NumOutputs { get; set; }
 
-        public string CoefficientGenerationTime { get; set; }
+        public double CoefficientGenerationTime { get; set; }
 
 
         //public double[][] TrainData;
@@ -830,7 +830,7 @@ namespace Algorithms
                 }
             }
             sw.Stop();
-            CoefficientGenerationTime = sw.Elapsed.ToString();
+            CoefficientGenerationTime = sw.Elapsed.TotalSeconds;
 
 
             EnergyCoeffs = coeffArray;

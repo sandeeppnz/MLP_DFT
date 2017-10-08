@@ -11,7 +11,7 @@ if (!require(ICSNP)) install.packages("ICSNP")
 library(mvtnorm)
 library(ICSNP)
 
-#p_size = as.numeric(args[1]) #obselete
+p_size = as.numeric(args[1]) #obselete
 
 trainingFilePathAndName <- args[2] #filepath and name
 testingFilePathAndName <- args[3] #filepath and name

@@ -22,8 +22,8 @@ namespace Algorithms
 
         public double TestingAccuracy { get; set; }
         public double TrainingAccuracy { get; set; }
-        public string TrainingTime { get; set; }
-        public string TestingTime { get; set; }
+        public double TrainingTime { get; set; }
+        public double TestingTime { get; set; }
 
         //DFT
         public int NumTotalInstancesXClass0 { get; set; }
@@ -46,7 +46,16 @@ namespace Algorithms
         public int NumEnergyCoefficients { get; set; }
         public Dictionary<string, double> EnergyCoefficients { get; set; }
 
-        public string EnergyCoefficientTime { get; set; }
+        public double EnergyCoefficientTime { get; set; }
 
+        public Dictionary<decimal,double> PVal { get; set; }
+
+        public double HotellingTestTime { get; set; }
+
+
+        public ResultsStatistics()
+        {
+            PVal = new Dictionary<decimal, double>();
+        }
     }
 }

@@ -2,6 +2,7 @@
 using System;
 using System.Collections.Generic;
 using System.Diagnostics;
+using System.IO;
 using System.Text.RegularExpressions;
 
 namespace BackPropProgram
@@ -40,64 +41,74 @@ namespace BackPropProgram
 
             Console.WriteLine("------ Manual Parition Selection --------");
 
-            
-            List<IInputSpecification> fileList = new List<IInputSpecification>();
-            fileList.Add(new OccupancyExtented());
-            fileList.Add(new OccupancySmall());
 
-            fileList.Add(new ElectricitySmall());
-            fileList.Add(new ElectricityExtended());
+            List<IInputSpecification> fileList = new List<IInputSpecification>();
+            //fileList.Add(new OccupancySmall());
+            //fileList.Add(new OccupancyExtented());
+
+            //fileList.Add(new ElectricitySmall());
+            //fileList.Add(new ElectricityExtended());
 
 
             fileList.Add(new SensorSmall());
-            fileList.Add(new SensorExtended());
+            //fileList.Add(new SensorExtended());
 
 
-            fileList.Add(new CoverTypeSmall());
-            fileList.Add(new CoverTypeIntemediate());
-            fileList.Add(new CoverTypeExtended());
+            //fileList.Add(new CoverTypeSmall());
+            //fileList.Add(new CoverTypeIntemediate());
+            //fileList.Add(new CoverTypeExtended());
 
 
 
-            fileList.Add(new FlightExtended());
-            fileList.Add(new FlightSmall());
+            //fileList.Add(new FlightExtended());
+            //fileList.Add(new FlightSmall());
 
-            fileList.Add(new RBF());
+            //fileList.Add(new RBF());
 
-            fileList.Add(new RH());
+            //fileList.Add(new RH());
 
             foreach (var file in fileList)
             {
-                decimal partitionSize = 0.1M;
+                decimal startPartitionSize = 0.01M;
+                decimal partitionLimit = 0.8M;
+
+
                 List<ResultsStatistics> stats = new List<ResultsStatistics>();
-                MLPModel mlpModel = null;
+                //MLPModel mlpModel = null;
 
                 //InputSpecification inputSpec = new ElectricityExtended();
-                InputSpecification inputSpec = (InputSpecification) file;
+                InputSpecification inputSpec = (InputSpecification)file;
 
-                while (partitionSize >= 0)
+                FileProcessor fp = new FileProcessor(inputDataPath, outputDataPath, resultsDataPath, rScriptPath, inputSpec);
+                fp.LoadCSV();
+                RRunner rn = new RRunner();
+
+                int iter = 0;
+                while (startPartitionSize <= partitionLimit)
                 {
-                    if (partitionSize < 0.01M) break;
+                    iter++;
+
+                    //while (partitionSize >= 0)
+                    //{
+                    //if (partitionSize < 0.01M) break;
 
 
                     //Setup File
 
                     //Unoptimized Manual partitional selection and classfication
                     // 1.Set input file and load dataset
-                    FileProcessor fp = new FileProcessor(inputDataPath, outputDataPath, resultsDataPath, rScriptPath, inputSpec);
-                    fp.LoadCSV();
-                    RRunner rn = new RRunner();
 
 
                     // 2. Create MLP model    
-                    mlpModel = new MLPModel(numHidden, numOutput, fp, rn);
-                    mlpModel.SplitTrainTestData(partitionSize, seed);
+                    MLPModel mlpModel = new MLPModel(numHidden, numOutput, fp, rn);
+                    mlpModel.LinearSeqTrainTestSplit(startPartitionSize, seed);
                     //mlpModel.PrintTrain();
                     //mlpModel.PrintTest();
 
                     //mlpModel.GenerateArtificalDataUsingNN(numInput, numHidden, numOutput);
                     //mlpModel.PrintWeights(2, 10, true);
                     //mlpModel.RunHotellingTTest(mlpModel.TrainingFileName, mlpModel.TestingFileName, rScripFileName, rBin);
+                    bool result = mlpModel.RunFoldingHotellingTTest(mlpModel.TrainingFileName, mlpModel.TestingFileName, rScripFileName, rBin, hotellingTestThreshold, startPartitionSize);
 
 
                     ////TODO: not used
@@ -139,6 +150,7 @@ namespace BackPropProgram
 
                     #region save stats
                     ResultsStatistics results = new ResultsStatistics();
+
                     results.FileName = inputSpec.InputDatasetFileName;
                     results.NumAttribute = inputSpec.NumAttributes;
                     results.TotalSize = inputSpec.NumRows;
@@ -151,7 +163,7 @@ namespace BackPropProgram
                     results.TestSize = mlpModel.TestData.Length;
                     results.TestingTime = mlpModel.TestingTime;
 
-                    results.PerSplit = partitionSize; //????
+                    results.PerSplit = startPartitionSize; //????
 
                     results.TrainingAccuracy = mlpModel.TrainAcc;
                     results.TestingAccuracy = mlpModel.TestAcc;
@@ -175,6 +187,11 @@ namespace BackPropProgram
                     results.EnergyCoefficients = dftModel.EnergyCoeffs;
                     results.NumEnergyCoefficients = dftModel.EnergyCoeffs.Count;
                     results.EnergyCoefficientTime = dftModel.CoefficientGenerationTime;
+
+
+                    results.PVal.Add(startPartitionSize, mlpModel.PValLinearSeqSplit);
+                    results.HotellingTestTime = mlpModel.HotellingTestTime;
+
                     #endregion
 
 
@@ -212,412 +229,211 @@ namespace BackPropProgram
                     dftModel = null;
 
 
-                    if (partitionSize > 0.1M)
+                    //if (partitionSize > 0.1M)
+                    //{
+                    //    partitionSize -= 0.1M;
+                    //}
+                    //else
+                    //{
+                    //    partitionSize -= 0.01M;
+                    //}
+                    if (startPartitionSize < 0.1M)
                     {
-                        partitionSize -= 0.1M;
+                        startPartitionSize += 0.01M;
                     }
                     else
                     {
-                        partitionSize -= 0.01M;
+                        startPartitionSize += 0.1M;
                     }
 
+                    mlpModel.Dispose();
+                    mlpModel = null;
+
                 }
 
-                mlpModel.WriteResultsToCSV(stats, outputDataPath, inputSpec.InputDatasetFileName);
-                mlpModel.Dispose();
-                mlpModel = null; 
+                WriteResultsToCSV(stats, outputDataPath, inputSpec.InputDatasetFileName);
             }
+
+            Console.ReadKey();
 
         }
 
 
-
-
-
-
-
-
-
-
-
-
-
-        #region commented
-        //private static DataTable GetDataTabletFromCSVFile(string csv_file_path)
-        //{
-        //    DataTable csvData = new DataTable();
-
-        //    try
-        //    {
-
-        //        using (TextFieldParser csvReader = new TextFieldParser(csv_file_path))
-        //        {
-        //            csvReader.SetDelimiters(new string[] { "," });
-        //            csvReader.HasFieldsEnclosedInQuotes = true;
-        //            string[] colFields = csvReader.ReadFields();
-        //            foreach (string column in colFields)
-        //            {
-        //                DataColumn datecolumn = new DataColumn(column);
-        //                datecolumn.AllowDBNull = true;
-        //                csvData.Columns.Add(datecolumn);
-        //            }
-
-        //            while (!csvReader.EndOfData)
-        //            {
-        //                string[] fieldData = csvReader.ReadFields();
-        //                //Making empty value as null
-        //                for (int i = 0; i < fieldData.Length; i++)
-        //                {
-        //                    if (fieldData[i] == "")
-        //                    {
-        //                        fieldData[i] = null;
-        //                    }
-        //                }
-        //                csvData.Rows.Add(fieldData);
-        //            }
-        //        }
-        //    }
-        //    catch (Exception ex)
-        //    {
-        //    }
-        //    return csvData;
-        //}
-
-
-
-
-        //static double[][] MakeAllDataUsingDataFile(int numInput, int numHidden,
-        // int numOutput, int numRows, int seed, IEnumerable<string[]> fileArray)
-        //{
-
-
-
-        //    Random rnd = new Random(seed);
-        //    int numWeights = (numInput * numHidden) + numHidden +
-        //      (numHidden * numOutput) + numOutput;
-
-        //    double[] weights = new double[numWeights]; // actually weights & biases
-        //    for (int i = 0; i < numWeights; ++i)
-        //        weights[i] = 20.0 * rnd.NextDouble() - 10.0; // [-10.0 to 10.0]
-
-        //    Console.WriteLine("Generating weights and biases:");
-        //    ShowVector(weights, 2, 10, true);
-
-        //    double[][] result = new double[numRows][]; // allocate return-result
-        //    for (int i = 0; i < numRows; ++i)
-        //        result[i] = new double[numInput + numOutput]; // 1-of-N in last column
-
-        //    NeuralNetwork gnn =
-        //      new NeuralNetwork(numInput, numHidden, numOutput); // generating NN
-        //    gnn.SetWeights(weights);
-
-        //    for (int r = 0; r < numRows; ++r) // for each row
-        //    {
-        //        //MOD read the file input cols
-        //        double[] inputs = new double[numInput];
-        //        for (int i = 0; i < numInput; ++i)
-        //            inputs[i] = fileArray[r][i]; // [-10.0 to -10.0]
-
-        //        // compute outputs
-        //        double[] outputs = gnn.ComputeOutputs(inputs);
-
-        //        // translate outputs to 1-of-N
-        //        double[] oneOfN = new double[numOutput]; // all 0.0
-
-        //        int maxIndex = 0;
-        //        double maxValue = outputs[0];
-        //        for (int i = 0; i < numOutput; ++i)
-        //        {
-        //            if (outputs[i] > maxValue)
-        //            {
-        //                maxIndex = i;
-        //                maxValue = outputs[i];
-        //            }
-        //        }
-        //        oneOfN[maxIndex] = 1.0;
-
-        //        // place inputs and 1-of-N output values into curr row
-        //        int c = 0; // column into result[][]
-        //        for (int i = 0; i < numInput; ++i) // inputs
-        //            result[r][c++] = inputs[i];
-        //        for (int i = 0; i < numOutput; ++i) // outputs
-        //            result[r][c++] = oneOfN[i];
-        //    } // each row
-        //    return result;
-        //} // MakeAllData
-        #endregion
-
-        public static void ShowMatrix(double[][] matrix, int numRows,
-              int decimals, bool indices)
+        public static void WriteResultsToCSV(List<ResultsStatistics> list, string path, string fileName)
         {
-            int len = matrix.Length.ToString().Length;
-            for (int i = 0; i < numRows; ++i)
+            try
             {
-                if (indices == true)
-                    Console.Write("[" + i.ToString().PadLeft(len) + "]  ");
-                for (int j = 0; j < matrix[i].Length; ++j)
-                {
-                    double v = matrix[i][j];
-                    if (v >= 0.0)
-                        Console.Write(" "); // '+'
-                    Console.Write(v.ToString("F" + decimals) + "  ");
-                }
-                Console.WriteLine("");
-            }
+                Console.WriteLine("==========================");
+                Console.WriteLine("Writing to file {0}", fileName);
 
-            if (numRows < matrix.Length)
-            {
-                Console.WriteLine(". . .");
-                int lastRow = matrix.Length - 1;
-                if (indices == true)
-                    Console.Write("[" + lastRow.ToString().PadLeft(len) + "]  ");
-                for (int j = 0; j < matrix[lastRow].Length; ++j)
+                string folderName = fileName;
+                int index = folderName.IndexOf('.');
+                if (index > 0)
                 {
-                    double v = matrix[lastRow][j];
-                    if (v >= 0.0)
-                        Console.Write(" "); // '+'
-                    Console.Write(v.ToString("F" + decimals) + "  ");
+                    folderName = folderName.Substring(0, index);
                 }
+
+                if (!Directory.Exists(path + folderName))
+                {
+                    Directory.CreateDirectory(path + folderName);
+                }
+
+                string fileNameAndPath = path + folderName + "\\" + fileName + ".csv";
+
+                //string fileNameAndPath = path + "Results-" + fileName + ".csv";
+
+                if (File.Exists(fileNameAndPath))
+                {
+                    File.Delete(fileNameAndPath);
+                }
+
+                var sw = new StreamWriter(fileNameAndPath, true);
+                string header = "FileName,NumAttribute,TotalSize,PerSplit,TrainingFile,TrainSize,TestFile,TestSize,TrainingAccuracy,TestingAccuracy,TrainingTime,TestingTime,NumTotalInstancesXClass0,NumTotalInstancesXClass1,NumResolvedUniqueSchemaInstancesXClass0,ResolvedUniqueSchemaInstancesXClass0,NumResolvedUniqueSchemaInstancesXClass1,ResolvedUniqueSchemaInstancesXClass1,NumPatternsXClass0,PatternsXClass0,NumPatternsXClass1,PatternsXClass1,NumEnergyCoefficients,EnergyCoefficients,EnergyCoefficientTime,PVal,HotellingTestTime";
+                sw.Write(header);
+                sw.Write("\r\n");
+                string patternSep = "#";
+                foreach (var s in list)
+                {
+                    sw.Write(s.FileName);
+                    sw.Write(",");
+                    sw.Write(s.NumAttribute);
+                    sw.Write(",");
+                    sw.Write(s.TotalSize);
+                    sw.Write(",");
+                    sw.Write(s.PerSplit);
+                    sw.Write(",");
+                    sw.Write(s.TrainingFile);
+                    sw.Write(",");
+                    sw.Write(s.TrainSize);
+                    sw.Write(",");
+                    sw.Write(s.TestFile);
+                    sw.Write(",");
+                    sw.Write(s.TestSize);
+                    sw.Write(",");
+                    sw.Write(s.TrainingAccuracy);
+                    sw.Write(",");
+                    sw.Write(s.TestingAccuracy);
+                    sw.Write(",");
+                    sw.Write(s.TrainingTime);
+                    sw.Write(",");
+                    sw.Write(s.TestingTime);
+                    sw.Write(",");
+
+                    sw.Write(s.NumTotalInstancesXClass0);
+                    sw.Write(",");
+
+                    sw.Write(s.NumTotalInstancesXClass1);
+                    sw.Write(",");
+
+                    sw.Write(s.NumResolvedUniqueSchemaInstancesXClass0);
+                    sw.Write(",");
+                    string p = string.Empty;
+                    foreach (var i in s.ResolvedUniqueSchemaInstancesXClass0)
+                    {
+                        p += i.ToString() + patternSep;
+                    }
+                    sw.Write(p);
+                    sw.Write(",");
+
+
+
+                    sw.Write(s.NumResolvedUniqueSchemaInstancesXClass1);
+                    sw.Write(",");
+                    p = string.Empty;
+                    foreach (var i in s.ResolvedUniqueSchemaInstancesXClass1)
+                    {
+                        p += i.ToString() + patternSep;
+                    }
+                    sw.Write(p);
+                    sw.Write(",");
+
+
+
+                    sw.Write(s.NumPatternsXClass0);
+                    sw.Write(",");
+                    p = string.Empty;
+                    foreach (var i in s.PatternsXClass0)
+                    {
+                        p += i.ToString() + patternSep;
+                    }
+                    sw.Write(p);
+                    sw.Write(",");
+
+
+
+                    sw.Write(s.NumPatternsXClass1);
+                    sw.Write(",");
+                    p = string.Empty;
+                    foreach (var i in s.PatternsXClass1)
+                    {
+                        p += i.ToString() + patternSep;
+                    }
+                    sw.Write(p);
+                    sw.Write(",");
+
+
+                    sw.Write(s.NumEnergyCoefficients);
+                    sw.Write(",");
+
+
+                    p = string.Empty;
+
+                    if (s.NumAttribute <= 5)
+                    {
+                        foreach (var i in s.EnergyCoefficients)
+                        {
+                            p += i.Key.ToString() + ":" + i.Value.ToString() + patternSep;
+                        }
+                    }
+                    sw.Write(p);
+                    sw.Write(",");
+
+
+                    sw.Write(s.EnergyCoefficientTime);
+                    sw.Write(",");
+
+
+                    p = string.Empty;
+                    foreach (var i in s.PVal)
+                    {
+                        p += i.Value.ToString();
+                    }
+                    sw.Write(p);
+
+                    sw.Write(",");
+
+                    sw.Write(s.HotellingTestTime);
+
+                    sw.Write("\r\n");
+
+
+                }
+                sw.Flush();
+                sw.Close();
+
+                Console.WriteLine("end....");
+
+                sw = null;
+
             }
-            Console.WriteLine("\n");
+            catch (Exception)
+            {
+                throw;
+            }
         }
 
 
-        //public static void ShowVector(double[] vector, int decimals,
-        //  int lineLen, bool newLine)
-        //{
-        //    for (int i = 0; i < vector.Length; ++i)
-        //    {
-        //        if (i > 0 && i % lineLen == 0) Console.WriteLine("");
-        //        if (vector[i] >= 0) Console.Write(" ");
-        //        Console.Write(vector[i].ToString("F" + decimals) + " ");
-        //    }
-        //    if (newLine == true)
-        //        Console.WriteLine("");
-        //}
 
 
 
 
 
-        //public static double[] Ranker(double[] weightsArray, double[] rankerArray)
-        //{
-        //    int numInput = 11;
-        //    int numHidden = 8;
-        //    int numOutput = 2;
-
-        //    double maxVal = 0;
-        //    int rank = 1;
-        //    for (int j = 0; j < numInput; ++j)
-        //    {
-        //        if (maxVal < weightsArray[j])
-        //            maxVal = weightsArray[j];
-        //    }
-
-        //    for (int j = 0; j < numInput; ++j)
-        //    {
-        //        maxVal = GetMaxValInArray(weighsArray);
-
-        //        if (maxVal == weightsArray[j])
-        //            rankerArray[j] = rank;
-
-        //    }
-
-
-        //    //Top 5
-        //    //Console.WriteLine("Unsorted");
-        //    //for (int j = 0; j < numInput; ++j)
-        //    //{
-        //    //}
-
-        //    double[] probInputArray = new double[numInput];
-        //    double[] rankArray = new double[numInput];
-
-        //    for (int j = 0; j < numInput; ++j)
-        //    {
-        //        rankArray[j] = 0;
-        //    }
-
-        //    double currMin = 100;
-        //    int rank = numInput;
-        //    for (int j = 0; j < numInput; ++j)
-        //    {
-        //        if (currMin > weightsArray[j])
-        //        {
-        //            maxVal = weightsArray[j];
-        //        }
-        //    }
-
-
-        //    double totalAbsInputNode = 0;
-
-
-        //    for (int j = 0; j < numInput; ++j)
-        //    {
-        //        Console.WriteLine(weightsArray[j]);
-        //        totalAbsInputNode += weightsArray[j];
-        //    }
-
-        //    for (int j = 0; j < numInput; ++j)
-        //    {
-        //        probInputArray[j] = (double) weightsArray[j] / (double) totalAbsInputNode;
-        //        Console.WriteLine(probInputArray[j]);
-        //    }
 
 
 
-
-        //    //Array.Sort(probInputArray, (a, b) => b.CompareTo(a));
-
-        //    //Console.WriteLine("Reverse");
-        //    //for (int j = 0; j < numInput; ++j)
-        //    //{
-        //    //    Console.WriteLine(probInputArray[j]);
-        //    //}
-
-
-
-        //    return null;
-        //}
 
 
         #endregion
-
-
-        //static double[][] GenerateInitialMLPModel(int numInput, int numHidden,
-        //      int numOutput, int numRows, int seed, float[][] datafile, float[][] tValueFile)
-        //{
-        //    Random rnd = new Random(seed);
-        //    int numWeights = (numInput * numHidden) + numHidden +
-        //      (numHidden * numOutput) + numOutput;
-
-        //    double[] weights = new double[numWeights]; // actually weights & biases
-
-        //    for (int i = 0; i < numWeights; ++i)
-        //        weights[i] = 20.0 * rnd.NextDouble() - 10.0; // [-10.0 to 10.0]
-
-        //    Console.WriteLine("Generating weights and biases:");
-        //    ShowVector(weights, 2, 10, true);
-
-        //    double[][] result = new double[numRows][]; // allocate return-result
-        //    for (int i = 0; i < numRows; ++i)
-        //        //TODO: added to save the tvalues
-        //        result[i] = new double[numInput + numOutput + 2]; // 1-of-N in last column
-
-        //    NeuralNetwork gnn =
-        //      new NeuralNetwork(numInput, numHidden, numOutput, ISFEATURESELECTION); // generating NN
-
-        //    gnn.SetWeights(weights);
-
-        //    for (int r = 0; r < numRows; ++r) // for each row
-        //    {
-        //        // generate random inputs
-        //        double[] inputs = new double[numInput];
-
-        //        //for (int i = 0; i < numInput; ++i)
-        //        //    inputs[i] = 20.0 * rnd.NextDouble() - 10.0; // [-10.0 to -10.0]
-
-        //        //read file
-        //        for (int i = 0; i < numInput; ++i)
-        //            inputs[i] = datafile[r][i]; // [-10.0 to -10.0]
-
-        //        // compute outputs
-        //        double[] outputs = gnn.ComputeOutputs(inputs);
-
-        //        //double[] outputs = new double[numOutput];
-        //        //for (int i = numInput; i < numOutput + numInput; ++i)
-        //        //    outputs[i] = datafile[r][i]; // [-10.0 to -10.0]
-
-        //        // translate outputs to 1-of-N
-        //        double[] oneOfN = new double[numOutput]; // all 0.0
-
-        //        int maxIndex = 0;
-        //        double maxValue = outputs[0];
-        //        for (int i = 0; i < numOutput; ++i)
-        //        {
-        //            if (outputs[i] > maxValue)
-        //            {
-        //                maxIndex = i;
-        //                maxValue = outputs[i];
-        //            }
-        //        }
-        //        oneOfN[maxIndex] = 1.0;
-
-        //        // place inputs and 1-of-N output values into curr row
-        //        int c = 0; // column into result[][]
-        //        for (int i = 0; i < numInput; ++i) // inputs
-        //            result[r][c++] = inputs[i];
-        //        for (int i = 0; i < numOutput; ++i) // outputs
-        //            result[r][c++] = oneOfN[i];
-
-        //        //Add the target values
-        //        for (int i = 0; i < 2; ++i) // outputs
-        //            result[r][c++] = tValueFile[r][i];
-
-
-
-        //    } // each row
-        //    return result;
-        //} // MakeAllData
-
-
-
-        //static double[][] MakeAllData(int numInput, int numHidden,
-        //  int numOutput, int numRows, int seed)
-        //{
-        //    Random rnd = new Random(seed);
-        //    int numWeights = (numInput * numHidden) + numHidden +
-        //      (numHidden * numOutput) + numOutput;
-
-        //    double[] weights = new double[numWeights]; // actually weights & biases
-        //    for (int i = 0; i < numWeights; ++i)
-        //        weights[i] = 20.0 * rnd.NextDouble() - 10.0; // [-10.0 to 10.0]
-
-        //    Console.WriteLine("Generating weights and biases:");
-        //    ShowVector(weights, 2, 10, true);
-
-        //    double[][] result = new double[numRows][]; // allocate return-result
-        //    for (int i = 0; i < numRows; ++i)
-        //        result[i] = new double[numInput + numOutput]; // 1-of-N in last column
-
-        //    NeuralNetwork gnn =
-        //      new NeuralNetwork(numInput, numHidden, numOutput, ISFEATURESELECTION); // generating NN
-        //    gnn.SetWeights(weights);
-
-        //    for (int r = 0; r < numRows; ++r) // for each row
-        //    {
-        //        // generate random inputs
-        //        double[] inputs = new double[numInput];
-        //        for (int i = 0; i < numInput; ++i)
-        //            inputs[i] = 20.0 * rnd.NextDouble() - 10.0; // [-10.0 to -10.0]
-
-        //        // compute outputs
-        //        double[] outputs = gnn.ComputeOutputs(inputs);
-
-        //        // translate outputs to 1-of-N
-        //        double[] oneOfN = new double[numOutput]; // all 0.0
-
-        //        int maxIndex = 0;
-        //        double maxValue = outputs[0];
-        //        for (int i = 0; i < numOutput; ++i)
-        //        {
-        //            if (outputs[i] > maxValue)
-        //            {
-        //                maxIndex = i;
-        //                maxValue = outputs[i];
-        //            }
-        //        }
-        //        oneOfN[maxIndex] = 1.0;
-
-        //        // place inputs and 1-of-N output values into curr row
-        //        int c = 0; // column into result[][]
-        //        for (int i = 0; i < numInput; ++i) // inputs
-        //            result[r][c++] = inputs[i];
-        //        for (int i = 0; i < numOutput; ++i) // outputs
-        //            result[r][c++] = oneOfN[i];
-        //    } // each row
-        //    return result;
-        //} // MakeAllData
 
 
     }

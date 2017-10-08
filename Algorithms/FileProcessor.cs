@@ -248,7 +248,7 @@ namespace Algorithms
             sw.Close();
             sw = null;
 
-            return "Output-" + fileName + ".csv";
+            return fileName + ".csv";
         }
 
 
@@ -261,17 +261,12 @@ namespace Algorithms
                 folderName = folderName.Substring(0, index);
             }
 
-
             if (!Directory.Exists( path + folderName))
             {
                 Directory.CreateDirectory(path + folderName);
             }
 
             string fileNameAndPath = path + folderName + "\\" + fileName + ".csv";
-
-
-
-
 
             //string fileNameAndPath = path + "Results-" + fileName + ".csv";
 
@@ -281,7 +276,7 @@ namespace Algorithms
             }
 
             var sw = new StreamWriter(fileNameAndPath, true);
-            string header = "FileName,NumAttribute,TotalSize,PerSplit,TrainingFile,TrainSize,TestFile,TestSize,TrainingAccuracy,TestingAccuracy,TrainingTime,TestingTime,NumTotalInstancesXClass0,NumTotalInstancesXClass1,NumResolvedUniqueSchemaInstancesXClass0,ResolvedUniqueSchemaInstancesXClass0,NumResolvedUniqueSchemaInstancesXClass1,ResolvedUniqueSchemaInstancesXClass1,NumPatternsXClass0,PatternsXClass0,NumPatternsXClass1,PatternsXClass1,NumEnergyCoefficients,EnergyCoefficients,EnergyCoefficientTime";
+            string header = "FileName,NumAttribute,TotalSize,PerSplit,TrainingFile,TrainSize,TestFile,TestSize,TrainingAccuracy,TestingAccuracy,TrainingTime,TestingTime,NumTotalInstancesXClass0,NumTotalInstancesXClass1,NumResolvedUniqueSchemaInstancesXClass0,ResolvedUniqueSchemaInstancesXClass0,NumResolvedUniqueSchemaInstancesXClass1,ResolvedUniqueSchemaInstancesXClass1,NumPatternsXClass0,PatternsXClass0,NumPatternsXClass1,PatternsXClass1,NumEnergyCoefficients,EnergyCoefficients,EnergyCoefficientTime,PVal_LinearSeqSplit,HotellingTestTime";
             sw.Write(header);
             sw.Write("\r\n");
             string patternSep = "#";
@@ -312,15 +307,11 @@ namespace Algorithms
                 sw.Write(s.TestingTime);
                 sw.Write(",");
 
-
-
-
                 sw.Write(s.NumTotalInstancesXClass0);
                 sw.Write(",");
 
                 sw.Write(s.NumTotalInstancesXClass1);
                 sw.Write(",");
-
 
                 sw.Write(s.NumResolvedUniqueSchemaInstancesXClass0);
                 sw.Write(",");
@@ -381,12 +372,33 @@ namespace Algorithms
 
 
                 sw.Write(s.EnergyCoefficientTime);
+                sw.Write(",");
+
+
+                if (s.PVal.Count == 1)
+                {
+                    sw.Write(s.PVal.ElementAt(0).Value.ToString());
+                }
+                else
+                {
+                    p = string.Empty;
+                    foreach (var i in s.PVal)
+                    {
+                        p += i.Key.ToString() + ":" + i.Value.ToString() + patternSep;
+                    }
+                    sw.Write(p);
+                }
+
+                sw.Write(",");
+
+                sw.Write(s.HotellingTestTime);
+
+
+
                 sw.Write("\r\n");
 
+
             }
-
-
-
             sw.Flush();
             sw.Close();
             sw = null;
