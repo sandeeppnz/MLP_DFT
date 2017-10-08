@@ -14,13 +14,13 @@ namespace Algorithms
         string GetInputDataPath();
         string GetOutputDataPath();
         string GetResultsDataPath();
-        void WriteResultsToCSV(List<ResultsStatistics> list, string path, string fileName);
+        //void WriteResultsToCSV(List<ResultsStatistics> list, string path, string fileName);
 
 
         string GetRScriptPath();
         void LoadCSV();
         //string WriteMLPInputDataset(int numCols, float[][] data, string fileName);
-        string OutputDatasetToCSV(int numCols, float[][] data, string fileName);
+        string OutputDatasetToCSV(int numCols, float[][] data, string fileName, SplitType splitType);
         float[][] GetRawDataset();
         void Dispose();
     }
@@ -198,11 +198,11 @@ namespace Algorithms
         //}
 
 
-        public string OutputDatasetToCSV(int numCols, float[][] data, string fileName)
+        public string OutputDatasetToCSV(int numCols, float[][] data, string fileName, SplitType splitType)
         {
-            
 
-            string folderName = InputSpecification.GetFileName();
+
+            string folderName = splitType.ToString() + "_" + InputSpecification.GetFileName();
             int index = folderName.IndexOf('.');
             if (index > 0)
             {
@@ -215,7 +215,7 @@ namespace Algorithms
                 Directory.CreateDirectory(GetOutputDataPath() + folderName);
             }
 
-            string fileNameAndPath = GetOutputDataPath() + folderName+ "\\" + fileName + ".csv";
+            string fileNameAndPath = GetOutputDataPath() + folderName + "\\" + fileName + ".csv";
 
             if (File.Exists(fileNameAndPath))
             {
@@ -252,157 +252,157 @@ namespace Algorithms
         }
 
 
-        public void WriteResultsToCSV(List<ResultsStatistics> list, string path, string fileName)
-        {
-            string folderName = fileName;
-            int index = folderName.IndexOf('.');
-            if (index > 0)
-            {
-                folderName = folderName.Substring(0, index);
-            }
+        //public void WriteResultsToCSV(List<ResultsStatistics> list, string path, string fileName)
+        //{
+        //    string folderName = fileName;
+        //    int index = folderName.IndexOf('.');
+        //    if (index > 0)
+        //    {
+        //        folderName = folderName.Substring(0, index);
+        //    }
 
-            if (!Directory.Exists( path + folderName))
-            {
-                Directory.CreateDirectory(path + folderName);
-            }
+        //    if (!Directory.Exists(path + folderName))
+        //    {
+        //        Directory.CreateDirectory(path + folderName);
+        //    }
 
-            string fileNameAndPath = path + folderName + "\\" + fileName + ".csv";
+        //    string fileNameAndPath = path + folderName + "\\" + fileName + ".csv";
 
-            //string fileNameAndPath = path + "Results-" + fileName + ".csv";
+        //    //string fileNameAndPath = path + "Results-" + fileName + ".csv";
 
-            if (File.Exists(fileNameAndPath))
-            {
-                File.Delete(fileNameAndPath);
-            }
+        //    if (File.Exists(fileNameAndPath))
+        //    {
+        //        File.Delete(fileNameAndPath);
+        //    }
 
-            var sw = new StreamWriter(fileNameAndPath, true);
-            string header = "FileName,NumAttribute,TotalSize,PerSplit,TrainingFile,TrainSize,TestFile,TestSize,TrainingAccuracy,TestingAccuracy,TrainingTime,TestingTime,NumTotalInstancesXClass0,NumTotalInstancesXClass1,NumResolvedUniqueSchemaInstancesXClass0,ResolvedUniqueSchemaInstancesXClass0,NumResolvedUniqueSchemaInstancesXClass1,ResolvedUniqueSchemaInstancesXClass1,NumPatternsXClass0,PatternsXClass0,NumPatternsXClass1,PatternsXClass1,NumEnergyCoefficients,EnergyCoefficients,EnergyCoefficientTime,PVal_LinearSeqSplit,HotellingTestTime";
-            sw.Write(header);
-            sw.Write("\r\n");
-            string patternSep = "#";
-            foreach (var s in list)
-            {
-                sw.Write(s.FileName);
-                sw.Write(",");
-                sw.Write(s.NumAttribute);
-                sw.Write(",");
-                sw.Write(s.TotalSize);
-                sw.Write(",");
-                sw.Write(s.PerSplit);
-                sw.Write(",");
-                sw.Write(s.TrainingFile);
-                sw.Write(",");
-                sw.Write(s.TrainSize);
-                sw.Write(",");
-                sw.Write(s.TestFile);
-                sw.Write(",");
-                sw.Write(s.TestSize);
-                sw.Write(",");
-                sw.Write(s.TrainingAccuracy);
-                sw.Write(",");
-                sw.Write(s.TestingAccuracy);
-                sw.Write(",");
-                sw.Write(s.TrainingTime);
-                sw.Write(",");
-                sw.Write(s.TestingTime);
-                sw.Write(",");
+        //    var sw = new StreamWriter(fileNameAndPath, true);
+        //    string header = "FileName,NumAttribute,TotalSize,PerSplit,TrainingFile,TrainSize,TestFile,TestSize,TrainingAccuracy,TestingAccuracy,TrainingTime,TestingTime,NumTotalInstancesXClass0,NumTotalInstancesXClass1,NumResolvedUniqueSchemaInstancesXClass0,ResolvedUniqueSchemaInstancesXClass0,NumResolvedUniqueSchemaInstancesXClass1,ResolvedUniqueSchemaInstancesXClass1,NumPatternsXClass0,PatternsXClass0,NumPatternsXClass1,PatternsXClass1,NumEnergyCoefficients,EnergyCoefficients,EnergyCoefficientTime,PVal_LinearSeqSplit,HotellingTestTime";
+        //    sw.Write(header);
+        //    sw.Write("\r\n");
+        //    string patternSep = "#";
+        //    foreach (var s in list)
+        //    {
+        //        sw.Write(s.FileName);
+        //        sw.Write(",");
+        //        sw.Write(s.NumAttribute);
+        //        sw.Write(",");
+        //        sw.Write(s.TotalSize);
+        //        sw.Write(",");
+        //        sw.Write(s.PerSplit);
+        //        sw.Write(",");
+        //        sw.Write(s.TrainingFile);
+        //        sw.Write(",");
+        //        sw.Write(s.TrainSize);
+        //        sw.Write(",");
+        //        sw.Write(s.TestFile);
+        //        sw.Write(",");
+        //        sw.Write(s.TestSize);
+        //        sw.Write(",");
+        //        sw.Write(s.TrainingAccuracy);
+        //        sw.Write(",");
+        //        sw.Write(s.TestingAccuracy);
+        //        sw.Write(",");
+        //        sw.Write(s.TrainingTime);
+        //        sw.Write(",");
+        //        sw.Write(s.TestingTime);
+        //        sw.Write(",");
 
-                sw.Write(s.NumTotalInstancesXClass0);
-                sw.Write(",");
+        //        sw.Write(s.NumTotalInstancesXClass0);
+        //        sw.Write(",");
 
-                sw.Write(s.NumTotalInstancesXClass1);
-                sw.Write(",");
+        //        sw.Write(s.NumTotalInstancesXClass1);
+        //        sw.Write(",");
 
-                sw.Write(s.NumResolvedUniqueSchemaInstancesXClass0);
-                sw.Write(",");
-                string p = string.Empty;
-                foreach (var i in s.ResolvedUniqueSchemaInstancesXClass0)
-                {
-                    p += i.ToString() + patternSep;
-                }
-                sw.Write(p);
-                sw.Write(",");
-
-
-
-                sw.Write(s.NumResolvedUniqueSchemaInstancesXClass1);
-                sw.Write(",");
-                p = string.Empty;
-                foreach (var i in s.ResolvedUniqueSchemaInstancesXClass1)
-                {
-                    p += i.ToString() + patternSep;
-                }
-                sw.Write(p);
-                sw.Write(",");
+        //        sw.Write(s.NumResolvedUniqueSchemaInstancesXClass0);
+        //        sw.Write(",");
+        //        string p = string.Empty;
+        //        foreach (var i in s.ResolvedUniqueSchemaInstancesXClass0)
+        //        {
+        //            p += i.ToString() + patternSep;
+        //        }
+        //        sw.Write(p);
+        //        sw.Write(",");
 
 
 
-                sw.Write(s.NumPatternsXClass0);
-                sw.Write(",");
-                p = string.Empty;
-                foreach (var i in s.PatternsXClass0)
-                {
-                    p += i.ToString() + patternSep;
-                }
-                sw.Write(p);
-                sw.Write(",");
+        //        sw.Write(s.NumResolvedUniqueSchemaInstancesXClass1);
+        //        sw.Write(",");
+        //        p = string.Empty;
+        //        foreach (var i in s.ResolvedUniqueSchemaInstancesXClass1)
+        //        {
+        //            p += i.ToString() + patternSep;
+        //        }
+        //        sw.Write(p);
+        //        sw.Write(",");
 
 
 
-                sw.Write(s.NumPatternsXClass1);
-                sw.Write(",");
-                p = string.Empty;
-                foreach (var i in s.PatternsXClass1)
-                {
-                    p += i.ToString() + patternSep;
-                }
-                sw.Write(p);
-                sw.Write(",");
-
-
-                sw.Write(s.NumEnergyCoefficients);
-                sw.Write(",");
-                p = string.Empty;
-                foreach (var i in s.EnergyCoefficients)
-                {
-                    p += i.Key.ToString() + ":" + i.Value.ToString() + patternSep;
-                }
-                sw.Write(p);
-                sw.Write(",");
-
-
-                sw.Write(s.EnergyCoefficientTime);
-                sw.Write(",");
-
-
-                if (s.PVal.Count == 1)
-                {
-                    sw.Write(s.PVal.ElementAt(0).Value.ToString());
-                }
-                else
-                {
-                    p = string.Empty;
-                    foreach (var i in s.PVal)
-                    {
-                        p += i.Key.ToString() + ":" + i.Value.ToString() + patternSep;
-                    }
-                    sw.Write(p);
-                }
-
-                sw.Write(",");
-
-                sw.Write(s.HotellingTestTime);
+        //        sw.Write(s.NumPatternsXClass0);
+        //        sw.Write(",");
+        //        p = string.Empty;
+        //        foreach (var i in s.PatternsXClass0)
+        //        {
+        //            p += i.ToString() + patternSep;
+        //        }
+        //        sw.Write(p);
+        //        sw.Write(",");
 
 
 
-                sw.Write("\r\n");
+        //        sw.Write(s.NumPatternsXClass1);
+        //        sw.Write(",");
+        //        p = string.Empty;
+        //        foreach (var i in s.PatternsXClass1)
+        //        {
+        //            p += i.ToString() + patternSep;
+        //        }
+        //        sw.Write(p);
+        //        sw.Write(",");
 
 
-            }
-            sw.Flush();
-            sw.Close();
-            sw = null;
-        }
+        //        sw.Write(s.NumEnergyCoefficients);
+        //        sw.Write(",");
+        //        p = string.Empty;
+        //        foreach (var i in s.EnergyCoefficients)
+        //        {
+        //            p += i.Key.ToString() + ":" + i.Value.ToString() + patternSep;
+        //        }
+        //        sw.Write(p);
+        //        sw.Write(",");
+
+
+        //        sw.Write(s.EnergyCoefficientTime);
+        //        sw.Write(",");
+
+
+        //        if (s.PVal.Count == 1)
+        //        {
+        //            sw.Write(s.PVal.ElementAt(0).Value.ToString());
+        //        }
+        //        else
+        //        {
+        //            p = string.Empty;
+        //            foreach (var i in s.PVal)
+        //            {
+        //                p += i.Key.ToString() + ":" + i.Value.ToString() + patternSep;
+        //            }
+        //            sw.Write(p);
+        //        }
+
+        //        sw.Write(",");
+
+        //        sw.Write(s.HotellingTestTime);
+
+
+
+        //        sw.Write("\r\n");
+
+
+        //    }
+        //    sw.Flush();
+        //    sw.Close();
+        //    sw = null;
+        //}
 
 
 

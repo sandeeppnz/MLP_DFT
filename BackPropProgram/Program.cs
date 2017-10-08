@@ -7,8 +7,12 @@ using System.Text.RegularExpressions;
 
 namespace BackPropProgram
 {
+
+
     class Program
     {
+
+
         static void Main(string[] args)
         {
             //TODO:
@@ -18,7 +22,11 @@ namespace BackPropProgram
             //FS
 
 
+
             const int seed = 123;
+
+            SplitType split = SplitType.LinearSequence;
+
             const int maxEpochs = 100;
             const double learnRate = 0.3;
             const double momentum = 0.2;
@@ -46,11 +54,11 @@ namespace BackPropProgram
             //fileList.Add(new OccupancySmall());
             //fileList.Add(new OccupancyExtented());
 
-            //fileList.Add(new ElectricitySmall());
+            fileList.Add(new ElectricitySmall());
             //fileList.Add(new ElectricityExtended());
 
 
-            fileList.Add(new SensorSmall());
+            //fileList.Add(new SensorSmall());
             //fileList.Add(new SensorExtended());
 
 
@@ -101,7 +109,11 @@ namespace BackPropProgram
 
                     // 2. Create MLP model    
                     MLPModel mlpModel = new MLPModel(numHidden, numOutput, fp, rn);
-                    mlpModel.LinearSeqTrainTestSplit(startPartitionSize, seed);
+
+                    if (split == SplitType.LinearSequence)
+                        mlpModel.LinearSeqTrainTestSplit(startPartitionSize, seed);
+
+
                     //mlpModel.PrintTrain();
                     //mlpModel.PrintTest();
 
@@ -251,7 +263,7 @@ namespace BackPropProgram
 
                 }
 
-                WriteResultsToCSV(stats, outputDataPath, inputSpec.InputDatasetFileName);
+                WriteResultsToCSV(stats, outputDataPath, inputSpec.InputDatasetFileName, split);
             }
 
             Console.ReadKey();
@@ -259,14 +271,14 @@ namespace BackPropProgram
         }
 
 
-        public static void WriteResultsToCSV(List<ResultsStatistics> list, string path, string fileName)
+        public static void WriteResultsToCSV(List<ResultsStatistics> list, string path, string fileName, SplitType split)
         {
             try
             {
                 Console.WriteLine("==========================");
                 Console.WriteLine("Writing to file {0}", fileName);
 
-                string folderName = fileName;
+                string folderName = split.ToString() + "_" + fileName;
                 int index = folderName.IndexOf('.');
                 if (index > 0)
                 {

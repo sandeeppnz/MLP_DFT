@@ -42,6 +42,7 @@
   </ItemGroup>
   <ItemGroup>
     <Compile Include="DFTModel.cs" />
+    <Compile Include="Enums.cs" />
     <Compile Include="FileProcessor.cs" />
     <Compile Include="Helper.cs" />
     <Compile Include="InverseDFTModel.cs" />
