@@ -187,11 +187,10 @@ namespace Algorithms
         //public void Validate(List<string> allSchemaXVectorClass0, List<string> allSchemaXVectorClass1, List<string> clusteredSchemaXVectorClass0, List<string> clusteredSchemaXVectorClass1, Dictionary<string,double> energyCoffs, List<string> jVectors, )
         public void Validate(SplitType splitType, decimal partitionSize)
         {
-            //Calculate f(x) directly by looking at the pattern
-
+            Console.WriteLine("Calculate f(x) directly by looking at the pattern...");
 
             long misClassficationCount = 0;
-
+            Console.WriteLine("Train");
             Stopwatch sw3 = new Stopwatch();
             sw3.Start();
             var fxShortcutClass0Train = ValidateFxByClusterPatternMatching(_dftModel.AllSchemaXVectorClass0Train, _dftModel.ClusteredSchemaXVectorClass0Train, ref misClassficationCount, 0);
@@ -204,6 +203,9 @@ namespace Algorithms
             _dftModel.Shortcut_ClusterPatternMachingTrainDataTime = sw3.Elapsed.TotalSeconds;
 
 
+
+
+            Console.WriteLine("Test");
             Stopwatch sw2 = new Stopwatch();
             sw2.Start();
             misClassficationCount = 0;
@@ -217,7 +219,9 @@ namespace Algorithms
             _dftModel.Shortcut_ClusterPatternMachingTestDataTime = sw2.Elapsed.TotalSeconds;
 
 
-            //Calculate f(x) by Inverse DFT 
+            //
+            Console.WriteLine("Calculate f(x) by Inverse DFT ...");
+            Console.WriteLine("Train");
             Stopwatch sw4 = new Stopwatch();
             sw4.Start();
             misClassficationCount = 0;
@@ -231,6 +235,7 @@ namespace Algorithms
 
 
 
+            Console.WriteLine("Test");
             Stopwatch sw = new Stopwatch();
             sw.Start();
             misClassficationCount = 0;
@@ -243,16 +248,18 @@ namespace Algorithms
             _dftModel.DFTModelTestDataTime = sw.Elapsed.TotalSeconds;
 
 
+            Console.WriteLine("done inverse...");
+
             FileProcessor fp = _mlpModel.GetFileProcessor();
             int numInput = fp.GetInputSpecification().GetNumAttributes();
 
-            fp.OutputModelValidationToCSV(numInput, _dftModel.AllSchemaXVectorClass0Train, "0", fxClass0ByInvDFTTrain, fxShortcutClass0Train, true, partitionSize + "_DFTValidation_Train", splitType, false);
-            fp.OutputModelValidationToCSV(numInput, _dftModel.AllSchemaXVectorClass1Train, "1", fxClass1ByInvDFTTrain, fxShortcutClass1Train, false, partitionSize + "_DFTValidation_Train", splitType, true);
+            //fp.OutputModelValidationToCSV(numInput, _dftModel.AllSchemaXVectorClass0Train, "0", fxClass0ByInvDFTTrain, fxShortcutClass0Train, true, partitionSize + "_DFTValidation_Train", splitType, false);
+            //fp.OutputModelValidationToCSV(numInput, _dftModel.AllSchemaXVectorClass1Train, "1", fxClass1ByInvDFTTrain, fxShortcutClass1Train, false, partitionSize + "_DFTValidation_Train", splitType, true);
+            
+            //fp.OutputModelValidationToCSV(numInput, _dftModel.AllSchemaXVectorClass0Test, "0", fxClass0ByInvDFTTest, fxShortcutClass0Test, true, partitionSize + "_DFTValidation_Test", splitType, false);
+            //fp.OutputModelValidationToCSV(numInput, _dftModel.AllSchemaXVectorClass1Test, "1", fxClass1ByInvDFTTest, fxShortcutClass1Test, false, partitionSize + "_DFTValidation_Test", splitType, true);
 
-            fp.OutputModelValidationToCSV(numInput, _dftModel.AllSchemaXVectorClass0Test, "0", fxClass0ByInvDFTTest, fxShortcutClass0Test, true, partitionSize + "_DFTValidation_Test", splitType, false);
-            fp.OutputModelValidationToCSV(numInput, _dftModel.AllSchemaXVectorClass1Test, "1", fxClass1ByInvDFTTest, fxShortcutClass1Test, false, partitionSize + "_DFTValidation_Test", splitType, true);
-
-            fp.OutputEnergyCoeffsToCSV(_dftModel.EnergyCoeffsTrain, splitType, partitionSize + "_EnergyCoeffs");
+            //fp.OutputEnergyCoeffsToCSV(_dftModel.EnergyCoeffsTrain, splitType, partitionSize + "_EnergyCoeffs");
 
 
 

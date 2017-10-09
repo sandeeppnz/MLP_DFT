@@ -70,7 +70,7 @@ namespace BackPropProgram
         {
             NumRows = 650365;
             NumAttributes = 5;
-            InputDatasetFileName = "15-IntelLabSensorStreamExtended_5Att_650365Instances_added4MoreCycles_two_majority_classes_29_and_31_CBDT.csv";
+            InputDatasetFileName = "15-IntelLabSensorStreamExtended_5Att_650365Instances_CBDT.csv";
         }
 
     }
@@ -103,7 +103,7 @@ namespace BackPropProgram
         {
             NumRows = 495141;
             NumAttributes = 54;
-            InputDatasetFileName = "14-CovertypeExtended_TwoClass_495140_Initial10_ofMost_frequent_classesInstances_54Att_my_CBDT.csv";
+            InputDatasetFileName = "14-CovertypeExtended_TwoClass_495140_CBDT.csv";
         }
     }
 
@@ -146,7 +146,7 @@ namespace BackPropProgram
         {
             NumRows = 660000;
             NumAttributes = 10;
-            InputDatasetFileName = "19-RH_10Att_660000Ins_0.03_0.04_0.05MagChange3Concpets10DftAtt10Sigma_20MoreCycles5Pc_Noise_0.09_0.08_0.07MagChng3NewConcpetsAtEnd_CBDT.csv";
+            InputDatasetFileName = "19-RH_10Att_660000Ins_CBDT.csv";
         }
     }
 

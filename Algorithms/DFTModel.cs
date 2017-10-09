@@ -94,11 +94,13 @@ namespace Algorithms
         public double Shortcut_ClusterPatternMachingTestDataAccuracy { get; set; }
         public double Shortcut_ClusterPatternMachingTestDataTime { get; set; }
         public bool AutoEnergyThresholding { get; set; }
+        public int MaxOrder { get; set; }
+
 
         public DFTModel()
         { }
 
-        public DFTModel(NeuralNetwork nn, float[][] trainData, float[][] testData, bool featureSelection, bool autoEnergyCal,  decimal energyThreshold,  double[] rankArray = null)
+        public DFTModel(NeuralNetwork nn, float[][] trainData, float[][] testData, bool featureSelection, bool autoEnergyCal, decimal energyThreshold, int maxOrder, double[] rankArray = null)
         {
             Console.WriteLine("=====================================================");
             Console.WriteLine("Discrete Fourier Transformation of training dataset...\n");
@@ -113,6 +115,7 @@ namespace Algorithms
 
             AutoEnergyThresholding = autoEnergyCal;
             EnergyThresholdLimit = energyThreshold;
+            MaxOrder = maxOrder;
 
             AllSchemaXVectorClass0Train = new List<string>();
             AllSchemaXVectorClass1Train = new List<string>();
@@ -859,6 +862,7 @@ namespace Algorithms
         /// <returns></returns>
         public Dictionary<string, double> CalculateDftEnergyCoeffs(List<string> clusteredSchemaXVectorsClass1)
         {
+
             Stopwatch sw = new Stopwatch();
             sw.Start();
 
@@ -897,10 +901,10 @@ namespace Algorithms
                 //incrementally calculate and orders
                 double orderZeroEnergy = coeffArray.ElementAt(0).Value;
                 double energy = CalculateDynamicEnergy(coeffArray); //E = (w0^2+ sum(w^2 of 1 order)) / w0^2 
-                decimal ratio = (decimal) (energy / orderZeroEnergy);
+                decimal ratio = (decimal)(energy / orderZeroEnergy);
                 //int startIndex = 
 
-                while (ratio <= EnergyThresholdLimit)
+                while (ratio <= EnergyThresholdLimit && currOrder < MaxOrder)
                 {
                     currOrder++;
                     HashSet<string> newjFullVectors = GenerateTruthTableOptimized(NumAttributes, currOrder);
@@ -922,7 +926,7 @@ namespace Algorithms
                     }
 
                     energy = CalculateDynamicEnergy(coeffArray); //E = (w0^2+ sum(w^2 of 1 order)) / w0^2 
-                    ratio = (decimal) (energy / orderZeroEnergy);
+                    ratio = (decimal)(energy / orderZeroEnergy);
                 }
 
                 EnergyCoefficientOrderNum = currOrder;

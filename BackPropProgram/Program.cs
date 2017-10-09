@@ -36,36 +36,34 @@ namespace BackPropProgram
 
 
             List<IInputSpecification> fileList = new List<IInputSpecification>();
-            //fileList.Add(new OccupancySmall());
-            //fileList.Add(new OccupancyExtented());
+            fileList.Add(new OccupancySmall());
+            fileList.Add(new OccupancyExtented());
 
             fileList.Add(new ElectricitySmall());
-            //fileList.Add(new ElectricityExtended());
+            fileList.Add(new ElectricityExtended());
 
 
-            //fileList.Add(new SensorSmall());
-            //fileList.Add(new SensorExtended());
+            fileList.Add(new SensorSmall());
+            fileList.Add(new SensorExtended());
 
 
             //fileList.Add(new CoverTypeSmall());
             //fileList.Add(new CoverTypeIntemediate());
             //fileList.Add(new CoverTypeExtended());
 
+            fileList.Add(new RBF());
+            fileList.Add(new RH());
 
-
-            //fileList.Add(new FlightExtended());
-            //fileList.Add(new FlightSmall());
-
-            //fileList.Add(new RBF());
-
-            //fileList.Add(new RH());
+            fileList.Add(new FlightSmall());
+            fileList.Add(new FlightExtended());
 
 
             foreach (var file in fileList)
             {
                 decimal currPartitionSize = 0.01M;
-                decimal partitionLimit = 0.01M;
-                int dftEnergyThresholdingLimit = -1;
+                decimal partitionLimit = 0.8M;
+                int presetOrderNum = -1;
+                int maxAutOrderLimit = 4;
                 bool autoCoefficientCalculation = true;
                 decimal energyThresholdLimit = 0.90M;
                 SplitType split = SplitType.LinearSequence;
@@ -138,11 +136,11 @@ namespace BackPropProgram
                         #endregion
 
                         #region Main DFT model creation begins
-                        DFTModel dftModel = new DFTModel(mlpModel.GetNeuralNetwork(), mlpModel.TrainData, mlpModel.TestData, isFSOn,autoCoefficientCalculation, energyThresholdLimit, null); //TODO: Add rank array
+                        DFTModel dftModel = new DFTModel(mlpModel.GetNeuralNetwork(), mlpModel.TrainData, mlpModel.TestData, isFSOn,autoCoefficientCalculation, energyThresholdLimit, maxAutOrderLimit, null); //TODO: Add rank array
                         dftModel.SpliteInstanceSchemasByClassValueTrain();
                         dftModel.SpliteInstanceSchemasByClassValueTest();
                         dftModel.GenerateClusteredSchemaPatterns();
-                        dftModel.GenerateJVectorByEnegryThresholdingLimit(dftEnergyThresholdingLimit); //concept of energy thresholding and order
+                        dftModel.GenerateJVectorByEnegryThresholdingLimit(presetOrderNum); //concept of energy thresholding and order
                         dftModel.CalculateDftEnergyCoeffs(dftModel.ClusteredSchemaXVectorClass1Train);
                         #endregion
 
@@ -177,6 +175,130 @@ namespace BackPropProgram
                 catch (Exception ex)
                 {
                     string msg = file.GetFileName() + ", partition size (one after): " + currPartitionSize + ", split: " + split.ToString() + ", error: " + ex.Message; 
+                    LogMessage(outputDataPath, "Error", msg);
+                    //throw;
+                }
+
+            }
+
+
+            foreach (var file in fileList)
+            {
+                decimal currPartitionSize = 0.01M;
+                decimal partitionLimit = 0.8M;
+                int presetOrderNum = -1;
+                int maxAutOrderLimit = 4;
+                bool autoCoefficientCalculation = true;
+                decimal energyThresholdLimit = 0.90M;
+                SplitType split = SplitType.FixedSizeOptimumSet;
+                List<ResultsStatistics> stats = new List<ResultsStatistics>();
+
+                //Setup File
+                InputSpecification inputSpec = (InputSpecification)file;
+
+                try
+                {
+                    //Use the settings below to limit the iterations
+                    //Use slip type settings
+                    // 1.Set input file and load dataset
+                    FileProcessor fp = new FileProcessor(inputDataPath, outputDataPath, resultsDataPath, rScriptPath, inputSpec);
+                    fp.LoadCSV();
+
+                    RRunner rn = new RRunner();
+
+                    while (currPartitionSize <= partitionLimit)
+                    {
+                        // 2. Create MLP model    
+                        MLPModel mlpModel = new MLPModel(numHidden, numOutput, fp, rn);
+                        if (split == SplitType.LinearSequence)
+                        {
+                            mlpModel.LinearSeqTrainTestSplit(currPartitionSize, seed);
+                            mlpModel.RunHotellingTTest(mlpModel.TrainingFileName, mlpModel.TestingFileName, rScripFileName, rBin, hotellingTestThreshold, currPartitionSize, split);
+                        }
+                        else
+                        {
+                            //Select the optimum the fold (with a curr partition size) that would give the best accuracy
+                            // by using Hotelling T-Test
+                            mlpModel.OptimizeSplit(currPartitionSize, seed, split, rScripFileName, rBin, hotellingTestThreshold);
+                        }
+
+                        #region TODO
+                        //mlpModel.PrintTrain();
+                        //mlpModel.PrintTest();
+                        //mlpModel.GenerateArtificalDataUsingNN(numInput, numHidden, numOutput);
+                        //mlpModel.PrintWeights(2, 10, true);
+
+                        ////TODO: not used
+                        // NOT MIGRATED
+                        //double[] inputNodeTotalWeightsArray = DFT.ShowVectorWInput(NUMINPUT, NUMHIDDEN, NUMOUTPUT, weights, 2);
+
+                        ////TODO: not used
+                        //double[] rankArray = null;
+                        //if (ISFEATURESELECTION)
+                        //{
+                        //    rankArray = DFT.GenerateRankArray(NUMINPUT, inputNodeTotalWeightsArray);
+                        //    weights = DFT.UpdateWeightsArrayByRank(NUMINPUT, NUMHIDDEN, weights, rankArray);
+                        //    inputNodeTotalWeightsArray = DFT.ShowVectorWInput(NUMINPUT, NUMHIDDEN, NUMOUTPUT, weights, 2);
+                        //    neuralNetwork.SetWeights(weights);
+                        //}
+                        #endregion
+
+
+                        mlpModel.TrainByNN(maxEpochs, learnRate, momentum);
+
+                        #region TODO
+                        //mlpModel.PrintWeights(2, 10, true);
+                        ////TODO: not used
+                        //bool[,] inputTable = DFT.GenerateTruthTable(NUMINPUT);
+                        //bool[] answer1 = new bool[inputTable.GetLength(0)];
+
+                        ////TODO: not used
+                        //if (ISFEATURESELECTION)
+                        //{
+                        //    inputTable = DFT.SetIrrelevantVariables(NUMINPUT, inputTable, rankArray);
+                        //}
+                        #endregion
+
+                        #region Main DFT model creation begins
+                        DFTModel dftModel = new DFTModel(mlpModel.GetNeuralNetwork(), mlpModel.TrainData, mlpModel.TestData, isFSOn, autoCoefficientCalculation, energyThresholdLimit, maxAutOrderLimit, null); //TODO: Add rank array
+                        dftModel.SpliteInstanceSchemasByClassValueTrain();
+                        dftModel.SpliteInstanceSchemasByClassValueTest();
+                        dftModel.GenerateClusteredSchemaPatterns();
+                        dftModel.GenerateJVectorByEnegryThresholdingLimit(presetOrderNum); //concept of energy thresholding and order
+                        dftModel.CalculateDftEnergyCoeffs(dftModel.ClusteredSchemaXVectorClass1Train);
+                        #endregion
+
+
+                        #region 
+                        InverseDFTModel inverseDftModel = new InverseDFTModel(mlpModel, dftModel);
+                        inverseDftModel.Validate(split, currPartitionSize);
+                        #endregion
+
+
+                        ResultsStatistics results = CreateStats(currPartitionSize, inputSpec, mlpModel, dftModel);
+                        stats.Add(results);
+
+
+                        //Increase the partition size
+                        currPartitionSize = currPartitionSize < 0.1M ? currPartitionSize += 0.01M : currPartitionSize += 0.1M;
+
+
+                        dftModel.Dispose();
+                        dftModel = null;
+
+                        inverseDftModel.Dispose();
+                        inverseDftModel = null;
+
+                        mlpModel.Dispose();
+                        mlpModel = null;
+
+                    }
+
+                    WriteResultsToCSV(stats, outputDataPath, inputSpec.InputDatasetFileName, split);
+                }
+                catch (Exception ex)
+                {
+                    string msg = file.GetFileName() + ", partition size (one after): " + currPartitionSize + ", split: " + split.ToString() + ", error: " + ex.Message;
                     LogMessage(outputDataPath, "Error", msg);
                     //throw;
                 }
@@ -283,7 +405,7 @@ namespace BackPropProgram
                     File.Delete(fileNameAndPath);
                 }
                 var sw = new StreamWriter(fileNameAndPath, true);
-                string header = "FileName,NumAttribute,TotalSize,PerSplit,TrainingFile,TrainSize,TestFile,TestSize,MLPTrainingAccuracy,MLPTestingAccuracy,MLPTrainingTime,MLPTestingTime,NumTotalInstancesXClass0,NumTotalInstancesXClass1,NumResolvedUniqueSchemaInstancesXClass0,ResolvedUniqueSchemaInstancesXClass0,NumResolvedUniqueSchemaInstancesXClass1,ResolvedUniqueSchemaInstancesXClass1,NumPatternsXClass0,PatternsXClass0,NumPatternsXClass1,PatternsXClass1,NumEnergyCoefficients,EnergyCoefficientGenerationTime,PVal,HotellingTestTime,DFTModelTestDataAccuracy,DFTModelTestDataTime,Shortcut_ClusterPatternMachingTestDataAccuracy,Shortcut_ClusterPatternMachingTestDataTime,DFTModelTrainDataAccuracy,DFTModelTrainDataTime,Shortcut_ClusterPatternMachingTrainDataAccuracy,Shortcut_ClusterPatternMachingTrainDataTime,SelectedOrder";
+                string header = "FileName,NumAttribute,TotalSize,PerSplit,TrainingFile,TrainSize,TestFile,TestSize,MLPTrainingAccuracy,MLPTestingAccuracy,MLPTrainingTime,MLPTestingTime,NumTotalInstancesXClass0,NumTotalInstancesXClass1,NumResolvedUniqueSchemaInstancesXClass0,ResolvedUniqueSchemaInstancesXClass0,NumResolvedUniqueSchemaInstancesXClass1,ResolvedUniqueSchemaInstancesXClass1,NumPatternsXClass0,PatternsXClass0,NumPatternsXClass1,PatternsXClass1,NumEnergyCoefficients,EnergyCoefficientGenerationTime,PVal,HotellingTestTime,DFTModelTestDataAccuracy,DFTModelTestDataTime,Shortcut_ClusterPatternMachingTestDataAccuracy,Shortcut_ClusterPatternMachingTestDataTime,DFTModelTrainDataAccuracy,DFTModelTrainDataTime,Shortcut_ClusterPatternMachingTrainDataAccuracy,Shortcut_ClusterPatternMachingTrainDataTime,AutoEnergyCoeff,SelectedOrder,EnergyThresholdLimit";
                 sw.Write(header);
                 sw.Write("\r\n");
                 string patternSep = "#";
@@ -419,6 +541,14 @@ namespace BackPropProgram
                     sw.Write(",");
                     sw.Write(s.Shortcut_ClusterPatternMachingTrainDataTime);
 
+                    sw.Write(",");
+                    sw.Write(s.AutoEnergyThresholding);
+
+                    sw.Write(",");
+                    sw.Write(s.EnergyCoefficientOrderNum);
+
+                    sw.Write(",");
+                    sw.Write(s.EnergyThresholdLimit);
 
                     sw.Write("\r\n");
 
