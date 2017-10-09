@@ -38,12 +38,12 @@ namespace BackPropProgram
             //fileList.Add(new OccupancySmall());
             //fileList.Add(new OccupancyExtented());
 
-            fileList.Add(new ElectricitySmall());
+            //fileList.Add(new ElectricitySmall());
             //fileList.Add(new ElectricityExtended());
 
 
             //fileList.Add(new SensorSmall());
-            //fileList.Add(new SensorExtended());
+            fileList.Add(new SensorExtended());
 
 
             //fileList.Add(new CoverTypeSmall());
