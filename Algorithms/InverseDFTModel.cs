@@ -131,7 +131,7 @@ namespace Algorithms
         /// <param name="jPatterns"></param>
         /// <param name="coeffArray"></param>
         /// <returns></returns>
-        public double CalculateFxByInveseDftEquation(string xVector, List<string> jPatterns, Dictionary<string, double> coeffArray)
+        public double CalculateFxByInveseDftEquation(string xVector, HashSet<string> jPatterns, Dictionary<string, double> coeffArray)
         {
             double fx = 0;
             foreach (string j in jPatterns)
@@ -154,7 +154,7 @@ namespace Algorithms
         /// <param name="sjVectors"></param>
         /// <param name="coeffsDFT"></param>
         /// <returns></returns>
-        public Dictionary<string, double> ValidateFxByInverseDFT(List<string> allSchemaSxClass0, List<string> sjVectors, Dictionary<string, double> coeffDft, ref long numMisclassfication, int classValue)
+        public Dictionary<string, double> ValidateFxByInverseDFT(List<string> allSchemaSxClass0, HashSet<string> sjVectors, Dictionary<string, double> coeffDft, ref long numMisclassfication, int classValue)
         {
             //Calculate the f(x) by inverse dft equation
             var fxs = new Dictionary<string, double>();

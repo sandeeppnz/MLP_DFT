@@ -43,7 +43,7 @@ namespace BackPropProgram
             //fileList.Add(new ElectricityExtended());
 
 
-            fileList.Add(new SensorSmall());
+            //fileList.Add(new SensorSmall());
             //fileList.Add(new SensorExtended());
 
 
@@ -66,7 +66,8 @@ namespace BackPropProgram
                 decimal currPartitionSize = 0.01M;
                 decimal partitionLimit = 0.01M;
                 int dftEnergyThresholdingLimit = -1;
-
+                bool autoCoefficientCalculation = true;
+                decimal energyThresholdLimit = 0.90M;
                 SplitType split = SplitType.LinearSequence;
                 List<ResultsStatistics> stats = new List<ResultsStatistics>();
 
@@ -137,12 +138,12 @@ namespace BackPropProgram
                         #endregion
 
                         #region Main DFT model creation begins
-                        DFTModel dftModel = new DFTModel(mlpModel.GetNeuralNetwork(), mlpModel.TrainData, mlpModel.TestData, isFSOn, null); //TODO: Add rank array
+                        DFTModel dftModel = new DFTModel(mlpModel.GetNeuralNetwork(), mlpModel.TrainData, mlpModel.TestData, isFSOn,autoCoefficientCalculation, energyThresholdLimit, null); //TODO: Add rank array
                         dftModel.SpliteInstanceSchemasByClassValueTrain();
                         dftModel.SpliteInstanceSchemasByClassValueTest();
                         dftModel.GenerateClusteredSchemaPatterns();
-                        var jVectors = dftModel.GenerateJVectorByEnegryThresholdingLimit(dftEnergyThresholdingLimit); //concept of energy thresholding and order
-                        var energyCoffs = dftModel.CalculateDftEnergyCoeffs(dftModel.ClusteredSchemaXVectorClass1Train);
+                        dftModel.GenerateJVectorByEnegryThresholdingLimit(dftEnergyThresholdingLimit); //concept of energy thresholding and order
+                        dftModel.CalculateDftEnergyCoeffs(dftModel.ClusteredSchemaXVectorClass1Train);
                         #endregion
 
 
@@ -223,12 +224,17 @@ namespace BackPropProgram
             results.PatternsXClass1 = dftModel.ClusteredSchemaXVectorClass1Train;
             results.NumPatternsXClass1 = dftModel.ClusteredSchemaXVectorClass1Train.Count;
 
-            results.EnergyCoefficients = dftModel.EnergyCoeffsTrain;
+            //results.EnergyCoefficients = dftModel.EnergyCoeffsTrain;
             results.NumEnergyCoefficients = dftModel.EnergyCoeffsTrain.Count;
             results.EnergyCoefficientTime = dftModel.CoefficientGenerationTime;
+            results.EnergyCoefficientOrderNum = dftModel.EnergyCoefficientOrderNum;
+            results.AutoEnergyThresholding = dftModel.AutoEnergyThresholding;
+            results.EnergyThresholdLimit = dftModel.EnergyThresholdLimit;
+
+     
 
 
-            results.PVal.Add(currPartitionSize, mlpModel.PValue);
+        results.PVal.Add(currPartitionSize, mlpModel.PValue);
             results.HotellingTestTime = mlpModel.HotellingTestTime;
 
             results.DFTModelTestDataAccuracy = dftModel.DFTModelTestDataAccuracy;

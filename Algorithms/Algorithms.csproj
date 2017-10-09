@@ -51,6 +51,7 @@
     <Compile Include="NeuralNetwork.cs" />
     <Compile Include="ParameterDef\InputFile.cs" />
     <Compile Include="ParameterDef\Occupancy.cs" />
+    <Compile Include="PermutationsAndCombinations.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
     <Compile Include="IRRunner.cs" />
     <Compile Include="ResultsStatistics.cs" />

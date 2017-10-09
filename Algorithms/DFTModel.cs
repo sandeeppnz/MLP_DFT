@@ -54,7 +54,12 @@ namespace Algorithms
         INeuralNetwork _nn;
         public int NumAttributes { get; set; }
         public int NumOutputs { get; set; }
+
+
         public double CoefficientGenerationTime { get; set; }
+        public decimal EnergyThresholdLimit { get; set; }
+        public int EnergyCoefficientOrderNum { get; set; }
+
         public float[][] TrainData;
         public float[][] TestData;
         public int NumTotalInstancesXClass0Train { get; set; }
@@ -70,7 +75,7 @@ namespace Algorithms
         //public List<string> ClusteredSchemaXVectorClass0Test { get; set; }
         //public List<string> ClusteredSchemaXVectorClass1Test { get; set; }
         public Dictionary<string, double> EnergyCoeffsTrain { get; set; }
-        public List<string> JVectorsTrain { get; set; }
+        public HashSet<string> JVectorsTrain { get; set; }
 
         public List<int> RedundantIndexListTrain { get; set; }
         public List<string> RedundantSchemasTrain { get; set; }
@@ -88,11 +93,12 @@ namespace Algorithms
         public double DFTModelTestDataTime { get; set; }
         public double Shortcut_ClusterPatternMachingTestDataAccuracy { get; set; }
         public double Shortcut_ClusterPatternMachingTestDataTime { get; set; }
+        public bool AutoEnergyThresholding { get; set; }
 
         public DFTModel()
         { }
 
-        public DFTModel(NeuralNetwork nn, float[][] trainData, float[][] testData, bool featureSelection, double[] rankArray = null)
+        public DFTModel(NeuralNetwork nn, float[][] trainData, float[][] testData, bool featureSelection, bool autoEnergyCal,  decimal energyThreshold,  double[] rankArray = null)
         {
             Console.WriteLine("=====================================================");
             Console.WriteLine("Discrete Fourier Transformation of training dataset...\n");
@@ -104,6 +110,9 @@ namespace Algorithms
             TestData = testData;
             IsFeatureSelection = featureSelection;
             RankArray = rankArray;
+
+            AutoEnergyThresholding = autoEnergyCal;
+            EnergyThresholdLimit = energyThreshold;
 
             AllSchemaXVectorClass0Train = new List<string>();
             AllSchemaXVectorClass1Train = new List<string>();
@@ -117,7 +126,7 @@ namespace Algorithms
 
 
             EnergyCoeffsTrain = new Dictionary<string, double>();
-            JVectorsTrain = new List<string>();
+            JVectorsTrain = new HashSet<string>();
 
             var redundantSchema = RemoveDuplcateSchemaInstances();
             //var convertedArray = MakeArrayBasedSchema(redundantSchema);
@@ -202,16 +211,24 @@ namespace Algorithms
         //    return table;
         //}
 
-        public List<string> GenerateJVectorByEnegryThresholdingLimit(int order)
+        public HashSet<string> GenerateJVectorByEnegryThresholdingLimit(int order)
         {
-            if (order == -1) //unset order
+            if (AutoEnergyThresholding)
+            {
+                Console.WriteLine("...Auto jVectors");
+                order = 1;
+            }
+
+            if (order == -1 && !AutoEnergyThresholding) //unset order
             {
                 order = NumAttributes;
             }
 
             var jVectorArray = GenerateTruthTableOptimized(NumAttributes, order);
             double actSize = Math.Pow(2.0, (double)NumAttributes);
-            JVectorsTrain = jVectorArray.ToList();
+            JVectorsTrain = jVectorArray;
+            EnergyCoefficientOrderNum = order;
+
             Console.WriteLine("...GenerateJVectorByEnegryThresholdingLimit {0} vectors upto the order {1}, full coeffcient size:{2}", JVectorsTrain.Count, order, actSize);
             return JVectorsTrain;
         }
@@ -262,6 +279,7 @@ namespace Algorithms
 
             return final;
         }
+
 
         private static HashSet<string> OrderIterator(int NumAttributes, HashSet<string> firstOrder, int order)
         {
@@ -854,6 +872,7 @@ namespace Algorithms
 
             long numEnergyZerojVectors = 0;
 
+
             foreach (string j in JVectorsTrain)
             {
                 //Optimisation of Energy Calculation
@@ -868,6 +887,47 @@ namespace Algorithms
                     numEnergyZerojVectors++;
                     coeffArray[j] = 0;
                 }
+
+
+            }
+
+            if (AutoEnergyThresholding)
+            {
+                int currOrder = 1;
+                //incrementally calculate and orders
+                double orderZeroEnergy = coeffArray.ElementAt(0).Value;
+                double energy = CalculateDynamicEnergy(coeffArray); //E = (w0^2+ sum(w^2 of 1 order)) / w0^2 
+                decimal ratio = (decimal) (energy / orderZeroEnergy);
+                //int startIndex = 
+
+                while (ratio <= EnergyThresholdLimit)
+                {
+                    currOrder++;
+                    HashSet<string> newjFullVectors = GenerateTruthTableOptimized(NumAttributes, currOrder);
+
+                    int startSize = JVectorsTrain.Count;
+                    foreach (var i in newjFullVectors)
+                    {
+                        JVectorsTrain.Add(i);
+                    }
+
+                    //int numNewJVetors = (int) PermutationsAndCombinations.nCr(NumAttributes, currOrder);
+
+                    for (int idx = startSize; idx < JVectorsTrain.Count; idx++)
+                    {
+                        string s = JVectorsTrain.ElementAt(idx);
+                        coeff = GetCoefficientValue(s, clusteredSchemaXVectorsClass1);
+                        coeffArray[s] = coeff;
+
+                    }
+
+                    energy = CalculateDynamicEnergy(coeffArray); //E = (w0^2+ sum(w^2 of 1 order)) / w0^2 
+                    ratio = (decimal) (energy / orderZeroEnergy);
+                }
+
+                EnergyCoefficientOrderNum = currOrder;
+
+
             }
             sw.Stop();
             CoefficientGenerationTime = sw.Elapsed.TotalSeconds;
@@ -881,6 +941,17 @@ namespace Algorithms
 
             Console.WriteLine("\nDone...");
             return coeffArray;
+        }
+
+        public double CalculateDynamicEnergy(Dictionary<string, double> energies)
+        {
+            double total = 0;
+            foreach (var e in energies)
+            {
+                total += Math.Pow(e.Value, 2.0);
+            }
+
+            return total;
         }
 
         private void PrintEnergyCoeffs()

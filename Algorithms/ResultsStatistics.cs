@@ -44,7 +44,11 @@ namespace Algorithms
         public int NumPatternsXClass1 { get; set; }
 
         public int NumEnergyCoefficients { get; set; }
-        public Dictionary<string, double> EnergyCoefficients { get; set; }
+        public int EnergyCoefficientOrderNum {get;set;}
+        public bool AutoEnergyThresholding { get; set; }
+        public decimal EnergyThresholdLimit { get; set; }
+
+        //public Dictionary<string, double> EnergyCoefficients { get; set; }
 
         public double EnergyCoefficientTime { get; set; }
 
