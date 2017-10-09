@@ -13,7 +13,6 @@ namespace Algorithms
         IInputSpecification GetInputSpecification();
         string GetInputDataPath();
         string GetOutputDataPath();
-        string GetResultsDataPath();
         //void WriteResultsToCSV(List<ResultsStatistics> list, string path, string fileName);
 
 
@@ -59,7 +58,6 @@ namespace Algorithms
         public IInputSpecification InputSpecification { get; set; }
         public string GetInputDataPath() { return InputDataPath; }
         public string GetOutputDataPath() { return OutputDataPath; }
-        public string GetResultsDataPath() { return ResultsDataPath; }
 
         public string GetRScriptPath() { return RScriptPath; }
         public IInputSpecification GetInputSpecification() { return InputSpecification; }
@@ -67,7 +65,6 @@ namespace Algorithms
         {
             InputDataPath = inputDataPath;
             OutputDataPath = outputDataPath;
-            ResultsDataPath = ResultsDataPath;
             RScriptPath = rScriptPath;
             InputSpecification = inputSpecification;
         }

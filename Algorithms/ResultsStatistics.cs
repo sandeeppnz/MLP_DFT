@@ -52,6 +52,16 @@ namespace Algorithms
 
         public double HotellingTestTime { get; set; }
 
+        public double DFTModelTestDataAccuracy { get; set; }
+        public double DFTModelTestDataTime { get; set; }
+        public double Shortcut_ClusterPatternMachingTestDataAccuracy { get; set; }
+        public double Shortcut_ClusterPatternMachingTestDataTime { get; set; }
+
+        public double DFTModelTrainDataAccuracy { get; set; }
+        public double DFTModelTrainDataTime { get; set; }
+        public double Shortcut_ClusterPatternMachingTrainDataAccuracy { get; set; }
+        public double Shortcut_ClusterPatternMachingTrainDataTime { get; set; }
+
 
         public ResultsStatistics()
         {

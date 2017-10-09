@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Diagnostics;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
@@ -48,7 +49,7 @@ namespace Algorithms
         /// <param name="schemaInstance"></param>
         /// <param name="patternList"></param>
         /// <returns></returns>
-        public double GetFxByWildcardCharacterCheck(string schemaInstance, List<string> patternList, string classLabel)
+        public double GetFxByWildcardCharacterCheck(string schemaInstance, List<string> patternList, int classLabel)
         {
             //Checks for a matching pattern for the schema instance, returns the 
 
@@ -106,13 +107,18 @@ namespace Algorithms
         /// <param name="uniqueSchemaList"></param>
         /// <param name="patternList"></param>
         /// <returns></returns>
-        public Dictionary<string, double> ValidateFxByClusterPatternMatching(List<string> uniqueSchemaList, List<string> patternList, string classLabel)
+        public Dictionary<string, double> ValidateFxByClusterPatternMatching(List<string> uniqueSchemaList, List<string> patternList, ref long misClassficationCount, int classLabel)
         {
             var fxArray = new Dictionary<string, double>();
             foreach (string schemaInstance in uniqueSchemaList)
             {
-                double coeff = GetFxByWildcardCharacterCheck(schemaInstance, patternList, classLabel);
-                fxArray[schemaInstance] = coeff;
+                double fx = GetFxByWildcardCharacterCheck(schemaInstance, patternList, classLabel);
+                if (classLabel != fx)
+                {
+                    misClassficationCount++;
+                }
+
+                fxArray[schemaInstance] = fx;
             }
             return fxArray;
         }
@@ -127,7 +133,7 @@ namespace Algorithms
         /// <returns></returns>
         public double CalculateFxByInveseDftEquation(string xVector, List<string> jPatterns, Dictionary<string, double> coeffArray)
         {
-            double fx = 0.0;
+            double fx = 0;
             foreach (string j in jPatterns)
             {
                 double dotProduct = Helper.CalculateDotProduct(j, xVector);
@@ -148,38 +154,105 @@ namespace Algorithms
         /// <param name="sjVectors"></param>
         /// <param name="coeffsDFT"></param>
         /// <returns></returns>
-        public Dictionary<string, double> ValidateFxByInverseDFT(List<string> allSchemaSxClass0, List<string> sjVectors, Dictionary<string, double> coeffDft)
+        public Dictionary<string, double> ValidateFxByInverseDFT(List<string> allSchemaSxClass0, List<string> sjVectors, Dictionary<string, double> coeffDft, ref long numMisclassfication, int classValue)
         {
             //Calculate the f(x) by inverse dft equation
             var fxs = new Dictionary<string, double>();
             foreach (string x in allSchemaSxClass0)
             {
                 double fx = CalculateFxByInveseDftEquation(x, sjVectors, coeffDft);
+
+                //approximation of class 
+                if (fx < 0.5)
+                {
+                    fx = 0; //even of the instance vector
+                }
+                else
+                {
+                    fx = 1;
+                }
+
+                if (classValue != fx)
+                {
+                    numMisclassfication++;
+                }
+
                 fxs[x] = fx;
             }
             return fxs;
         }
 
+
+
         //public void Validate(List<string> allSchemaXVectorClass0, List<string> allSchemaXVectorClass1, List<string> clusteredSchemaXVectorClass0, List<string> clusteredSchemaXVectorClass1, Dictionary<string,double> energyCoffs, List<string> jVectors, )
         public void Validate(SplitType splitType, decimal partitionSize)
         {
             //Calculate f(x) directly by looking at the pattern
-            var fxShortcutClass0 = ValidateFxByClusterPatternMatching(_dftModel.AllSchemaXVectorClass0, _dftModel.ClusteredSchemaXVectorClass0, "0");
-            var fxShortcutClass1 = ValidateFxByClusterPatternMatching(_dftModel.AllSchemaXVectorClass1, _dftModel.ClusteredSchemaXVectorClass1, "1");
+
+
+            long misClassficationCount = 0;
+
+            Stopwatch sw3 = new Stopwatch();
+            sw3.Start();
+            var fxShortcutClass0Train = ValidateFxByClusterPatternMatching(_dftModel.AllSchemaXVectorClass0Train, _dftModel.ClusteredSchemaXVectorClass0Train, ref misClassficationCount, 0);
+            var fxShortcutClass1Train = ValidateFxByClusterPatternMatching(_dftModel.AllSchemaXVectorClass1Train, _dftModel.ClusteredSchemaXVectorClass1Train, ref misClassficationCount, 1);
+            sw3.Stop();
+            long totalSchemas = fxShortcutClass0Train.Count + fxShortcutClass1Train.Count;
+            double error = (double)misClassficationCount / (double)totalSchemas;
+            error = (double)misClassficationCount / (double)totalSchemas;
+            _dftModel.Shortcut_ClusterPatternMachingTrainDataAccuracy = 1.0 - error;
+            _dftModel.Shortcut_ClusterPatternMachingTrainDataTime = sw3.Elapsed.TotalSeconds;
+
+
+            Stopwatch sw2 = new Stopwatch();
+            sw2.Start();
+            misClassficationCount = 0;
+            var fxShortcutClass0Test = ValidateFxByClusterPatternMatching(_dftModel.AllSchemaXVectorClass0Test, _dftModel.ClusteredSchemaXVectorClass0Train, ref misClassficationCount, 0);
+            var fxShortcutClass1Test = ValidateFxByClusterPatternMatching(_dftModel.AllSchemaXVectorClass1Test, _dftModel.ClusteredSchemaXVectorClass1Train, ref misClassficationCount, 1);
+            sw2.Stop();
+            totalSchemas = fxShortcutClass0Test.Count + fxShortcutClass1Test.Count;
+            error = (double)misClassficationCount / (double)totalSchemas;
+            error = (double)misClassficationCount / (double)totalSchemas;
+            _dftModel.Shortcut_ClusterPatternMachingTestDataAccuracy = 1.0 - error;
+            _dftModel.Shortcut_ClusterPatternMachingTestDataTime = sw2.Elapsed.TotalSeconds;
 
 
             //Calculate f(x) by Inverse DFT 
-            var fxClass0ByInvDFT = ValidateFxByInverseDFT(_dftModel.AllSchemaXVectorClass0, _dftModel.jVectors, _dftModel.EnergyCoeffs);
-            var fxClass1ByInvDFT = ValidateFxByInverseDFT(_dftModel.AllSchemaXVectorClass1, _dftModel.jVectors, _dftModel.EnergyCoeffs);
+            Stopwatch sw4 = new Stopwatch();
+            sw4.Start();
+            misClassficationCount = 0;
+            var fxClass0ByInvDFTTrain = ValidateFxByInverseDFT(_dftModel.AllSchemaXVectorClass0Train, _dftModel.JVectorsTrain, _dftModel.EnergyCoeffsTrain, ref misClassficationCount, 0);
+            var fxClass1ByInvDFTTrain = ValidateFxByInverseDFT(_dftModel.AllSchemaXVectorClass1Train, _dftModel.JVectorsTrain, _dftModel.EnergyCoeffsTrain, ref misClassficationCount, 1);
+            sw4.Stop();
+            totalSchemas = fxClass0ByInvDFTTrain.Count + fxClass1ByInvDFTTrain.Count;
+            error = (double)misClassficationCount / (double)totalSchemas;
+            _dftModel.DFTModelTrainDataAccuracy = 1.0 - error;
+            _dftModel.DFTModelTrainDataTime = sw4.Elapsed.TotalSeconds;
+
+
+
+            Stopwatch sw = new Stopwatch();
+            sw.Start();
+            misClassficationCount = 0;
+            var fxClass0ByInvDFTTest = ValidateFxByInverseDFT(_dftModel.AllSchemaXVectorClass0Test, _dftModel.JVectorsTrain, _dftModel.EnergyCoeffsTrain, ref misClassficationCount, 0);
+            var fxClass1ByInvDFTTest = ValidateFxByInverseDFT(_dftModel.AllSchemaXVectorClass1Test, _dftModel.JVectorsTrain, _dftModel.EnergyCoeffsTrain, ref misClassficationCount, 1);
+            sw.Stop();
+            totalSchemas = fxClass0ByInvDFTTest.Count + fxClass1ByInvDFTTest.Count;
+            error = (double)misClassficationCount / (double)totalSchemas;
+            _dftModel.DFTModelTestDataAccuracy = 1.0 - error;
+            _dftModel.DFTModelTestDataTime = sw.Elapsed.TotalSeconds;
+
 
             FileProcessor fp = _mlpModel.GetFileProcessor();
             int numInput = fp.GetInputSpecification().GetNumAttributes();
 
-            fp.OutputModelValidationToCSV(numInput, _dftModel.AllSchemaXVectorClass0, "0", fxClass0ByInvDFT, fxShortcutClass0, true, partitionSize + "_Validation", splitType, false);
-            fp.OutputModelValidationToCSV(numInput, _dftModel.AllSchemaXVectorClass1, "1", fxClass1ByInvDFT, fxShortcutClass1, false, partitionSize + "_Validation", splitType, true);
+            fp.OutputModelValidationToCSV(numInput, _dftModel.AllSchemaXVectorClass0Train, "0", fxClass0ByInvDFTTrain, fxShortcutClass0Train, true, partitionSize + "_DFTValidation_Train", splitType, false);
+            fp.OutputModelValidationToCSV(numInput, _dftModel.AllSchemaXVectorClass1Train, "1", fxClass1ByInvDFTTrain, fxShortcutClass1Train, false, partitionSize + "_DFTValidation_Train", splitType, true);
 
-            //FileProcessor.WritesXVectorsToCsv(allSchemaSxClass1);
-            fp.OutputEnergyCoeffsToCSV(_dftModel.EnergyCoeffs,splitType, partitionSize + "_EnergyCoeffs");
+            fp.OutputModelValidationToCSV(numInput, _dftModel.AllSchemaXVectorClass0Test, "0", fxClass0ByInvDFTTest, fxShortcutClass0Test, true, partitionSize + "_DFTValidation_Test", splitType, false);
+            fp.OutputModelValidationToCSV(numInput, _dftModel.AllSchemaXVectorClass1Test, "1", fxClass1ByInvDFTTest, fxShortcutClass1Test, false, partitionSize + "_DFTValidation_Test", splitType, true);
+
+            fp.OutputEnergyCoeffsToCSV(_dftModel.EnergyCoeffsTrain, splitType, partitionSize + "_EnergyCoeffs");
 
 
 

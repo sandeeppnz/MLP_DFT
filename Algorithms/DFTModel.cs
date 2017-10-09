@@ -19,21 +19,27 @@ namespace Algorithms
                 {
                     TrainData = null;
                     RankArray = null;
+                    TestData = null;
+
+                    AllSchemaXVectorClass0Train = null;
+                    AllSchemaXVectorClass1Train = null;
+
+                    AllSchemaXVectorClass0Test = null;
+                    AllSchemaXVectorClass1Test = null;
 
 
-                    AllSchemaXVectorClass0 = null;
-                    AllSchemaXVectorClass1 = null;
+                    ClusteredSchemaXVectorClass0Train = null;
+                    ClusteredSchemaXVectorClass1Train = null;
+
+                    //ClusteredSchemaXVectorClass0Test = null;
+                    //ClusteredSchemaXVectorClass1Test = null;
+
+                    EnergyCoeffsTrain = null;
+                    JVectorsTrain = null;
 
 
-                    ClusteredSchemaXVectorClass0 = null;
-                    ClusteredSchemaXVectorClass1 = null;
-
-                    EnergyCoeffs = null;
-                    jVectors = null;
-
-
-                    RedundantIndexList = null;
-                    RedundantSchemas = null;
+                    RedundantIndexListTrain = null;
+                    RedundantSchemasTrain = null;
 
                     _nn.Dispose(true);
                 }
@@ -45,75 +51,48 @@ namespace Algorithms
             Dispose(true);
             //GC.SuppressFinalize(this);
         }
-
-
-
-
         INeuralNetwork _nn;
-
-
         public int NumAttributes { get; set; }
         public int NumOutputs { get; set; }
-
         public double CoefficientGenerationTime { get; set; }
-
-
-        //public double[][] TrainData;
         public float[][] TrainData;
+        public float[][] TestData;
+        public int NumTotalInstancesXClass0Train { get; set; }
+        public int NumTotalInstancesXClass1Train { get; set; }
+        public int NumTotalInstancesXClass0Test { get; set; }
+        public int NumTotalInstancesXClass1Test { get; set; }
+        public List<string> AllSchemaXVectorClass0Train { get; set; }
+        public List<string> AllSchemaXVectorClass1Train { get; set; }
+        public List<string> AllSchemaXVectorClass0Test { get; set; }
+        public List<string> AllSchemaXVectorClass1Test { get; set; }
+        public List<string> ClusteredSchemaXVectorClass0Train { get; set; }
+        public List<string> ClusteredSchemaXVectorClass1Train { get; set; }
+        //public List<string> ClusteredSchemaXVectorClass0Test { get; set; }
+        //public List<string> ClusteredSchemaXVectorClass1Test { get; set; }
+        public Dictionary<string, double> EnergyCoeffsTrain { get; set; }
+        public List<string> JVectorsTrain { get; set; }
+
+        public List<int> RedundantIndexListTrain { get; set; }
+        public List<string> RedundantSchemasTrain { get; set; }
+
         public bool IsFeatureSelection { get; set; }
         public double[] RankArray { get; set; }
 
-
-        public int NumTotalInstancesXClass0 { get; set; }
-        public int NumTotalInstancesXClass1 { get; set; }
-
-
-        public List<string> AllSchemaXVectorClass0 { get; set; }
-        public List<string> AllSchemaXVectorClass1 { get; set; }
+        public double DFTModelTrainDataAccuracy { get; set; }
+        public double DFTModelTrainDataTime { get; set; }
+        public double Shortcut_ClusterPatternMachingTrainDataAccuracy { get; set; }
+        public double Shortcut_ClusterPatternMachingTrainDataTime { get; set; }
 
 
-        public List<string> ClusteredSchemaXVectorClass0 { get; set; }
-        public List<string> ClusteredSchemaXVectorClass1 { get; set; }
-
-        public Dictionary<string, double> EnergyCoeffs { get; set; }
-        public List<string> jVectors { get; set; }
-
-
-        public List<int> RedundantIndexList { get; set; }
-        public List<string> RedundantSchemas { get; set; }
-
+        public double DFTModelTestDataAccuracy { get; set; }
+        public double DFTModelTestDataTime { get; set; }
+        public double Shortcut_ClusterPatternMachingTestDataAccuracy { get; set; }
+        public double Shortcut_ClusterPatternMachingTestDataTime { get; set; }
 
         public DFTModel()
         { }
 
-        //public DFTModel(NeuralNetwork nn, double[][] trainData, bool featureSelection, double[] rankArray = null)
-        //{
-        //    _nn = nn;
-        //    NumAttributes = nn.NumInputNodes;
-        //    NumOutputs = nn.NumOutputNodes;
-        //    TrainData = trainData;
-        //    IsFeatureSelection = featureSelection;
-        //    RankArray = rankArray;
-
-        //    AllSchemaSxClass0 = new List<string>();
-        //    AllSchemaSxClass1 = new List<string>();
-
-        //    ClusteredSchemaSxClass0 = new List<string>();
-        //    ClusteredSchemaSxClass1 = new List<string>();
-
-
-        //    EnergyCoeffs = new Dictionary<string, double>();
-        //    SjVectors = new List<string>();
-
-        //    //var redundantSchema = dftModel.GetUniqueRedudantSchema(numInput, ISFEATURESELECTION, trainData, rankArray); //unique combinations
-        //    //var convertedArray = dftModel.MakeArrayBasedSchema(numInput, redundantSchema);
-        //    var redundantSchema = RemoveDuplicateSchema();
-        //    var convertedArray = MakeArrayBasedSchema(redundantSchema);
-
-        //}
-
-
-        public DFTModel(NeuralNetwork nn, float[][] trainData, bool featureSelection, double[] rankArray = null)
+        public DFTModel(NeuralNetwork nn, float[][] trainData, float[][] testData, bool featureSelection, double[] rankArray = null)
         {
             Console.WriteLine("=====================================================");
             Console.WriteLine("Discrete Fourier Transformation of training dataset...\n");
@@ -122,18 +101,23 @@ namespace Algorithms
             NumAttributes = nn.NumInputNodes;
             NumOutputs = nn.NumOutputNodes;
             TrainData = trainData;
+            TestData = testData;
             IsFeatureSelection = featureSelection;
             RankArray = rankArray;
 
-            AllSchemaXVectorClass0 = new List<string>();
-            AllSchemaXVectorClass1 = new List<string>();
+            AllSchemaXVectorClass0Train = new List<string>();
+            AllSchemaXVectorClass1Train = new List<string>();
 
-            ClusteredSchemaXVectorClass0 = new List<string>();
-            ClusteredSchemaXVectorClass1 = new List<string>();
+            AllSchemaXVectorClass0Test = new List<string>();
+            AllSchemaXVectorClass1Test = new List<string>();
 
 
-            EnergyCoeffs = new Dictionary<string, double>();
-            jVectors = new List<string>();
+            ClusteredSchemaXVectorClass0Train = new List<string>();
+            ClusteredSchemaXVectorClass1Train = new List<string>();
+
+
+            EnergyCoeffsTrain = new Dictionary<string, double>();
+            JVectorsTrain = new List<string>();
 
             var redundantSchema = RemoveDuplcateSchemaInstances();
             //var convertedArray = MakeArrayBasedSchema(redundantSchema);
@@ -141,105 +125,83 @@ namespace Algorithms
         }
 
 
-        /// <summary>
-        /// GetRedudantInstanceSchemas
-        /// </summary>
-        /// <param name="redundantAttributes"></param>
-        /// <returns></returns>
-        public List<string> CalculateEnergyThresholding(int bitStringLength, int order)
-        {
-            //var tblMatrix = GenerateTruthTable(bitStringLength);
-            //var table = DeriveSjVectors(bitStringLength, tblMatrix);
+        //public List<string> CalculateEnergyThresholding(int bitStringLength, int order)
+        //{
+        //    //var tblMatrix = GenerateTruthTable(bitStringLength);
+        //    //var table = DeriveSjVectors(bitStringLength, tblMatrix);
 
-            var table = GenerateSjVectors();
+        //    var table = GenerateSjVectors();
 
-            var list = new List<string>();
+        //    var list = new List<string>();
 
-            if (order == 1)
-            {
-                list.Add(table[0]);
-            }
+        //    if (order == 1)
+        //    {
+        //        list.Add(table[0]);
+        //    }
 
-            foreach (var entry in table)
-            {
-                if (entry.Replace("0", string.Empty).Length == order)
-                {
-                    list.Add(entry);
-                }
-            }
+        //    foreach (var entry in table)
+        //    {
+        //        if (entry.Replace("0", string.Empty).Length == order)
+        //        {
+        //            list.Add(entry);
+        //        }
+        //    }
 
-            return list;
-        }
+        //    return list;
+        //}
 
 
 
 
-        /// <summary>
-        /// 
-        /// </summary>
-        /// <param name="NumAttributes"></param>
-        /// <param name="sjVectorArray"></param>
-        /// <returns></returns>
-        public List<string> GenerateSjVectors()
-        {
-            bool[,] sjVectorArray = GenerateTruthTable(NumAttributes);
+        //public List<string> GenerateSjVectors()
+        //{
+        //    bool[,] sjVectorArray = GenerateTruthTable(NumAttributes);
 
-            int arrayLength = (int)Math.Pow(2, (double)NumAttributes);
-            for (int i = 0; i < arrayLength; i++)
-            {
-                string sjString = string.Empty;
-                for (int j = 0; j < NumAttributes; j++)
-                {
-                    if (sjVectorArray[i, j] == false)
-                        sjString += '0';
-                    else
-                        sjString += '1';
-                }
-                jVectors.Add(sjString);
-            }
+        //    int arrayLength = (int)Math.Pow(2, (double)NumAttributes);
+        //    for (int i = 0; i < arrayLength; i++)
+        //    {
+        //        string sjString = string.Empty;
+        //        for (int j = 0; j < NumAttributes; j++)
+        //        {
+        //            if (sjVectorArray[i, j] == false)
+        //                sjString += '0';
+        //            else
+        //                sjString += '1';
+        //        }
+        //        JVectorsTrain.Add(sjString);
+        //    }
 
-            return jVectors;
-        }
+        //    return JVectorsTrain;
+        //}
 
 
 
-        /// <summary>
-        /// GenerateTruthTable
-        /// </summary>
-        /// <param name="NumAttributes"></param>
-        /// <returns></returns>
-        public bool[,] GenerateTruthTable(int NumAttributes)
-        {
-            long row = (int)Math.Pow(2, NumAttributes);
-            bool[,] table = new bool[row, NumAttributes];
+        //public bool[,] GenerateTruthTable(int NumAttributes)
+        //{
+        //    long row = (int)Math.Pow(2, NumAttributes);
+        //    bool[,] table = new bool[row, NumAttributes];
 
-            long divider = row;
+        //    long divider = row;
 
-            // iterate by column
-            for (int c = 0; c < NumAttributes; c++)
-            {
-                divider /= 2;
-                bool cell = false;
-                // iterate every row by this column's index:
-                for (int r = 0; r < row; r++)
-                {
-                    table[r, c] = cell;
-                    if ((divider == 1) || ((r + 1) % divider == 0))
-                    {
-                        cell = !cell;
-                    }
-                }
-            }
+        //    // iterate by column
+        //    for (int c = 0; c < NumAttributes; c++)
+        //    {
+        //        divider /= 2;
+        //        bool cell = false;
+        //        // iterate every row by this column's index:
+        //        for (int r = 0; r < row; r++)
+        //        {
+        //            table[r, c] = cell;
+        //            if ((divider == 1) || ((r + 1) % divider == 0))
+        //            {
+        //                cell = !cell;
+        //            }
+        //        }
+        //    }
 
-            return table;
-        }
+        //    return table;
+        //}
 
-        /// <summary>
-        /// 
-        /// </summary>
-        /// <param name="NumAttributes"></param>
-        /// <param name="sjVectorArray"></param>
-        /// <returns></returns>
         public List<string> GenerateJVectorByEnegryThresholdingLimit(int order)
         {
             if (order == -1) //unset order
@@ -249,9 +211,9 @@ namespace Algorithms
 
             var jVectorArray = GenerateTruthTableOptimized(NumAttributes, order);
             double actSize = Math.Pow(2.0, (double)NumAttributes);
-            jVectors = jVectorArray.ToList();
-            Console.WriteLine("...GenerateJVectorByEnegryThresholdingLimit {0} vectors upto the order {1}, full coeffcient size:{2}", jVectors.Count, order, actSize);
-            return jVectors;
+            JVectorsTrain = jVectorArray.ToList();
+            Console.WriteLine("...GenerateJVectorByEnegryThresholdingLimit {0} vectors upto the order {1}, full coeffcient size:{2}", JVectorsTrain.Count, order, actSize);
+            return JVectorsTrain;
         }
 
         /// <summary>
@@ -367,7 +329,7 @@ namespace Algorithms
 
             Console.WriteLine("...FindRedundantAttributeFromPatterns from Class 1 clusters, {0} attributes found", redundantIndexList.Count);
 
-            RedundantIndexList = redundantIndexList;
+            RedundantIndexListTrain = redundantIndexList;
             return redundantIndexList;
         }
 
@@ -464,10 +426,10 @@ namespace Algorithms
         /// <param name="RankArray"></param>
         /// <param name="AllSchemaSxClass0"></param>
         /// <param name="AllSchemaSxClass1"></param>
-        public void SpliteInstanceSchemasByClassValue()
+        public void SpliteInstanceSchemasByClassValueTrain()
         {
 
-            Console.WriteLine("...SpliteInstanceSchemasByClassValue");
+            Console.WriteLine("...SpliteInstanceSchemasByClassValueTrain");
 
             // percentage correct using winner-takes all
             double[] xValues = new double[NumAttributes]; // inputs
@@ -477,8 +439,8 @@ namespace Algorithms
             //List<string> dataList = new List<string>();
             int binaryResult = 0;
 
-            AllSchemaXVectorClass0 = new List<string>();
-            AllSchemaXVectorClass1 = new List<string>();
+            AllSchemaXVectorClass0Train = new List<string>();
+            AllSchemaXVectorClass1Train = new List<string>();
 
             var yZeroTemp = new List<string>();
             var yOneTemp = new List<string>();
@@ -517,8 +479,8 @@ namespace Algorithms
                 }
             }
 
-            NumTotalInstancesXClass0 = yZeroTemp.Count;
-            NumTotalInstancesXClass1 = yOneTemp.Count;
+            NumTotalInstancesXClass0Train = yZeroTemp.Count;
+            NumTotalInstancesXClass1Train = yOneTemp.Count;
 
 
 
@@ -546,34 +508,107 @@ namespace Algorithms
 
             for (int i = 0; i < outputZeroDistinct.Count(); i++)
             {
-                AllSchemaXVectorClass0.Add(Convert.ToString(outputZeroDistinct[i], 2).PadLeft(NumAttributes, '0'));
+                AllSchemaXVectorClass0Train.Add(Convert.ToString(outputZeroDistinct[i], 2).PadLeft(NumAttributes, '0'));
             }
 
             for (int i = 0; i < outputOneDistinct.Count(); i++)
             {
-                AllSchemaXVectorClass1.Add(Convert.ToString(outputOneDistinct[i], 2).PadLeft(NumAttributes, '0'));
+                AllSchemaXVectorClass1Train.Add(Convert.ToString(outputOneDistinct[i], 2).PadLeft(NumAttributes, '0'));
             }
 
-            //Console.WriteLine("No of Class 0 XVector instances: {0}", AllSchemaXVectorClass0.Count);
-            //string s1 = string.Empty;
-            //foreach (var x in AllSchemaXVectorClass0)
-            //{
-            //    s1 += x + ",";
-            //}
-            //Console.WriteLine(s1 + "\n");
-
-            //Console.WriteLine("No of Class 1 XVector instances: {0}", AllSchemaXVectorClass1.Count);
-            //s1 = string.Empty;
-            //foreach (var x in AllSchemaXVectorClass1)
-            //{
-            //    s1 += x + ",";
-            //}
-            //Console.WriteLine(s1 + "\n");
-
-
-
-
         }
+
+        public void SpliteInstanceSchemasByClassValueTest()
+        {
+
+            Console.WriteLine("...SpliteInstanceSchemasByClassValueTest");
+
+            // percentage correct using winner-takes all
+            double[] xValues = new double[NumAttributes]; // inputs
+            double[] tValues = new double[NumOutputs]; // targets
+            double[] yValues; // computed Y
+
+            //List<string> dataList = new List<string>();
+            int binaryResult = 0;
+
+            AllSchemaXVectorClass0Test = new List<string>();
+            AllSchemaXVectorClass1Test = new List<string>();
+
+            var yZeroTemp = new List<string>();
+            var yOneTemp = new List<string>();
+
+
+            for (int i = 0; i < TestData.Length; i++)
+            {
+                Array.Copy(TestData[i], xValues, NumAttributes); // get x-values
+                Array.Copy(TestData[i], NumAttributes + 3, tValues, 0, NumOutputs); // get target values from array
+
+                //Set X values to zero if ranking...
+
+                //TODO: xValues comments
+                if (IsFeatureSelection)
+                {
+                    xValues = Helper.SetXValueToZeroByRankCheck(xValues, RankArray, NumAttributes);
+                }
+
+                yValues = _nn.ComputeOutputs(xValues); //deriving the correct classfication from NN model 
+                binaryResult = Helper.MaxIndex(yValues); // which cell in yValues has largest value?
+
+                //string s = binaryResult.ToString();
+                string s = string.Empty;
+                for (int j = 0; j < NumAttributes; j++)
+                {
+                    s += xValues[j].ToString(); //TODO: for continuous variables this would raise errors
+                }
+
+                if (binaryResult == 0)
+                {
+                    yZeroTemp.Add(s);
+                }
+                else
+                {
+                    yOneTemp.Add(s);
+                }
+            }
+
+            NumTotalInstancesXClass0Test = yZeroTemp.Count;
+            NumTotalInstancesXClass1Test = yOneTemp.Count;
+
+
+
+            int k = 0;
+            long[] outputZero = new long[yZeroTemp.Count];
+            foreach (string s in yZeroTemp)
+            {
+                outputZero[k] = Convert.ToInt64(s, 2);
+                k++;
+            }
+            Array.Sort(outputZero);
+            var outputZeroDistinct = outputZero.Distinct().ToArray();
+
+            k = 0;
+            long[] outputOne = new long[yOneTemp.Count];
+            foreach (string s in yOneTemp)
+            {
+                outputOne[k] = Convert.ToInt64(s, 2);
+                k++;
+            }
+
+
+            Array.Sort(outputOne);
+            var outputOneDistinct = outputOne.Distinct().ToArray();
+
+            for (int i = 0; i < outputZeroDistinct.Count(); i++)
+            {
+                AllSchemaXVectorClass0Test.Add(Convert.ToString(outputZeroDistinct[i], 2).PadLeft(NumAttributes, '0'));
+            }
+
+            for (int i = 0; i < outputOneDistinct.Count(); i++)
+            {
+                AllSchemaXVectorClass1Test.Add(Convert.ToString(outputOneDistinct[i], 2).PadLeft(NumAttributes, '0'));
+            }
+        }
+
 
         /// <summary>
         /// Check if the string is a complete wildcard character string e.g. '****'
@@ -742,21 +777,21 @@ namespace Algorithms
         public void GenerateClusteredSchemaPatterns()
         {
             Console.WriteLine("...GenerateClusteredSchemaPatterns for class 0");
-            ClusteredSchemaXVectorClass0 = GetSchemaClustersWithWildcardChars(AllSchemaXVectorClass0, AllSchemaXVectorClass1);
+            ClusteredSchemaXVectorClass0Train = GetSchemaClustersWithWildcardChars(AllSchemaXVectorClass0Train, AllSchemaXVectorClass1Train);
 
             //Console.WriteLine("No of Class 0 XVector patterns: {0}", ClusteredSchemaXVectorClass0.Count);
             //string s1 = string.Empty;
             //s1 = PrintClusterClass2Patterns(s1);
 
             Console.WriteLine("...GenerateClusteredSchemaPatterns for class 1");
-            ClusteredSchemaXVectorClass1 = GetSchemaClustersWithWildcardChars(AllSchemaXVectorClass1, AllSchemaXVectorClass0);
+            ClusteredSchemaXVectorClass1Train = GetSchemaClustersWithWildcardChars(AllSchemaXVectorClass1Train, AllSchemaXVectorClass0Train);
             //s1 = PrintClusterClass1Patterns();
 
         }
 
         private string PrintClusterClass2Patterns(string s1)
         {
-            foreach (var x in ClusteredSchemaXVectorClass0)
+            foreach (var x in ClusteredSchemaXVectorClass0Train)
             {
                 s1 += x + ",";
             }
@@ -767,9 +802,9 @@ namespace Algorithms
         private string PrintClusterClass1Patterns()
         {
             string s1;
-            Console.WriteLine("No of Class 1 XVector patterns: {0}", ClusteredSchemaXVectorClass1.Count);
+            Console.WriteLine("No of Class 1 XVector patterns: {0}", ClusteredSchemaXVectorClass1Train.Count);
             s1 = string.Empty;
-            foreach (var x in ClusteredSchemaXVectorClass1)
+            foreach (var x in ClusteredSchemaXVectorClass1Train)
             {
                 s1 += x + ",";
             }
@@ -819,7 +854,7 @@ namespace Algorithms
 
             long numEnergyZerojVectors = 0;
 
-            foreach (string j in jVectors)
+            foreach (string j in JVectorsTrain)
             {
                 //Optimisation of Energy Calculation
                 checkRedundantCoeffVal = EvaluateIfRedudantInstanceSchemas(redundantAttIndex, j);
@@ -838,8 +873,8 @@ namespace Algorithms
             CoefficientGenerationTime = sw.Elapsed.TotalSeconds;
 
 
-            EnergyCoeffs = coeffArray;
-            Console.WriteLine("\nNo. of Energy Coeffcients: {0}", EnergyCoeffs.Count);
+            EnergyCoeffsTrain = coeffArray;
+            Console.WriteLine("\nNo. of Energy Coeffcients: {0}", EnergyCoeffsTrain.Count);
             Console.WriteLine("Time taken: {0}", CoefficientGenerationTime);
             Console.WriteLine("No. of redundant attributes: {0}", numEnergyZerojVectors);
             //PrintEnergyCoeffs();
@@ -850,7 +885,7 @@ namespace Algorithms
 
         private void PrintEnergyCoeffs()
         {
-            foreach (var item in EnergyCoeffs)
+            foreach (var item in EnergyCoeffsTrain)
             {
                 Console.WriteLine(item.Key + " " + item.Value);
             }
