@@ -70,8 +70,6 @@ namespace Algorithms
                     result = proc.StandardOutput.ReadToEnd();
                 }
 
-                //proc.CloseMainWindow();
-                //proc.Close();
                 return result;
             }
             catch (Exception ex)

@@ -9,6 +9,7 @@ namespace Algorithms
     public enum SplitType
     {
         LinearSequence,
-        FixedSizeOptimumSet
+        FixedSizeOptimumSet,
+        Partition
     }
 }

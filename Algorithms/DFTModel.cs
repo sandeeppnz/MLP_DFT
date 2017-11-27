@@ -75,6 +75,8 @@ namespace Algorithms
         //public List<string> ClusteredSchemaXVectorClass0Test { get; set; }
         //public List<string> ClusteredSchemaXVectorClass1Test { get; set; }
         public Dictionary<string, double> EnergyCoeffsTrain { get; set; }
+
+
         public HashSet<string> JVectorsTrain { get; set; }
 
         public List<int> RedundantIndexListTrain { get; set; }
@@ -228,7 +230,7 @@ namespace Algorithms
             }
 
             var jVectorArray = GenerateTruthTableOptimized(NumAttributes, order);
-            double actSize = Math.Pow(2.0, (double)NumAttributes);
+            double actSize = Math.Pow(2.0, (double) NumAttributes);
             JVectorsTrain = jVectorArray;
             EnergyCoefficientOrderNum = order;
 
@@ -437,6 +439,13 @@ namespace Algorithms
             }
             return array;
         }
+
+
+
+
+
+
+
 
 
 
@@ -901,7 +910,7 @@ namespace Algorithms
                 //incrementally calculate and orders
                 double orderZeroEnergy = coeffArray.ElementAt(0).Value;
                 double energy = CalculateDynamicEnergy(coeffArray); //E = (w0^2+ sum(w^2 of 1 order)) / w0^2 
-                decimal ratio = (decimal)(energy / orderZeroEnergy);
+                decimal ratio = (decimal) (energy / orderZeroEnergy);
                 //int startIndex = 
 
                 while (ratio <= EnergyThresholdLimit && currOrder < MaxOrder)
@@ -926,7 +935,7 @@ namespace Algorithms
                     }
 
                     energy = CalculateDynamicEnergy(coeffArray); //E = (w0^2+ sum(w^2 of 1 order)) / w0^2 
-                    ratio = (decimal)(energy / orderZeroEnergy);
+                    ratio = (decimal) (energy / orderZeroEnergy);
                 }
 
                 EnergyCoefficientOrderNum = currOrder;
@@ -947,12 +956,12 @@ namespace Algorithms
             return coeffArray;
         }
 
-        public double CalculateDynamicEnergy(Dictionary<string, double> energies)
+        public double CalculateDynamicEnergy(Dictionary<string, double> coeffArray)
         {
             double total = 0;
-            foreach (var e in energies)
+            foreach (var coeff in coeffArray)
             {
-                total += Math.Pow(e.Value, 2.0);
+                total += Math.Pow(coeff.Value, 2.0);
             }
 
             return total;
@@ -1315,6 +1324,32 @@ namespace Algorithms
         //    return binaryString;
         //}
 
+
+        public static string ReplaceSchemaInstance(string schemaInstance)
+        {
+            return schemaInstance.Replace("*", "0");
+        }
+
+        public static string AttributeFormatOfGivenSpectra(int numAttributes, string wildcardSetting, List<int> redundantList)
+        {
+            string attFormatForThisSpectra = string.Empty;
+            for (int x = 0; x < numAttributes; x++)
+            {
+                attFormatForThisSpectra += "1";
+            }
+
+            if (redundantList.Count != 0)
+            {
+                foreach (int k in redundantList)
+                {
+                    StringBuilder sb = new StringBuilder(attFormatForThisSpectra);
+                    sb[k] = '0';
+                    attFormatForThisSpectra = sb.ToString();
+                }
+            }
+
+            return attFormatForThisSpectra;
+        }
 
 
     }

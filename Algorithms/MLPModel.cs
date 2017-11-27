@@ -45,18 +45,25 @@ namespace Algorithms
 
         public NeuralNetwork GetNeuralNetwork()
         {
-            return (NeuralNetwork)_nn;
+            return (NeuralNetwork) _nn;
         }
         public FileProcessor GetFileProcessor()
         {
-            return (FileProcessor)_fileProcessor;
+            return (FileProcessor) _fileProcessor;
         }
 
         public float[][] TrainData;
         public string TrainingFileName { get; set; }
+        public string TrainingFileNameRefine { get; set; }
+
 
         public float[][] TestData;
+        public float[][] TestDataFull;
+        public float[][] TestDataRefine;
         public string TestingFileName { get; set; }
+        public string TestingFileNameFull { get; set; }
+        public string TestingFileNameRefine { get; set; }
+
 
         public double TrainAcc { get; set; }
         public double TestAcc { get; set; }
@@ -412,7 +419,7 @@ namespace Algorithms
         }
 
         public void ShowMatrix(float[][] matrix, int numRows,
-    int decimals, bool indices)
+                                int decimals, bool indices)
         {
             int len = matrix.Length.ToString().Length;
             for (int i = 0; i < numRows; ++i)
@@ -505,7 +512,7 @@ namespace Algorithms
             int numAttributes = _fileProcessor.GetInputSpecification().GetNumAttributes();
 
             int totRows = rawData.Length;
-            int numTrainRows = (int)(totRows * partitionSize); // usually 0.80
+            int numTrainRows = (int) (totRows * partitionSize); // usually 0.80
             int numTestRows = totRows - numTrainRows;
 
             Console.WriteLine("\nSplit ratio: Training({0}) and Testing({1})", partitionSize, 1 - partitionSize);
@@ -553,9 +560,34 @@ namespace Algorithms
             Console.WriteLine("Done....\n");
         }
 
+
+        //public void OptimizePartitionSplit(decimal partitionSize, int seed, SplitType split, string rScripFileName, string rBin, double hotellingTestThreshold)
+        //{
+
+        //    int numTakeFolds = (int) (1.0M / partitionSize);
+
+        //    Dictionary<int, double> PValues = new Dictionary<int, double>();
+
+        //    for (int f = 0; f < numTakeFolds; f++)
+        //    {
+        //        Console.WriteLine("******** fold {0} ****", f);
+
+        //        PartitionOptimumSetTrainTestSplit(partitionSize, seed, f);
+        //        double? pval = RunHotellingTTest(TrainingFileName, TestingFileName, rScripFileName, rBin, hotellingTestThreshold, partitionSize, SplitType.FixedSizeOptimumSet);
+
+        //        if (pval.HasValue)
+        //        {
+        //            PValues.Add(f, pval.Value);
+        //        }
+        //    }
+        //}
+
+
+
+
         public void OptimizeSplit(decimal partitionSize, int seed, SplitType split, string rScripFileName, string rBin, double hotellingTestThreshold)
         {
-            int numTakeFolds = (int)(1.0M / partitionSize);
+            int numTakeFolds = (int) (1.0M / partitionSize);
 
             Dictionary<int, double> PValues = new Dictionary<int, double>();
 
@@ -592,6 +624,7 @@ namespace Algorithms
         }
 
 
+
         public void FixedSizeOptimumSetTrainTestSplit(decimal partitionSize, int seed, int takeFold, bool shuffle = false)
         {
             Console.WriteLine("=====================================================");
@@ -605,7 +638,7 @@ namespace Algorithms
             int numAttributes = _fileProcessor.GetInputSpecification().GetNumAttributes();
 
             int totRows = rawData.Length;
-            int numTrainRows = (int)(totRows * partitionSize); // usually 0.80
+            int numTrainRows = (int) (totRows * partitionSize); // usually 0.80
             int numTestRows = totRows - numTrainRows;
 
 
@@ -619,8 +652,8 @@ namespace Algorithms
             TrainData = new float[numTrainRows][];
             TestData = new float[numTestRows][];
 
-            int numFolds = (int)(1.0M / partitionSize);
-            int numRecordsPerFold = totRows / (int)numFolds;
+            int numFolds = (int) (1.0M / partitionSize);
+            int numRecordsPerFold = totRows / (int) numFolds;
             int remainderRecords = totRows % numRecordsPerFold;
 
             int[][] foldLimits = new int[numFolds][];
@@ -696,7 +729,6 @@ namespace Algorithms
             }
 
 
-
             TrainingFileName = _fileProcessor.OutputDatasetToCSV(numAttributes, TrainData, partitionSize + "_Train_" + takeFold, SplitType.FixedSizeOptimumSet);
             TestingFileName = _fileProcessor.OutputDatasetToCSV(numAttributes, TestData, partitionSize + "_Test_" + takeFold, SplitType.FixedSizeOptimumSet);
 
@@ -705,6 +737,642 @@ namespace Algorithms
             Console.WriteLine("Testing file: {0}", TestingFileName);
             Console.WriteLine("Done....\n");
         }
+
+
+
+        //public void SameSizeSplit(decimal partitionSize, int seed, SplitType split, string rScripFileName, string rBin, double hotellingTestThreshold)
+        //{
+        //    int numTakeFolds = (int) (1.0M / partitionSize);
+
+        //    Dictionary<int, double> PValues = new Dictionary<int, double>();
+
+        //    for (int f = 0; f < numTakeFolds; f++)
+        //    {
+        //        Console.WriteLine("******** fold {0} ****", f);
+
+        //        SameSizeTrainTestSplit(partitionSize, seed, f);
+
+        //        double? pval = RunHotellingTTest(TrainingFileName, TestingFileName, rScripFileName, rBin, hotellingTestThreshold, partitionSize, SplitType.FixedSizeOptimumSet);
+
+        //        if (pval.HasValue)
+        //        {
+        //            PValues.Add(f, pval.Value);
+        //        }
+        //    }
+
+        //    //Evaluate the best fold by 
+        //    //TODO: Revise to proper form the file names
+        //    var max = from x in PValues where x.Value == PValues.Max(v => v.Value) select x.Key;
+        //    int max2 = max.ElementAt(0);
+
+        //    int index1 = TrainingFileName.LastIndexOf("_");
+        //    string file1 = (index1 > 0 ? TrainingFileName.Substring(0, index1) : "");
+
+        //    int index2 = TestingFileName.LastIndexOf("_");
+        //    string file2 = (index2 > 0 ? TestingFileName.Substring(0, index2) : "");
+
+        //    file1 = file1 + "_" + max2 + ".csv";
+        //    file2 = file2 + "_" + max2 + ".csv";
+
+        //    TrainingFileName = file1;
+        //    TestingFileName = file2;
+        //    PValue = PValues[max2];
+        //}
+
+        //public void SameSizeTrainTestSplit(decimal partitionSize, int seed, int takeFold, bool shuffle = false)
+        //{
+        //    Random rnd = new Random(seed);
+
+        //    // Partition = partition;
+        //    float[][] rawData = _fileProcessor.GetRawDataset();
+        //    int numAttributes = _fileProcessor.GetInputSpecification().GetNumAttributes();
+
+        //    //
+        //    int totRows = rawData.Length;
+        //    int numTrainRows = (int) (totRows * partitionSize);
+
+        //    // It needs to match with the sample size of the test set
+
+
+        //    // usually 0.80
+        //    int numTestRows = totRows - numTrainRows; // this is calculated as numTestRows
+        //    int numOfTestPartitions = ((numTestRows + numTrainRows) / numTrainRows) - 1;
+        //    int testSampleProportionSize = numTrainRows / numOfTestPartitions;
+        //    numTestRows = testSampleProportionSize * numOfTestPartitions;
+        //    //numTestRows = numTrainRows;
+
+
+        //    Console.WriteLine("\nSplit ratio: Training({0}) and Testing({1})", partitionSize, 1 - partitionSize);
+        //    Console.WriteLine("Training instances: {0}", numTrainRows);
+        //    Console.WriteLine("Testing instances: {0}", numTestRows);
+        //    Console.WriteLine("Total instances: {0}", totRows);
+
+        //    TrainData = new float[numTrainRows][];
+        //    TestData = new float[numTestRows][];
+
+        //    int numFolds = (int) (1.0M / partitionSize);
+        //    int numRecordsPerFold = totRows / (int) numFolds;
+        //    int remainderRecords = totRows % numRecordsPerFold;
+
+        //    int[][] foldLimits = new int[numFolds][];
+        //    for (int i = 0; i < foldLimits.Length; i++)
+        //    {
+        //        foldLimits[i] = new int[2];
+        //    }
+
+        //    int recCounter = 0;
+        //    for (int i = 0; i < numFolds; i++)
+        //    {
+        //        foldLimits[i][0] = recCounter;
+        //        recCounter += numRecordsPerFold - 1;
+        //        foldLimits[i][1] = recCounter;
+        //        recCounter++;
+        //    }
+
+
+        //    //Increase last folds upper limit with remainder records
+        //    foldLimits[numFolds - 1][1] = foldLimits[numFolds - 1][1] + remainderRecords;
+
+        //    float[][] copy = new float[rawData.Length][]; // ref copy of data
+        //    for (int i = 0; i < copy.Length; ++i)
+        //    {
+        //        copy[i] = rawData[i];
+        //    }
+
+        //    if (shuffle)
+        //    {
+        //        for (int i = 0; i < copy.Length; ++i) // scramble order
+        //        {
+        //            int r = rnd.Next(i, copy.Length); // use Fisher-Yates
+        //            float[] tmp = copy[r];
+        //            copy[r] = copy[i];
+        //            copy[i] = tmp;
+        //        }
+        //    }
+
+        //    int rowTrain = 0;
+        //    int rowTest = 0;
+        //    for (int i = 0; i < numFolds; ++i)
+        //    {
+        //        int lower = foldLimits[i][0];
+        //        int upper = foldLimits[i][1];
+
+        //        if (i == takeFold)
+        //        {
+        //            for (int k = lower; k <= upper; k++)
+        //            {
+        //                if (TrainData.Length > rowTrain)
+        //                {
+        //                    TrainData[rowTrain] = copy[k];
+        //                    rowTrain++;
+        //                }
+        //                else
+        //                {
+        //                    //Copy excess
+        //                    TestData[rowTest] = copy[k];
+        //                    rowTest++;
+        //                }
+        //            }
+        //        }
+        //        else
+        //        {
+        //                int testCount = 0;
+        //                for (int k = lower; k <= upper; k++)
+        //                {
+        //                    if (testCount < testSampleProportionSize)
+        //                    {
+        //                        TestData[rowTest] = copy[k];
+        //                        rowTest++;
+
+        //                        testCount++;
+
+        //                    }
+        //                    else
+        //                    {
+        //                        break;
+        //                    }
+        //                }
+
+        //        }
+        //    }
+
+
+
+        //    TrainingFileName = _fileProcessor.OutputDatasetToCSV(numAttributes, TrainData, partitionSize + "_Train_" + takeFold, SplitType.Partition);
+        //    TestingFileName = _fileProcessor.OutputDatasetToCSV(numAttributes, TestData, partitionSize + "_Test_" + takeFold, SplitType.Partition);
+
+        //    Console.WriteLine("\nGenerating files...");
+        //    Console.WriteLine("Training file: {0}", TrainingFileName);
+        //    Console.WriteLine("Testing file: {0}", TestingFileName);
+        //    Console.WriteLine("Done....\n");
+        //}
+
+
+        public float[][] ExtractDataset(float[][] rawData, int numAttributes, decimal partitionSize, int seed, int takeFold, bool shuffle = false)
+        {
+            Random rnd = new Random(seed);
+            int totRows = rawData.Length;
+            int numTrainRows = (int) (totRows * partitionSize);
+
+            int numTestRows = totRows - numTrainRows; // this is calculated as numTestRows
+
+            TestDataFull = new float[numTestRows][];
+
+
+            int numOfTestPartitions = ((numTestRows + numTrainRows) / numTrainRows) - 1;
+            int testSampleProportionSize = numTrainRows / numOfTestPartitions;
+            numTestRows = testSampleProportionSize * numOfTestPartitions;
+
+            Console.WriteLine("\nSplit ratio: Training({0}) and Testing({1})", partitionSize, 1 - partitionSize);
+            Console.WriteLine("Training instances: {0}", numTrainRows);
+            Console.WriteLine("Testing instances: {0}", numTestRows);
+            Console.WriteLine("Total instances: {0}", totRows);
+
+            TrainData = new float[numTrainRows][];
+            TestData = new float[numTestRows][];
+
+            int numFolds = (int) (1.0M / partitionSize);
+            int numRecordsPerFold = totRows / (int) numFolds;
+            int remainderRecords = totRows % numRecordsPerFold;
+
+            int[][] foldLimits = new int[numFolds][];
+            for (int i = 0; i < foldLimits.Length; i++)
+            {
+                foldLimits[i] = new int[2];
+            }
+
+            int recCounter = 0;
+            for (int i = 0; i < numFolds; i++)
+            {
+                foldLimits[i][0] = recCounter;
+                recCounter += numRecordsPerFold - 1;
+                foldLimits[i][1] = recCounter;
+                recCounter++;
+            }
+
+
+            //Increase last folds upper limit with remainder records
+            foldLimits[numFolds - 1][1] = foldLimits[numFolds - 1][1] + remainderRecords;
+
+            float[][] copy = new float[rawData.Length][]; // ref copy of data
+            for (int i = 0; i < copy.Length; ++i)
+            {
+                copy[i] = rawData[i];
+            }
+
+            if (shuffle)
+            {
+                for (int i = 0; i < copy.Length; ++i) // scramble order
+                {
+                    int r = rnd.Next(i, copy.Length); // use Fisher-Yates
+                    float[] tmp = copy[r];
+                    copy[r] = copy[i];
+                    copy[i] = tmp;
+                }
+            }
+
+            int rowTrain = 0;
+            int rowTest = 0;
+            int rowTestFull = 0;
+
+            for (int i = 0; i < numFolds; ++i)
+            {
+                int lower = foldLimits[i][0];
+                int upper = foldLimits[i][1];
+
+                if (i == takeFold)
+                {
+                    for (int k = lower; k <= upper; k++)
+                    {
+                        if (TrainData.Length > rowTrain)
+                        {
+                            TrainData[rowTrain] = copy[k];
+                            rowTrain++;
+                        }
+                        else
+                        {
+                            //Copy excess
+                            TestData[rowTest] = copy[k];
+                            TestDataFull[rowTest] = copy[k];
+                            rowTest++;
+                            rowTestFull++;
+
+                        }
+                    }
+                }
+                else
+                {
+                    int testCount = 0;
+                    for (int k = lower; k <= upper; k++)
+                    {
+
+                        TestDataFull[rowTestFull] = copy[k];
+                        rowTestFull++;
+
+
+                        if (testCount < testSampleProportionSize)
+                        {
+                            TestData[rowTest] = copy[k];
+                        
+                            rowTest++;
+
+                            testCount++;
+
+                        }
+                        else
+                        {
+                            //break;
+                        }
+                    }
+
+                }
+            }
+
+
+
+            TrainingFileName = _fileProcessor.OutputDatasetToCSV(numAttributes, TrainData, partitionSize + "_Train", SplitType.Partition);
+            TestingFileName = _fileProcessor.OutputDatasetToCSV(numAttributes, TestData, partitionSize + "_Test", SplitType.Partition);
+            TestingFileNameFull = _fileProcessor.OutputDatasetToCSV(numAttributes, TestDataFull, partitionSize + "_TestFull", SplitType.Partition);
+
+
+
+            Console.WriteLine("\nGenerating files...");
+            Console.WriteLine("Training file: {0}", TrainingFileName);
+            Console.WriteLine("Testing file: {0}", TestingFileName);
+            Console.WriteLine("Done....\n");
+
+            return TrainData;
+        }
+
+        public void ProcessTrainingDataset(decimal partitionSize, int seed, SplitType split, string rScripFileName, string rBin, double hotellingTestThreshold)
+        {
+            //starting
+            int numTakeFolds = 10;
+            decimal trainingPartitionSize = 0.1M;
+
+            float[][] rawData = _fileProcessor.GetRawDataset();
+            int numAttributes = _fileProcessor.GetInputSpecification().GetNumAttributes();
+
+            //formulate the P1 vs P' striated P2, P3, ... , P10
+            for (int partition = 0; partition < numTakeFolds; partition++)
+            {
+                Console.WriteLine("******** partition {0} ****", partition);
+
+                float[][] trainSet = ExtractDataset(rawData, numAttributes, partitionSize, seed, partition, true);
+
+                double? pval = RunHotellingTTest(TrainingFileName, TestingFileName, rScripFileName, rBin, hotellingTestThreshold, partitionSize, SplitType.Partition);
+
+                if (pval.HasValue)
+                {
+                    PValue = pval.Value;
+
+                    if (pval.Value >= 0.05)
+                    {
+                        //homogenous
+                        //PValues.Add(partition, pval.Value);
+                        Console.WriteLine("Homogenous... {0}", pval.Value);
+
+                        //Refining
+                        for (int k = 0; k < numTakeFolds; k++)
+                        {
+                            PartitionDepthRefineDetail(trainSet, TestData, numAttributes, partitionSize, seed, k, true);
+                            double? pval2 = RunHotellingTTest(TrainingFileName, TestingFileNameRefine, rScripFileName, rBin, hotellingTestThreshold, partitionSize, SplitType.Partition);
+                            if (pval2.HasValue)
+                            {
+                                PValue = pval2.Value;
+                                if (pval2.Value >= 0.05)
+                                {
+                                    break;
+                                }
+                                else
+                                {
+                                    continue;
+                                }
+                            }
+
+                        }
+
+                        //if (partition == 0.1)
+                        //{
+
+                        //}
+                        break;
+                    }
+                    else
+                    {
+                        //heterogeneous
+                        continue;
+                    }
+                }
+            }
+        }
+
+
+
+        public void PartitionDepthRefineDetail(float[][] dataset, float[][] originalTestset, int numAttributes, decimal partitionSize, int seed, int takeFold, bool shuffle = false)
+        {
+            Random rnd = new Random(seed);
+
+            //int numAttributes = _fileProcessor.GetInputSpecification().GetNumAttributes();
+
+            int totRows = dataset.Length;
+            int numTrainRows = (int) (totRows * partitionSize);
+
+            int numTestRows = totRows - numTrainRows; // this is calculated as numTestRows
+            int numOfTestPartitions = ((numTestRows + numTrainRows) / numTrainRows) - 1;
+            int testSampleProportionSize = numTrainRows / numOfTestPartitions;
+            numTestRows = testSampleProportionSize * numOfTestPartitions;
+            //numTestRows = numTrainRows;
+
+
+            Console.WriteLine("\nSplit ratio: Training({0}) and Testing({1})", partitionSize, 1 - partitionSize);
+            Console.WriteLine("Training instances: {0}", numTrainRows);
+            Console.WriteLine("Testing instances: {0}", numTestRows);
+            Console.WriteLine("Total instances: {0}", totRows);
+
+            TrainData = new float[numTrainRows][];
+            TestDataRefine = new float[numTestRows][];
+
+            int numFolds = (int) (1.0M / partitionSize);
+            int numRecordsPerFold = totRows / (int) numFolds;
+            int remainderRecords = totRows % numRecordsPerFold;
+
+            int[][] foldLimits = new int[numFolds][];
+            for (int i = 0; i < foldLimits.Length; i++)
+            {
+                foldLimits[i] = new int[2];
+            }
+
+            int recCounter = 0;
+            for (int i = 0; i < numFolds; i++)
+            {
+                foldLimits[i][0] = recCounter;
+                recCounter += numRecordsPerFold - 1;
+                foldLimits[i][1] = recCounter;
+                recCounter++;
+            }
+
+
+            //Increase last folds upper limit with remainder records
+            foldLimits[numFolds - 1][1] = foldLimits[numFolds - 1][1] + remainderRecords;
+
+            float[][] copy = new float[dataset.Length][]; // ref copy of data
+            for (int i = 0; i < copy.Length; ++i)
+            {
+                copy[i] = dataset[i];
+            }
+
+            if (shuffle)
+            {
+                for (int i = 0; i < copy.Length; ++i) // scramble order
+                {
+                    int r = rnd.Next(i, copy.Length); // use Fisher-Yates
+                    float[] tmp = copy[r];
+                    copy[r] = copy[i];
+                    copy[i] = tmp;
+                }
+            }
+
+            int rowTrain = 0;
+            int rowTest = 0;
+            for (int i = 0; i < numFolds; ++i)
+            {
+                int lower = foldLimits[i][0];
+                int upper = foldLimits[i][1];
+
+                if (i == takeFold)
+                {
+                    for (int k = lower; k <= upper; k++)
+                    {
+                        if (TrainData.Length > rowTrain)
+                        {
+                            TrainData[rowTrain] = copy[k];
+                            rowTrain++;
+                        }
+                        else
+                        {
+                            //Copy excess
+                            TestDataRefine[rowTest] = copy[k];
+                            rowTest++;
+                        }
+                    }
+                }
+                else
+                {
+                    int testCount = 0;
+                    for (int k = lower; k <= upper; k++)
+                    {
+                        if (testCount < testSampleProportionSize)
+                        {
+                            TestDataRefine[rowTest] = copy[k];
+                            rowTest++;
+
+                            testCount++;
+
+                        }
+                        else
+                        {
+                            break;
+                        }
+                    }
+
+                }
+            }
+
+
+            int orgTestLen = originalTestset.Length;
+            int testLen = TestDataFull.Length;
+            int totLen = orgTestLen + testLen;
+
+
+            float[][] tmpTestset = new float[totLen][];
+
+
+
+
+            //TrainingFileName = _fileProcessor.OutputDatasetToCSV(numAttributes, TrainData, partitionSize + "_Train", SplitType.Partition);
+            //TestingFileName = _fileProcessor.OutputDatasetToCSV(numAttributes, TestData, partitionSize + "_Test", SplitType.Partition);
+
+            TrainingFileNameRefine = _fileProcessor.OutputDatasetToCSV(numAttributes, TrainData, partitionSize + "_Train", SplitType.Partition);
+            TestingFileNameRefine = _fileProcessor.OutputDatasetToCSV(numAttributes, TestDataRefine, partitionSize + "_Test", SplitType.Partition);
+
+
+
+
+            Console.WriteLine("\nGenerating files...");
+            Console.WriteLine("Training file: {0}", TrainingFileNameRefine);
+            Console.WriteLine("Testing file: {0}", TestingFileNameRefine);
+            Console.WriteLine("Done....\n");
+
+
+        }
+
+
+        public void SameSizeTrainTestSplit2(decimal partitionSize, int seed, int takeFold, bool shuffle = false)
+        {
+            Random rnd = new Random(seed);
+
+            float[][] rawData = _fileProcessor.GetRawDataset();
+            int numAttributes = _fileProcessor.GetInputSpecification().GetNumAttributes();
+
+            //
+            int totRows = rawData.Length;
+            int numTrainRows = (int) (totRows * partitionSize);
+
+            // It needs to match with the sample size of the test set
+
+
+            // usually 0.80
+            int numTestRows = totRows - numTrainRows; // this is calculated as numTestRows
+            int numOfTestPartitions = ((numTestRows + numTrainRows) / numTrainRows) - 1;
+            int testSampleProportionSize = numTrainRows / numOfTestPartitions;
+            numTestRows = testSampleProportionSize * numOfTestPartitions;
+
+            Console.WriteLine("\nSplit ratio: Training({0}) and Testing({1})", partitionSize, 1 - partitionSize);
+            Console.WriteLine("Training instances: {0}", numTrainRows);
+            Console.WriteLine("Testing instances: {0}", numTestRows);
+            Console.WriteLine("Total instances: {0}", totRows);
+
+            TrainData = new float[numTrainRows][];
+            TestData = new float[numTestRows][];
+
+            int numFolds = (int) (1.0M / partitionSize);
+            int numRecordsPerFold = totRows / (int) numFolds;
+            int remainderRecords = totRows % numRecordsPerFold;
+
+            int[][] foldLimits = new int[numFolds][];
+            for (int i = 0; i < foldLimits.Length; i++)
+            {
+                foldLimits[i] = new int[2];
+            }
+
+            int recCounter = 0;
+            for (int i = 0; i < numFolds; i++)
+            {
+                foldLimits[i][0] = recCounter;
+                recCounter += numRecordsPerFold - 1;
+                foldLimits[i][1] = recCounter;
+                recCounter++;
+            }
+
+
+            //Increase last folds upper limit with remainder records
+            foldLimits[numFolds - 1][1] = foldLimits[numFolds - 1][1] + remainderRecords;
+
+            float[][] copy = new float[rawData.Length][]; // ref copy of data
+            for (int i = 0; i < copy.Length; ++i)
+            {
+                copy[i] = rawData[i];
+            }
+
+            if (shuffle)
+            {
+                for (int i = 0; i < copy.Length; ++i) // scramble order
+                {
+                    int r = rnd.Next(i, copy.Length); // use Fisher-Yates
+                    float[] tmp = copy[r];
+                    copy[r] = copy[i];
+                    copy[i] = tmp;
+                }
+            }
+
+            int rowTrain = 0;
+            int rowTest = 0;
+            for (int i = 0; i < numFolds; ++i)
+            {
+                int lower = foldLimits[i][0];
+                int upper = foldLimits[i][1];
+
+                if (i == takeFold)
+                {
+                    for (int k = lower; k <= upper; k++)
+                    {
+                        if (TrainData.Length > rowTrain)
+                        {
+                            TrainData[rowTrain] = copy[k];
+                            rowTrain++;
+                        }
+                        else
+                        {
+                            //Copy excess
+                            TestData[rowTest] = copy[k];
+                            rowTest++;
+                        }
+                    }
+                }
+                else
+                {
+                    int testCount = 0;
+                    for (int k = lower; k <= upper; k++)
+                    {
+                        if (testCount < testSampleProportionSize)
+                        {
+                            TestData[rowTest] = copy[k];
+                            rowTest++;
+
+                            testCount++;
+
+                        }
+                        else
+                        {
+                            break;
+                        }
+                    }
+
+                }
+            }
+
+
+
+            TrainingFileName = _fileProcessor.OutputDatasetToCSV(numAttributes, TrainData, partitionSize + "_Train", SplitType.Partition);
+            TestingFileName = _fileProcessor.OutputDatasetToCSV(numAttributes, TestData, partitionSize + "_Test", SplitType.Partition);
+
+            Console.WriteLine("\nGenerating files...");
+            Console.WriteLine("Training file: {0}", TrainingFileName);
+            Console.WriteLine("Testing file: {0}", TestingFileName);
+            Console.WriteLine("Done....\n");
+        }
+
 
 
 

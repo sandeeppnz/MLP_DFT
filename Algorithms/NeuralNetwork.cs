@@ -231,7 +231,7 @@ namespace Algorithms
                 hSums[i] += this.hBiases[i];
 
             for (int i = 0; i < NumHiddenNodes; ++i)   // apply activation
-                this.hOutputs[i] = HyperTan(hSums[i]); // hard-coded
+                this.hOutputs[i] = HyperTan(hSums[i]); // 
 
             for (int j = 0; j < NumOutputNodes; ++j)   // compute h-o sum of weights * hOutputs
                 for (int i = 0; i < NumHiddenNodes; ++i)
@@ -240,7 +240,11 @@ namespace Algorithms
             for (int i = 0; i < NumOutputNodes; ++i)  // add biases to output sums
                 oSums[i] += oBiases[i];
 
-            double[] softOut = Softmax(oSums); // all outputs at once for efficiency
+            double[] softOut = Softmax(oSums); 
+            
+            
+            // all outputs at once for efficiency
+            
             Array.Copy(softOut, outputs, softOut.Length);
 
             double[] retResult = new double[NumOutputNodes]; // could define a GetOutputs 
@@ -480,7 +484,7 @@ namespace Algorithms
 
 
             double derivative = 0.0;
-            double errorSignal = 0.0;
+            double error = 0.0;
 
             int[] sequence = new int[trainData.Length];
             for (int i = 0; i < sequence.Length; ++i)
@@ -553,12 +557,10 @@ namespace Algorithms
                     // 1. compute output node signals (assumes softmax)
                     for (int k = 0; k < NumOutputNodes; ++k)
                     {
-                        //errorSignal = tValues[k] - outputs[k];  // Wikipedia uses (o-t)
-                        errorSignal = tValuesFile[k] - outputs[k];  // Wikipedia uses (o-t)
-
+                        error = tValuesFile[k] - outputs[k];  // Wikipedia uses (o-t)
                         derivative = (1 - outputs[k]) * outputs[k]; // for softmax
-                        oSignals[k] = errorSignal * derivative;
-                    }
+                        oSignals[k] = error * derivative;
+                    }   
 
                     // 2. compute hidden-to-output weight gradients using output signals
                     for (int j = 0; j < NumHiddenNodes; ++j)
@@ -570,6 +572,7 @@ namespace Algorithms
                         obGrads[k] = oSignals[k] * 1.0; // dummy assoc. input value
 
                     // 3. compute hidden node signals
+
                     for (int j = 0; j < NumHiddenNodes; ++j)
                     {
                         derivative = (1 + hOutputs[j]) * (1 - hOutputs[j]); // for tanh
@@ -589,6 +592,8 @@ namespace Algorithms
                     // 4b. compute hidden node bias gradients
                     for (int j = 0; j < NumHiddenNodes; ++j)
                         hbGrads[j] = hSignals[j] * 1.0; // dummy 1.0 input
+
+
 
                     // == update weights and biases
 
@@ -762,6 +767,7 @@ namespace Algorithms
                 else
                     ++numWrong;
             }
+
             return (numCorrect * 1.0) / (numCorrect + numWrong);
         }
 
