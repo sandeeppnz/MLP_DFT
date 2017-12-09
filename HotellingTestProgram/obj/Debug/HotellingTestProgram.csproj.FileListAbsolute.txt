@@ -1,9 +1,9 @@
 D:\ANN_Project_AUT_Sem3\Microsoft\BackPropProgram\HotellingTestProgram\bin\Debug\HotellingTestProgram.exe.config
 D:\ANN_Project_AUT_Sem3\Microsoft\BackPropProgram\HotellingTestProgram\bin\Debug\HotellingTestProgram.exe
 D:\ANN_Project_AUT_Sem3\Microsoft\BackPropProgram\HotellingTestProgram\bin\Debug\HotellingTestProgram.pdb
-D:\ANN_Project_AUT_Sem3\Microsoft\BackPropProgram\HotellingTestProgram\obj\Debug\HotellingTestProgram.csprojResolveAssemblyReference.cache
-D:\ANN_Project_AUT_Sem3\Microsoft\BackPropProgram\HotellingTestProgram\obj\Debug\HotellingTestProgram.exe
-D:\ANN_Project_AUT_Sem3\Microsoft\BackPropProgram\HotellingTestProgram\obj\Debug\HotellingTestProgram.pdb
 D:\ANN_Project_AUT_Sem3\Microsoft\BackPropProgram\HotellingTestProgram\bin\Debug\Algorithms.dll
 D:\ANN_Project_AUT_Sem3\Microsoft\BackPropProgram\HotellingTestProgram\bin\Debug\Algorithms.pdb
+D:\ANN_Project_AUT_Sem3\Microsoft\BackPropProgram\HotellingTestProgram\obj\Debug\HotellingTestProgram.csprojResolveAssemblyReference.cache
 D:\ANN_Project_AUT_Sem3\Microsoft\BackPropProgram\HotellingTestProgram\obj\Debug\HotellingTestProgram.csproj.CoreCompileInputs.cache
+D:\ANN_Project_AUT_Sem3\Microsoft\BackPropProgram\HotellingTestProgram\obj\Debug\HotellingTestProgram.exe
+D:\ANN_Project_AUT_Sem3\Microsoft\BackPropProgram\HotellingTestProgram\obj\Debug\HotellingTestProgram.pdb

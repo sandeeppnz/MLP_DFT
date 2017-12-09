@@ -61,13 +61,13 @@ namespace BackPropProgram
 
             foreach (var file in fileList)
             {
-                decimal currPartitionSize = 0.1M;
+                decimal currPartitionSize = 0.01M;
                 decimal partitionLimit = 0.1M;
                 int presetOrderNum = -1;
                 int maxAutOrderLimit = 4;
                 bool autoCoefficientCalculation = true;
                 decimal energyThresholdLimit = 0.90M;
-                SplitType split = SplitType.Partition;
+                SplitType split = SplitType.LinearSequence;
                 List<ResultsStatistics> stats = new List<ResultsStatistics>();
 
                 //Setup File
@@ -89,7 +89,7 @@ namespace BackPropProgram
                         MLPModel mlpModel = new MLPModel(numHidden, numOutput, fp, rn);
                         if (split == SplitType.LinearSequence)
                         {
-                            mlpModel.LinearSeqTrainTestSplit(currPartitionSize, seed);
+                            mlpModel.LinearSeqTrainTestSplit(currPartitionSize, seed, false);
                             //mlpModel.RunHotellingTTest(mlpModel.TrainingFileName, mlpModel.TestingFileName, rScripFileName, rBin, hotellingTestThreshold, currPartitionSize, split);
                         }
                         else if (split == SplitType.FixedSizeOptimumSet)
@@ -126,8 +126,6 @@ namespace BackPropProgram
                         //}
                         #endregion
 
-
-
                         mlpModel.TrainByNN(maxEpochs, learnRate, momentum);
                         //Find redundant attributes
 
@@ -156,14 +154,25 @@ namespace BackPropProgram
                         #endregion
 
 
+                        //DFTModelExt dftModel = new DFTModelExt(
+                        //    mlpModel.GetNeuralNetwork(),
+                        //    mlpModel.TestDataFull,
+                        //    mlpModel.TestData,
+                        //    isFSOn,
+                        //    autoCoefficientCalculation,
+                        //    energyThresholdLimit,
+                        //    maxAutOrderLimit, null);
+
+
                         DFTModelExt dftModel = new DFTModelExt(
-                            mlpModel.GetNeuralNetwork(),
-                            mlpModel.TestDataFull,
-                            mlpModel.TestData,
-                            isFSOn,
-                            autoCoefficientCalculation,
-                            energyThresholdLimit,
-                            maxAutOrderLimit, null);
+                                                    mlpModel.GetNeuralNetwork(),
+                                                    mlpModel.TrainData,
+                                                    mlpModel.TestData,
+                                                    isFSOn,
+                                                    autoCoefficientCalculation,
+                                                    energyThresholdLimit,
+                                                    maxAutOrderLimit, null);
+
 
                         HashSet<string> class0 = new HashSet<string>();
                         HashSet<string> class1 = new HashSet<string>();
@@ -179,19 +188,37 @@ namespace BackPropProgram
                         listClass1 = dftModel.GenerateClusteredSchemaPatterns(class0, class1);
                         dftModel.JVectorsTrain = dftModel.GenerateJVectorByEnegryThresholdingLimit(presetOrderNum);
                         Dictionary<string, double> coeff_a = dftModel.CalculateDftEnergyCoeffs(listClass1);
+                        fp.OutputEnergyCoeffsToCSV(dftModel.EnergyCoeffsTrain, split, currPartitionSize + "_EnergyCoeffs_0");
+
+
+
                         var redundantAttributesList = dftModel.RedundantFeaturesByEnergyCoffsArray(presetOrderNum);
 
 
+                        //TrainingFileName = fp.OutputDatasetToCSV(numAttributes, TrainData, partitionSize + "_Train_" + takeFold, SplitType.FixedSizeOptimumSet);
+
+
                         #region Adaptation using the Testset
-                        
+
                         // adaptation using test set
                         // intialise the testing environment
                         var currSchemaReservior = dftModel.SchemaTrain;
+                        fp.ReserviorToCSV(currSchemaReservior, split, currPartitionSize + "_currSchemaReservior_0");
+
+
+
+
+                        int triggeredInterval = 1;
+                        int cumulativeChanges = 0;
+
 
                         int numAtt = inputSpec.NumAttributes;
-                        float[][] FullTestSet = mlpModel.TestDataFull;
+                        //float[][] FullTestSet = mlpModel.TestDataFull;
+                        float[][] FullTestSet = mlpModel.TestData;
+
+
                         int testDataSize = FullTestSet.Length;
-                        int intervalSize = 1000;// FullTestSet.Length;
+                        int intervalSize = 10;// FullTestSet.Length;
                         int numIterations = testDataSize / intervalSize;
 
                         // 1.  get a batch size of test instances
@@ -214,17 +241,24 @@ namespace BackPropProgram
                                 // 2.1 get the f(x) using inverse or cache
 
                                 SchemaStat cachedSchemaStat = dftModel.CheckIfInstanceCanBeMatchedToPatternSchemaStat(testInstance, currSchemaReservior);
+                                //fp.ReserviorToCSV(currSchemaReservior, split, currPartitionSize + "_currSchemaReservior");
 
-                                string cachedFxString = "-99";
+                                bool newApperance = false;
+
+                                int cachedFxString = -99;
                                 if (cachedSchemaStat != null)
                                 {
                                     cachedFxString = cachedSchemaStat.ClassLabelClassifiedByMLP;
+                                }
+                                else
+                                {
+                                    newApperance = true;
                                 }
                                 //string cachedFxString = dftModel.CheckIfInstanceCanBeMatchedToPattern(testInstance, currSchemaReservior);
 
                                 cachedFx = Convert.ToDouble(cachedFxString);
                                 double invFx = -99;
-                                if (cachedFx == -1)
+                                if (cachedFx == -99 || newApperance == true)
                                 {
                                     invFx = dftModel.CalculateFxByInveseDftEquation(testInstance, dftModel.JVectorsTrain, dftModel.EnergyCoeffsTrain);
                                 }
@@ -252,6 +286,7 @@ namespace BackPropProgram
                                     {
                                         //A->B 
                                         cachedSchemaStat.AddCurrClassB();
+                                        cachedSchemaStat.AToBChangeCurr();
                                     }
                                     else if (fxTestInstance == 1 && actualClassValue == 1)
                                     {
@@ -262,12 +297,56 @@ namespace BackPropProgram
                                     {
                                         //B->A //same
                                         cachedSchemaStat.AddCurrClassA();
+                                        cachedSchemaStat.BToAChangeCurr();
                                     }
                                 }
+                                else
+                                {
+                                    //new instance appear
+                                    cachedSchemaStat = new SchemaStat(testInstance, testInstance, int.Parse(actualClassValue.ToString()), int.Parse(fxTestInstance.ToString()));
+                                    if (fxTestInstance == 0)
+                                    {
+                                        //0->A
+                                        cachedSchemaStat.AddCurrClass0A();
+                                    }
+                                    else if (fxTestInstance == 1)
+                                    {
+                                        //0->B
+                                        cachedSchemaStat.AddCurrClass0B();
+                                    }
+
+                                    //add the new pattern to reservior// TODO: add pattern instead
+                                    currSchemaReservior.Add(testInstance, cachedSchemaStat);
+
+                                }
+
+                                fp.TestInstanceMatchingToCSV(testInstance, cachedSchemaStat.ClusterPattern, split, currPartitionSize + "_testInstanceMatchingToCSV_" + i, false);
+
                             }
 
                             // 3.  copy the change starts to previous and update the coefficient array
-                            bool triggerUpdate = CopyStatsCurrToPrev(currSchemaReservior);
+                            if (i != 0)
+                            {
+                                bool triggerUpdate = CalculateTrigger(currSchemaReservior, triggeredInterval, intervalSize, cumulativeChanges);
+                                if (triggerUpdate)
+                                {
+                                    triggeredInterval = 1;
+                                    cumulativeChanges = 0;
+                                    if (i > 1)
+                                    {
+                                        dftModel.RefineIterator(currSchemaReservior, coeff_a);
+                                    }
+                                    CopyStatsCurrToPrev(currSchemaReservior);
+                                    fp.ReserviorToCSV(currSchemaReservior, split, currPartitionSize + "_currSchemaReservior_" + i);
+                                }
+                                else
+                                {
+                                    UpdateCummulativeCount(currSchemaReservior, out cumulativeChanges);
+                                    triggeredInterval++;
+                                }
+                                //bool triggerUpdate = CheckTriggerStatusCurrToPrev(currSchemaReservior, out triggeredInterval);
+                            }
+
                         }
 
 
@@ -513,36 +592,90 @@ namespace BackPropProgram
 
         }
 
-        private static bool CopyStatsCurrToPrev(Dictionary<string, SchemaStat> schemaPatternList)
+        //private static bool CheckTriggerStatusCurrToPrev2(Dictionary<string, SchemaStat> schemaPatternList)
+        //{
+        //    bool trigger = false;
+        //    foreach (var i in schemaPatternList.Values)
+        //    {
+        //        if (i.GetPrevMajority() == 0.0 && i.GetCurrMajority() == 1.0)
+        //        {
+        //            trigger = true; //A->B
+        //        }
+        //        else if (i.GetPrevMajority() == 1.0 && i.GetCurrMajority() == 0.0)
+        //        {
+        //            trigger = true; //B->A
+        //        }
+        //    }
+        //    return trigger;
+        //}
+        private static void UpdateCummulativeCount(Dictionary<string, SchemaStat> schemaPatternList, out int cumulativeCount)
+        {
+            cumulativeCount = 0;
+            foreach (var i in schemaPatternList.Values)
+            {
+                cumulativeCount += i.AAChangeCurr;
+            }
+        }
+
+
+        private static bool CalculateTrigger(Dictionary<string, SchemaStat> schemaPatternList, int interval, int intervalSize, int cummulativeChanges)
         {
             bool trigger = false;
 
- 
+            int totalNumber = 0;
 
             foreach (var i in schemaPatternList.Values)
             {
-                
-                if (i.GetPrevMajority() == 0.0 && i.GetCurrMajority() == 1.0)
-                {
-                    trigger =  true; //A->B
-                }
-                else if (i.GetPrevMajority() == 1.0 && i.GetCurrMajority() == 0.0)
-                {
-                    trigger =  true; //B->A
-                }
+                totalNumber += i.AAChangeCurr;
             }
 
-            foreach (var i in schemaPatternList.Values)
+            totalNumber += cummulativeChanges;
+
+            double ratio = (double) Math.Abs(totalNumber) / (double) (interval * intervalSize);
+
+            if (ratio >= (1 - 0.95))
             {
-                i.CopyCurrToPrev();
+                trigger = true;
             }
-
+            else
+            {
+                trigger = false;
+            }
 
             return trigger;
 
         }
 
-            private static void GetTestInstanceString(int numAtt, float[][] FullTestSet, int index, out string testInstance, out double actualClassValue)
+
+
+        private static bool CheckTriggerStatusCurrToPrev(Dictionary<string, SchemaStat> schemaPatternList)
+        {
+            bool trigger = false;
+            foreach (var i in schemaPatternList.Values)
+            {
+                if (i.GetPrevMajority() == 0.0 && i.GetCurrMajority() == 1.0)
+                {
+                    trigger = true; //A->B
+                }
+                else if (i.GetPrevMajority() == 1.0 && i.GetCurrMajority() == 0.0)
+                {
+                    trigger = true; //B->A
+                }
+            }
+            return trigger;
+        }
+
+        private static void CopyStatsCurrToPrev(Dictionary<string, SchemaStat> schemaPatternList)
+        {
+            foreach (var i in schemaPatternList.Values)
+            {
+                i.CopyCurrToPrev();
+            }
+        }
+
+
+
+        private static void GetTestInstanceString(int numAtt, float[][] FullTestSet, int index, out string testInstance, out double actualClassValue)
         {
             //extracting test instance
             float[] sin = FullTestSet[index];

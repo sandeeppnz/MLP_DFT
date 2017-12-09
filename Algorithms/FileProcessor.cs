@@ -319,8 +319,6 @@ namespace Algorithms
         }
 
 
-
-
         public void OutputEnergyCoeffsToCSV(Dictionary<string, double> coeffs, SplitType splitType, string fileName)
         {
             string folderName = splitType.ToString() + "_" + InputSpecification.GetFileName();
@@ -354,6 +352,79 @@ namespace Algorithms
             sw.Flush();
             sw.Close();
         }
+
+        public void ReserviorToCSV(Dictionary<string, SchemaStat> coeffs, SplitType splitType, string fileName)
+        {
+            string folderName = splitType.ToString() + "_" + InputSpecification.GetFileName();
+            int index = folderName.IndexOf('.');
+            if (index > 0)
+            {
+                folderName = folderName.Substring(0, index);
+            }
+
+
+            if (!Directory.Exists(GetOutputDataPath() + folderName))
+            {
+                Directory.CreateDirectory(GetOutputDataPath() + folderName);
+            }
+
+            string fileNameAndPath = GetOutputDataPath() + folderName + "\\" + fileName + ".csv";
+
+
+            if (File.Exists(fileNameAndPath))
+            {
+                File.Delete(fileNameAndPath);
+            }
+            var sw = new StreamWriter(fileNameAndPath, true);
+            foreach (var s in coeffs.Values)
+            {
+                sw.Write(s.ClusterPattern.ToString());
+                sw.Write(',');
+                sw.Write(s.ClassLabelClassifiedByMLP.ToString());
+//                sw.Write(',');
+//                sw.Write(s.ClassLabelCalculatedByInvDft.ToString());
+                sw.Write("\r\n");
+            }
+            sw.Flush();
+            sw.Close();
+        }
+
+        public void TestInstanceMatchingToCSV(string testInstance, string clusterInstance, SplitType splitType, string fileName, bool erase)
+        {
+            string folderName = splitType.ToString() + "_" + InputSpecification.GetFileName();
+            int index = folderName.IndexOf('.');
+            if (index > 0)
+            {
+                folderName = folderName.Substring(0, index);
+            }
+
+
+            if (!Directory.Exists(GetOutputDataPath() + folderName))
+            {
+                Directory.CreateDirectory(GetOutputDataPath() + folderName);
+            }
+
+            string fileNameAndPath = GetOutputDataPath() + folderName + "\\" + fileName + ".csv";
+
+            if (erase)
+            {
+                if (File.Exists(fileNameAndPath))
+                {
+                    File.Delete(fileNameAndPath);
+                }
+            }
+
+            var sw = new StreamWriter(fileNameAndPath, true);
+            sw.Write(testInstance.ToString());
+            sw.Write(',');
+            sw.Write(clusterInstance.ToString());
+            sw.Write("\r\n");
+
+
+            sw.Flush();
+            sw.Close();
+        }
+
 
         public static void WritesXVectorsToCsv(List<string> array)
         {

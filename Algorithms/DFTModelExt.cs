@@ -294,13 +294,16 @@ namespace Algorithms
         }
 
 
+       
+
+
         public double GetCurrentFxFromList(Dictionary<string, SchemaStat> list, string instanceSchema)
         {
             if (list.Count > 0)
             {
                 if (list.ContainsKey(instanceSchema))
                 {
-                    return Double.Parse(list[instanceSchema].ClassLabelCalculatedByInvDft);
+                    return Double.Parse(list[instanceSchema].ClassLabelCalculatedByInvDft.ToString());
                 }
                 else
                 {
@@ -631,7 +634,6 @@ namespace Algorithms
              1*1* => {1010,1110,1011,1111}
              */
 
-
             if (positions.Count == 0) return null;
 
             int currMatches = 0;
@@ -648,13 +650,217 @@ namespace Algorithms
                 return 0;
             }
 
-
             return null;
+        }
+
+
+        //public double CalculateFxByInveseDftEquation(string xVectors, HashSet<string> jVectors, Dictionary<string, double> coeffArray)
+        //{
+        //    double fx = 0;
+        //    foreach (string j in jVectors)
+        //    {
+        //        double dotProduct = Helper.CalculateDotProduct(j, xVector);
+        //        double coeff = coeffArray[j];
+        //        fx += dotProduct * coeff;
+        //    }
+
+        //    if (fx < 0.5)
+        //    {
+        //        fx = 0; //even of the instance vector
+        //    }
+        //    else
+        //    {
+        //        fx = 1;
+        //    }
+
+        //    return fx;
+        //}
+
+
+        public void RefineIterator(Dictionary<string, SchemaStat> schemaPatterns, Dictionary<string, double> coeffArray)
+        {
+            foreach (string s in coeffArray.Keys)
+            {
+                RefineGetCoefficientValue(s, schemaPatterns);
+            }
+        }
+
+
+
+        private void RefineGetCoefficientValue(string j, Dictionary<string, SchemaStat> schemaPatterns)
+        {
+            double dCoefficientValue_Contribution_ABBA = 0.0;//reset contribution form set AB or BA class change schemas to refinemnet
+            double dCoefficientValue_Contribution_0A0B = 0.0; //reset contribution form set 0A or 0B class change schemas to refinemnet    
+            double correctionFactor = 0.0;
+            double AveragedcorrectionFactor = 0.0;
+            int distinctChangeSchemas = 0;
+
+            foreach (string key in schemaPatterns.Keys)
+            {
+                SchemaStat ss = schemaPatterns[key];
+                if (ss != null)
+                {
+
+                    if (ss.IsAtoBChange())
+                    {
+                        distinctChangeSchemas++;
+                    }
+                    if (ss.IsBtoAChange())
+                    {
+                        distinctChangeSchemas++;
+                    }
+
+                    if (ss.IsOtoAChange())
+                    {
+                        distinctChangeSchemas++;
+                    }
+                    if (ss.IsOtoBChange())
+                    {
+                        distinctChangeSchemas++;
+                    }
+
+                    //if (ss.GetPrevMajority() == 0.0 && ss.GetCurrMajority() == 1.0)
+                    //{
+                    //    runRefine1 = true; //A->B
+                    //    distinctChangeSchemas++;
+                    //}
+                    //else if (ss.GetPrevMajority() == 1.0 && ss.GetCurrMajority() == 0.0)
+                    //{
+                    //    runRefine2 = true; //B->A
+                    //    distinctChangeSchemas++;
+                    //}
+                }
+            }
+
+
+            foreach (string key in schemaPatterns.Keys)
+            {
+                bool AtoBRefine = false;
+                bool BtoARefine = false;
+                bool OtoARefine = false;
+                bool OtoBRefine = false;
+
+
+                SchemaStat ss = schemaPatterns[key];
+                if (ss != null)
+                {
+                    if (ss.IsAtoBChange())
+                    {
+                        AtoBRefine = true; //A->B
+                        distinctChangeSchemas++;
+                    }
+                    if (ss.IsBtoAChange())
+                    {
+                        BtoARefine = true; //A->B
+                        distinctChangeSchemas++;
+                    }
+                    if (ss.IsOtoAChange())
+                    {
+                        OtoARefine = true; //A->B
+                        distinctChangeSchemas++;
+                    }
+                    if (ss.IsOtoBChange())
+                    {
+                        OtoBRefine = true; //A->B
+                        distinctChangeSchemas++;
+                    }
+
+                    //if (ss.GetPrevMajority() == 0.0 && ss.GetCurrMajority() == 1.0)
+                    //{
+                    //    AtoBRefine = true; //A->B
+                    //}
+                    //else if (ss.GetPrevMajority() == 1.0 && ss.GetCurrMajority() == 0.0)
+                    //{
+                    //    BtoARefine = true; //B->A
+                    //}
+                }
+
+                if (AtoBRefine)
+                {
+                    double dotProduct = Helper.RefineBasisFunction(j, key);
+                    double fxValue = Double.Parse(schemaPatterns[key].ClassLabelClassifiedByMLP.ToString());
+
+                    if (dotProduct != 0)
+                    {
+                        dCoefficientValue_Contribution_ABBA = dCoefficientValue_Contribution_ABBA + ((fxValue) * dotProduct);
+                        //sum over Xs of set ABBA
+                    }
+                    if (dotProduct != -1.0 && dotProduct != 1.0)
+                    {
+
+                    }
+                }
+
+                if (BtoARefine)
+                {
+                    double dotProduct = Helper.RefineBasisFunction(j, key);
+                    double fxValue = Double.Parse(schemaPatterns[key].ClassLabelClassifiedByMLP.ToString());
+
+                    if (dotProduct != 0)
+                    {
+                        dCoefficientValue_Contribution_ABBA = dCoefficientValue_Contribution_ABBA + ((fxValue) * dotProduct);
+                    }
+
+                    if (dotProduct != -1.0 && dotProduct != 1.0)
+                    {
+
+                    }
+                }
+
+
+
+                if (OtoARefine)
+                {
+                    double dotProduct = Helper.RefineBasisFunction(j, key);
+                    double fxValue = Double.Parse(schemaPatterns[key].ClassLabelClassifiedByMLP.ToString());
+
+                    if (dotProduct != 0)
+                    {
+                        dCoefficientValue_Contribution_0A0B = dCoefficientValue_Contribution_0A0B + ((fxValue) * dotProduct); //sum over Xs of set 0A0B
+                    }
+
+                    if (dotProduct != -1.0 && dotProduct != 1.0)
+                    {
+
+                    }
+                }
+
+                if (OtoBRefine)
+                {
+                    double dotProduct = Helper.RefineBasisFunction(j, key);
+                    double fxValue = Double.Parse(schemaPatterns[key].ClassLabelClassifiedByMLP.ToString());
+
+                    if (dotProduct != 0)
+                    {
+                        dCoefficientValue_Contribution_0A0B = dCoefficientValue_Contribution_0A0B + ((fxValue) * dotProduct); //sum over Xs of set 0A0B
+                    }
+
+                    if (dotProduct != -1.0 && dotProduct != 1.0)
+                    {
+
+                    }
+                }
+
+                correctionFactor = dCoefficientValue_Contribution_ABBA + dCoefficientValue_Contribution_0A0B;
+                AveragedcorrectionFactor = correctionFactor / distinctChangeSchemas;
+                ss.ClassLabelClassifiedByMLP = ss.ClassLabelClassifiedByMLP + (int) AveragedcorrectionFactor;
+
+
+
+
+
+                if (distinctChangeSchemas != 0)
+                {
+                }
+            }
+            //return coefficientValue;
         }
 
 
         private double GetCoefficientValue(string j, List<string> patterns)
         {
+
+
             double denominator = Math.Pow(2, j.Length);
             double coefficientValue = 0.0;
             foreach (string x in patterns)
@@ -775,6 +981,84 @@ namespace Algorithms
         }
 
 
+        public Dictionary<string, double> RefineDftEnergyCoeffs(Dictionary<string, SchemaStat> clusteredSchemaXVectorsClass1)
+        {
+
+            Dictionary<string, double> coeffArray = new Dictionary<string, double>();
+            double coeff = 0;
+            long numEnergyZerojVectors = 0;
+            double? checkRedundantCoeffVal = null;
+
+
+            //Convert clusteredSchemaXVectorsClass1 to a List
+            List<string> clusteredSchemaXVectorsClass1List = new List<string>();
+            foreach (var k in clusteredSchemaXVectorsClass1)
+            {
+                clusteredSchemaXVectorsClass1List.Add(k.Key);
+            }
+
+
+            foreach (string j in JVectorsTrain)
+            {
+                //Optimisation of Energy Calculation
+                if (checkRedundantCoeffVal == null)
+                {
+                    coeff = GetCoefficientValue(j, clusteredSchemaXVectorsClass1List);
+                    coeffArray[j] = coeff;
+                }
+                else
+                {
+                    numEnergyZerojVectors++;
+                    coeffArray[j] = 0;
+                }
+
+
+            }
+
+            if (AutoEnergyThresholding)
+            {
+                int currOrder = 1;
+                //incrementally calculate and orders
+                double orderZeroEnergy = coeffArray.ElementAt(0).Value;
+                double energy = CalculateDynamicEnergy(coeffArray); //E = (w0^2+ sum(w^2 of 1 order)) / w0^2 
+                decimal ratio = (decimal) (energy / orderZeroEnergy);
+                //int startIndex = 
+
+                while (ratio <= EnergyThresholdLimit && currOrder < MaxOrder)
+                {
+                    currOrder++;
+                    HashSet<string> newjFullVectors = GenerateTruthTableOptimized(NumAttributes, currOrder);
+
+                    int startSize = JVectorsTrain.Count;
+                    foreach (var i in newjFullVectors)
+                    {
+                        JVectorsTrain.Add(i);
+                    }
+
+                    //int numNewJVetors = (int) PermutationsAndCombinations.nCr(NumAttributes, currOrder);
+
+                    for (int idx = startSize; idx < JVectorsTrain.Count; idx++)
+                    {
+                        string s = JVectorsTrain.ElementAt(idx);
+                        coeff = GetCoefficientValue(s, clusteredSchemaXVectorsClass1List);
+                        coeffArray[s] = coeff;
+
+                    }
+
+                    energy = CalculateDynamicEnergy(coeffArray); //E = (w0^2+ sum(w^2 of 1 order)) / w0^2 
+                    ratio = (decimal) (energy / orderZeroEnergy);
+                }
+
+                EnergyCoefficientOrderNum = currOrder;
+
+
+            }
+
+            EnergyCoeffsTrain = coeffArray;
+            return coeffArray;
+        }
+
+
 
 
         public HashSet<string> GenerateTruthTableOptimized(int NumAttributes, int maxOrder)
@@ -886,11 +1170,11 @@ namespace Algorithms
 
                     if (isClass0)
                     {
-                        clusterPoolDictionary.Add(instanceSchemas.ElementAt(i), new SchemaStat(instanceSchemas.ElementAt(i), instanceSchemas.ElementAt(i), "0", string.Empty));
+                        clusterPoolDictionary.Add(instanceSchemas.ElementAt(i), new SchemaStat(instanceSchemas.ElementAt(i), instanceSchemas.ElementAt(i), 0, 0));
                     }
                     else
                     {
-                        clusterPoolDictionary.Add(instanceSchemas.ElementAt(i), new SchemaStat(instanceSchemas.ElementAt(i), instanceSchemas.ElementAt(i), "1", string.Empty));
+                        clusterPoolDictionary.Add(instanceSchemas.ElementAt(i), new SchemaStat(instanceSchemas.ElementAt(i), instanceSchemas.ElementAt(i), 1, 0));
                     }
                 }
                 else
@@ -932,11 +1216,11 @@ namespace Algorithms
 
                                 if (isClass0)
                                 {
-                                    clusterPoolDictionary.Add(s, new SchemaStat(s, s, "0", string.Empty));
+                                    clusterPoolDictionary.Add(s, new SchemaStat(s, s, 0, 0));
                                 }
                                 else
                                 {
-                                    clusterPoolDictionary.Add(s, new SchemaStat(s, s, "1", string.Empty));
+                                    clusterPoolDictionary.Add(s, new SchemaStat(s, s, 1, 0));
                                 }
 
 
@@ -957,12 +1241,12 @@ namespace Algorithms
                                     if (isClass0)
                                     {
                                         clusterPoolDictionary.Remove(clusterLabel);
-                                        clusterPoolDictionary.Add(newLabel, new SchemaStat(s, newLabel, "0", string.Empty));
+                                        clusterPoolDictionary.Add(newLabel, new SchemaStat(s, newLabel, 0, 0));
                                     }
                                     else
                                     {
                                         clusterPoolDictionary.Remove(clusterLabel);
-                                        clusterPoolDictionary.Add(newLabel, new SchemaStat(s, newLabel, "1", string.Empty));
+                                        clusterPoolDictionary.Add(newLabel, new SchemaStat(s, newLabel, 1, 0));
                                     }
 
 
@@ -979,11 +1263,11 @@ namespace Algorithms
 
                                     if (isClass0)
                                     {
-                                        clusterPoolDictionary.Add(s, new SchemaStat(s, s, "0", string.Empty));
+                                        clusterPoolDictionary.Add(s, new SchemaStat(s, s, 0, 0));
                                     }
                                     else
                                     {
-                                        clusterPoolDictionary.Add(s, new SchemaStat(s, s, "1", string.Empty));
+                                        clusterPoolDictionary.Add(s, new SchemaStat(s, s, 1, 0));
                                     }
 
 
