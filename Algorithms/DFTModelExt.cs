@@ -294,7 +294,7 @@ namespace Algorithms
         }
 
 
-       
+
 
 
         public double GetCurrentFxFromList(Dictionary<string, SchemaStat> list, string instanceSchema)
@@ -677,64 +677,97 @@ namespace Algorithms
         //}
 
 
-        public void RefineIterator(Dictionary<string, SchemaStat> schemaPatterns, Dictionary<string, double> coeffArray)
+        public Dictionary<string, double> RefineIterator(Dictionary<string, SchemaStat> schemaPatterns, Dictionary<string, double> coeffArray)
         {
-            foreach (string s in coeffArray.Keys)
+
+            Dictionary<string, double> refinedCoeffArray = new Dictionary<string, double>();
+
+            var copy = coeffArray.ToDictionary(entry => entry.Key,
+                                                       entry => entry.Value);
+            double w = 0;
+            double k = 0;
+            foreach (string s in copy.Keys)
             {
-                RefineGetCoefficientValue(s, schemaPatterns);
+                w = copy[s];
+                k = w;
+
+                RefineGetCoefficientValue(s, schemaPatterns, ref w);
+
+                refinedCoeffArray.Add(s, w);
             }
+
+            return refinedCoeffArray;
         }
 
 
 
-        private void RefineGetCoefficientValue(string j, Dictionary<string, SchemaStat> schemaPatterns)
+        private void RefineGetCoefficientValue(string j, Dictionary<string, SchemaStat> schemaPatterns, ref double w)
         {
-            double dCoefficientValue_Contribution_ABBA = 0.0;//reset contribution form set AB or BA class change schemas to refinemnet
-            double dCoefficientValue_Contribution_0A0B = 0.0; //reset contribution form set 0A or 0B class change schemas to refinemnet    
+
+            if (j == "001")
+            {
+
+            }
+
+            if (j == "000")
+            {
+
+            }
+
+
             double correctionFactor = 0.0;
             double AveragedcorrectionFactor = 0.0;
             int distinctChangeSchemas = 0;
 
+
+
+
+            //foreach (string key in schemaPatterns.Keys)
+            //{
+            //    SchemaStat ss = schemaPatterns[key];
+            //    if (ss != null)
+            //    {
+
+            //        if (ss.IsAtoBChange())
+            //        {
+            //            distinctChangeSchemas++;
+            //        }
+            //        if (ss.IsBtoAChange())
+            //        {
+            //            distinctChangeSchemas++;
+            //        }
+
+            //        if (ss.IsOtoAChange())
+            //        {
+            //            distinctChangeSchemas++;
+            //        }
+            //        if (ss.IsOtoBChange())
+            //        {
+            //            distinctChangeSchemas++;
+            //        }
+
+            //        //if (ss.GetPrevMajority() == 0.0 && ss.GetCurrMajority() == 1.0)
+            //        //{
+            //        //    runRefine1 = true; //A->B
+            //        //    distinctChangeSchemas++;
+            //        //}
+            //        //else if (ss.GetPrevMajority() == 1.0 && ss.GetCurrMajority() == 0.0)
+            //        //{
+            //        //    runRefine2 = true; //B->A
+            //        //    distinctChangeSchemas++;
+            //        //}
+            //    }
+            //}
+
+            distinctChangeSchemas = schemaPatterns.Keys.Count;
+
+            double bracketVal = 0;
+
             foreach (string key in schemaPatterns.Keys)
             {
-                SchemaStat ss = schemaPatterns[key];
-                if (ss != null)
-                {
+                double dCoefficientValue_Contribution_ABBA = 0.0;//reset contribution form set AB or BA class change schemas to refinemnet
+                double dCoefficientValue_Contribution_0A0B = 0.0; //reset contribution form set 0A or 0B class change schemas to refinemnet    
 
-                    if (ss.IsAtoBChange())
-                    {
-                        distinctChangeSchemas++;
-                    }
-                    if (ss.IsBtoAChange())
-                    {
-                        distinctChangeSchemas++;
-                    }
-
-                    if (ss.IsOtoAChange())
-                    {
-                        distinctChangeSchemas++;
-                    }
-                    if (ss.IsOtoBChange())
-                    {
-                        distinctChangeSchemas++;
-                    }
-
-                    //if (ss.GetPrevMajority() == 0.0 && ss.GetCurrMajority() == 1.0)
-                    //{
-                    //    runRefine1 = true; //A->B
-                    //    distinctChangeSchemas++;
-                    //}
-                    //else if (ss.GetPrevMajority() == 1.0 && ss.GetCurrMajority() == 0.0)
-                    //{
-                    //    runRefine2 = true; //B->A
-                    //    distinctChangeSchemas++;
-                    //}
-                }
-            }
-
-
-            foreach (string key in schemaPatterns.Keys)
-            {
                 bool AtoBRefine = false;
                 bool BtoARefine = false;
                 bool OtoARefine = false;
@@ -747,22 +780,18 @@ namespace Algorithms
                     if (ss.IsAtoBChange())
                     {
                         AtoBRefine = true; //A->B
-                        distinctChangeSchemas++;
                     }
                     if (ss.IsBtoAChange())
                     {
                         BtoARefine = true; //A->B
-                        distinctChangeSchemas++;
                     }
                     if (ss.IsOtoAChange())
                     {
                         OtoARefine = true; //A->B
-                        distinctChangeSchemas++;
                     }
                     if (ss.IsOtoBChange())
                     {
                         OtoBRefine = true; //A->B
-                        distinctChangeSchemas++;
                     }
 
                     //if (ss.GetPrevMajority() == 0.0 && ss.GetCurrMajority() == 1.0)
@@ -778,7 +807,10 @@ namespace Algorithms
                 if (AtoBRefine)
                 {
                     double dotProduct = Helper.RefineBasisFunction(j, key);
-                    double fxValue = Double.Parse(schemaPatterns[key].ClassLabelClassifiedByMLP.ToString());
+                    //double fxValue = Double.Parse(schemaPatterns[key].ClassLabelClassifiedByMLP.ToString());
+                    double fxValue = 1;
+
+
 
                     if (dotProduct != 0)
                     {
@@ -794,7 +826,8 @@ namespace Algorithms
                 if (BtoARefine)
                 {
                     double dotProduct = Helper.RefineBasisFunction(j, key);
-                    double fxValue = Double.Parse(schemaPatterns[key].ClassLabelClassifiedByMLP.ToString());
+                    //double fxValue = Double.Parse(schemaPatterns[key].ClassLabelClassifiedByMLP.ToString());
+                    double fxValue = -1;
 
                     if (dotProduct != 0)
                     {
@@ -812,7 +845,10 @@ namespace Algorithms
                 if (OtoARefine)
                 {
                     double dotProduct = Helper.RefineBasisFunction(j, key);
-                    double fxValue = Double.Parse(schemaPatterns[key].ClassLabelClassifiedByMLP.ToString());
+                    //double fxValue = Double.Parse(schemaPatterns[key].ClassLabelClassifiedByMLP.ToString());
+                    double fxValue = -1;
+
+
 
                     if (dotProduct != 0)
                     {
@@ -828,7 +864,8 @@ namespace Algorithms
                 if (OtoBRefine)
                 {
                     double dotProduct = Helper.RefineBasisFunction(j, key);
-                    double fxValue = Double.Parse(schemaPatterns[key].ClassLabelClassifiedByMLP.ToString());
+                    //double fxValue = Double.Parse(schemaPatterns[key].ClassLabelClassifiedByMLP.ToString());
+                    double fxValue = 1;
 
                     if (dotProduct != 0)
                     {
@@ -841,18 +878,16 @@ namespace Algorithms
                     }
                 }
 
-                correctionFactor = dCoefficientValue_Contribution_ABBA + dCoefficientValue_Contribution_0A0B;
-                AveragedcorrectionFactor = correctionFactor / distinctChangeSchemas;
-                ss.ClassLabelClassifiedByMLP = ss.ClassLabelClassifiedByMLP + (int) AveragedcorrectionFactor;
-
-
-
-
-
-                if (distinctChangeSchemas != 0)
+                if (distinctChangeSchemas != 0 && (OtoBRefine || OtoARefine || BtoARefine || AtoBRefine))
                 {
+                    correctionFactor = dCoefficientValue_Contribution_ABBA + dCoefficientValue_Contribution_0A0B;
+                    AveragedcorrectionFactor = correctionFactor / distinctChangeSchemas;
+                    ss.ClassLabelClassifiedByMLP = ss.ClassLabelClassifiedByMLP + (int) AveragedcorrectionFactor;
+                    bracketVal += AveragedcorrectionFactor;
                 }
             }
+
+            w += bracketVal;
             //return coefficientValue;
         }
 

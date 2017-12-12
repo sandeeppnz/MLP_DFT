@@ -39,6 +39,29 @@ namespace BackPropProgram
         }
 
     }
+
+    public class ElectricitySmallTest : InputSpecification
+    {
+        public ElectricitySmallTest()
+        {
+            NumRows = 30;
+            NumAttributes = 7;
+            InputDatasetFileName = "07-TEST2_electricitydiscretized-7Att_45312Ins_CBDT.csv";
+        }
+
+    }
+
+    public class ElectricitySmallTest3 : InputSpecification
+    {
+        public ElectricitySmallTest3()
+        {
+            NumRows = 15;
+            NumAttributes = 3;
+            InputDatasetFileName = "07-TEST3_electricitydiscretized-7Att_45312Ins_CBDT.csv";
+        }
+
+    }
+
     public class ElectricityExtended : InputSpecification
     {
         public ElectricityExtended()

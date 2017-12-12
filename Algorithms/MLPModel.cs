@@ -561,6 +561,69 @@ namespace Algorithms
         }
 
 
+        public void FixTrainTestSplit(decimal partitionSize, decimal trainDataSize, int seed, bool shuffle = false)
+        {
+            Console.WriteLine("=====================================================");
+            Console.WriteLine("Generating Datasets...");
+            Console.WriteLine("Sequential Incremental Split");
+            Console.WriteLine("Random: {0}", shuffle);
+
+            Random rnd = new Random(seed);
+            //Partition = partition;
+            float[][] rawData = _fileProcessor.GetRawDataset();
+            int numAttributes = _fileProcessor.GetInputSpecification().GetNumAttributes();
+
+            int totRows = rawData.Length;
+            //int numTrainRows = (int) (totRows * partitionSize); // usually 0.80
+            int numTrainRows = (int) trainDataSize; // usually 0.80
+            int numTestRows = totRows - numTrainRows;
+
+            Console.WriteLine("\nSplit ratio: Training({0}) and Testing({1})", partitionSize, 1 - partitionSize);
+            Console.WriteLine("Training instances: {0}", numTrainRows);
+            Console.WriteLine("Testing instances: {0}", numTestRows);
+            Console.WriteLine("Total instances: {0}", totRows);
+
+
+            TrainData = new float[numTrainRows][];
+            TestData = new float[numTestRows][];
+
+
+            float[][] copy = new float[rawData.Length][]; // ref copy of data
+            for (int i = 0; i < copy.Length; ++i)
+            {
+                copy[i] = rawData[i];
+            }
+
+            if (shuffle)
+            {
+                for (int i = 0; i < copy.Length; ++i) // scramble order
+                {
+                    int r = rnd.Next(i, copy.Length); // use Fisher-Yates
+                    float[] tmp = copy[r];
+                    copy[r] = copy[i];
+                    copy[i] = tmp;
+                }
+            }
+
+            for (int i = 0; i < numTrainRows; ++i)
+            {
+                TrainData[i] = copy[i];
+            }
+            for (int i = 0; i < numTestRows; ++i)
+            {
+                TestData[i] = copy[i + numTrainRows];
+            }
+
+            TrainingFileName = _fileProcessor.OutputDatasetToCSV(numAttributes, TrainData, partitionSize + "_Train", SplitType.LinearSequence);
+            TestingFileName = _fileProcessor.OutputDatasetToCSV(numAttributes, TestData, partitionSize + "_Test", SplitType.LinearSequence);
+
+            Console.WriteLine("\nGenerating files...");
+            Console.WriteLine("Training file: {0}", TrainingFileName);
+            Console.WriteLine("Testing file: {0}", TestingFileName);
+            Console.WriteLine("Done....\n");
+        }
+
+
         //public void OptimizePartitionSplit(decimal partitionSize, int seed, SplitType split, string rScripFileName, string rBin, double hotellingTestThreshold)
         //{
 
@@ -1013,7 +1076,7 @@ namespace Algorithms
                         if (testCount < testSampleProportionSize)
                         {
                             TestData[rowTest] = copy[k];
-                        
+
                             rowTest++;
 
                             testCount++;

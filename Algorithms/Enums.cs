@@ -10,6 +10,7 @@ namespace Algorithms
     {
         LinearSequence,
         FixedSizeOptimumSet,
-        Partition
+        Partition,
+        FixSplit, //specify number 
     }
 }

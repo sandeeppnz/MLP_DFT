@@ -69,7 +69,7 @@ namespace Algorithms
 
         public bool IsAtoBChange()
         {
-            if (AAChangePrev < 0 && AAChangeCurr > 0)
+            if (AAChangePrev <= 0 && AAChangeCurr > 0)
             {
                 return true;
             }

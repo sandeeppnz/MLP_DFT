@@ -40,7 +40,9 @@ namespace BackPropProgram
             //fileList.Add(new OccupancySmall());
             //fileList.Add(new OccupancyExtented());
 
-            fileList.Add(new ElectricitySmall());
+            //fileList.Add(new ElectricitySmall());
+            //fileList.Add(new ElectricitySmallTest());
+            fileList.Add(new ElectricitySmallTest3());
             //fileList.Add(new ElectricityExtended());
 
 
@@ -61,17 +63,24 @@ namespace BackPropProgram
 
             foreach (var file in fileList)
             {
-                decimal currPartitionSize = 0.01M;
-                decimal partitionLimit = 0.1M;
-                int presetOrderNum = -1;
+                decimal currPartitionSize = 0.3M;
+                decimal partitionLimit = 0.3M;
+
+
+                int presetOrderNum = 3;
                 int maxAutOrderLimit = 4;
                 bool autoCoefficientCalculation = true;
                 decimal energyThresholdLimit = 0.90M;
-                SplitType split = SplitType.LinearSequence;
+                SplitType split = SplitType.FixSplit;
                 List<ResultsStatistics> stats = new List<ResultsStatistics>();
 
                 //Setup File
                 InputSpecification inputSpec = (InputSpecification) file;
+
+                //fix split
+                decimal trainingDataSize = 5M;
+                ////
+
 
                 try
                 {
@@ -80,6 +89,7 @@ namespace BackPropProgram
                     // 1.Set input file and load dataset
                     FileProcessor fp = new FileProcessor(inputDataPath, outputDataPath, resultsDataPath, rScriptPath, inputSpec);
                     fp.LoadCSV();
+
 
                     RRunner rn = new RRunner();
 
@@ -90,7 +100,10 @@ namespace BackPropProgram
                         if (split == SplitType.LinearSequence)
                         {
                             mlpModel.LinearSeqTrainTestSplit(currPartitionSize, seed, false);
-                            //mlpModel.RunHotellingTTest(mlpModel.TrainingFileName, mlpModel.TestingFileName, rScripFileName, rBin, hotellingTestThreshold, currPartitionSize, split);
+                        }
+                        else if (split == SplitType.FixSplit)
+                        {
+                            mlpModel.FixTrainTestSplit(currPartitionSize, trainingDataSize, seed, false);
                         }
                         else if (split == SplitType.FixedSizeOptimumSet)
                         {
@@ -169,7 +182,7 @@ namespace BackPropProgram
                                                     mlpModel.TrainData,
                                                     mlpModel.TestData,
                                                     isFSOn,
-                                                    autoCoefficientCalculation,
+                                                    false,
                                                     energyThresholdLimit,
                                                     maxAutOrderLimit, null);
 
@@ -188,22 +201,18 @@ namespace BackPropProgram
                         listClass1 = dftModel.GenerateClusteredSchemaPatterns(class0, class1);
                         dftModel.JVectorsTrain = dftModel.GenerateJVectorByEnegryThresholdingLimit(presetOrderNum);
                         Dictionary<string, double> coeff_a = dftModel.CalculateDftEnergyCoeffs(listClass1);
-                        fp.OutputEnergyCoeffsToCSV(dftModel.EnergyCoeffsTrain, split, currPartitionSize + "_EnergyCoeffs_0");
+                        fp.OutputEnergyCoeffsToCSV(dftModel.EnergyCoeffsTrain, split, currPartitionSize + "_EnergyCoeffs_Tr");
 
 
 
-                        var redundantAttributesList = dftModel.RedundantFeaturesByEnergyCoffsArray(presetOrderNum);
-
-
-                        //TrainingFileName = fp.OutputDatasetToCSV(numAttributes, TrainData, partitionSize + "_Train_" + takeFold, SplitType.FixedSizeOptimumSet);
-
+                        //var redundantAttributesList = dftModel.RedundantFeaturesByEnergyCoffsArray(presetOrderNum);
 
                         #region Adaptation using the Testset
 
                         // adaptation using test set
                         // intialise the testing environment
                         var currSchemaReservior = dftModel.SchemaTrain;
-                        fp.ReserviorToCSV(currSchemaReservior, split, currPartitionSize + "_currSchemaReservior_0");
+                        fp.ReserviorToCSV(currSchemaReservior, split, currPartitionSize + "_currSchemaReservior_Tr");
 
 
 
@@ -218,8 +227,9 @@ namespace BackPropProgram
 
 
                         int testDataSize = FullTestSet.Length;
-                        int intervalSize = 10;// FullTestSet.Length;
+                        int intervalSize = 5;// FullTestSet.Length;
                         int numIterations = testDataSize / intervalSize;
+                        //numIterations++;
 
                         // 1.  get a batch size of test instances
                         for (int i = 0; i < numIterations; i++)
@@ -304,12 +314,14 @@ namespace BackPropProgram
                                 {
                                     //new instance appear
                                     cachedSchemaStat = new SchemaStat(testInstance, testInstance, int.Parse(actualClassValue.ToString()), int.Parse(fxTestInstance.ToString()));
-                                    if (fxTestInstance == 0)
-                                    {
-                                        //0->A
-                                        cachedSchemaStat.AddCurrClass0A();
+                                    //if (fxTestInstance == 0)
+                                        if (actualClassValue == 0)
+                                        {
+                                            //0->A
+                                            cachedSchemaStat.AddCurrClass0A();
                                     }
-                                    else if (fxTestInstance == 1)
+                                    else if (actualClassValue == 1)
+                                    //else if (fxTestInstance == 1)
                                     {
                                         //0->B
                                         cachedSchemaStat.AddCurrClass0B();
@@ -325,19 +337,20 @@ namespace BackPropProgram
                             }
 
                             // 3.  copy the change starts to previous and update the coefficient array
-                            if (i != 0)
-                            {
+                            //if (i != 0)
+                            //{
                                 bool triggerUpdate = CalculateTrigger(currSchemaReservior, triggeredInterval, intervalSize, cumulativeChanges);
                                 if (triggerUpdate)
                                 {
                                     triggeredInterval = 1;
                                     cumulativeChanges = 0;
-                                    if (i > 1)
-                                    {
-                                        dftModel.RefineIterator(currSchemaReservior, coeff_a);
-                                    }
+                                    //if (i > 1)
+                                    //{
+                                    dftModel.EnergyCoeffsTrain = dftModel.RefineIterator(currSchemaReservior, coeff_a);
+                                    //}
                                     CopyStatsCurrToPrev(currSchemaReservior);
                                     fp.ReserviorToCSV(currSchemaReservior, split, currPartitionSize + "_currSchemaReservior_" + i);
+                                    fp.OutputEnergyCoeffsToCSV(dftModel.EnergyCoeffsTrain, split, currPartitionSize + "_EnergyCoeffs_" + i);
                                 }
                                 else
                                 {
@@ -345,7 +358,7 @@ namespace BackPropProgram
                                     triggeredInterval++;
                                 }
                                 //bool triggerUpdate = CheckTriggerStatusCurrToPrev(currSchemaReservior, out triggeredInterval);
-                            }
+                            //}
 
                         }
 
@@ -941,14 +954,14 @@ namespace BackPropProgram
                 sw = null;
 
                 Console.WriteLine("end....");
-                Console.WriteLine("zipping files....");
-                string startPath = path + folderName;//folder to add
-                ZipFile.CreateFromDirectory(startPath, zipPath, CompressionLevel.Fastest, true);
-                Console.WriteLine("deleting folder....");
-                if (Directory.Exists(path + folderName))
-                {
-                    Directory.Delete(path + folderName, true);
-                }
+                //Console.WriteLine("zipping files....");
+                //string startPath = path + folderName;//folder to add
+                //ZipFile.CreateFromDirectory(startPath, zipPath, CompressionLevel.Fastest, true);
+                //Console.WriteLine("deleting folder....");
+                //if (Directory.Exists(path + folderName))
+                //{
+                //    Directory.Delete(path + folderName, true);
+                //}
                 Console.WriteLine("done....");
 
 
