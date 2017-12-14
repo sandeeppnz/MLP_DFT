@@ -69,7 +69,9 @@ namespace Algorithms
 
         public bool IsAtoBChange()
         {
-            if (AAChangePrev <= 0 && AAChangeCurr > 0)
+            //if (AAChangePrev <= 0 && AAChangeCurr > 0)
+            //if (AAChangeCurr > 0)
+            if (AAChangeCurr > 0 && (AAChangeCurr != AAChangePrev))
             {
                 return true;
             }
@@ -101,7 +103,8 @@ namespace Algorithms
 
         public bool IsBtoAChange()
         {
-            if (AAChangePrev > 0 && AAChangeCurr < 0)
+            //if (AAChangePrev >= 0 && AAChangeCurr < 0)
+            if (AAChangeCurr < 0 && (AAChangeCurr != AAChangePrev))
             {
                 return true;
             }
@@ -218,6 +221,10 @@ namespace Algorithms
 
             AAChangePrev = AAChangeCurr;
             AAChangeCurr = 0;
+
+            CurrClass0B = 0;
+            CurrClass0A = 0;
+
         }
 
 

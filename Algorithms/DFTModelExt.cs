@@ -704,17 +704,6 @@ namespace Algorithms
         private void RefineGetCoefficientValue(string j, Dictionary<string, SchemaStat> schemaPatterns, ref double w)
         {
 
-            if (j == "001")
-            {
-
-            }
-
-            if (j == "000")
-            {
-
-            }
-
-
             double correctionFactor = 0.0;
             double AveragedcorrectionFactor = 0.0;
             int distinctChangeSchemas = 0;
@@ -760,11 +749,12 @@ namespace Algorithms
             //}
 
             distinctChangeSchemas = schemaPatterns.Keys.Count;
-
             double bracketVal = 0;
+
 
             foreach (string key in schemaPatterns.Keys)
             {
+
                 double dCoefficientValue_Contribution_ABBA = 0.0;//reset contribution form set AB or BA class change schemas to refinemnet
                 double dCoefficientValue_Contribution_0A0B = 0.0; //reset contribution form set 0A or 0B class change schemas to refinemnet    
 
@@ -793,6 +783,7 @@ namespace Algorithms
                     {
                         OtoBRefine = true; //A->B
                     }
+
 
                     //if (ss.GetPrevMajority() == 0.0 && ss.GetCurrMajority() == 1.0)
                     //{
@@ -880,7 +871,9 @@ namespace Algorithms
 
                 if (distinctChangeSchemas != 0 && (OtoBRefine || OtoARefine || BtoARefine || AtoBRefine))
                 {
+
                     correctionFactor = dCoefficientValue_Contribution_ABBA + dCoefficientValue_Contribution_0A0B;
+
                     AveragedcorrectionFactor = correctionFactor / distinctChangeSchemas;
                     ss.ClassLabelClassifiedByMLP = ss.ClassLabelClassifiedByMLP + (int) AveragedcorrectionFactor;
                     bracketVal += AveragedcorrectionFactor;
