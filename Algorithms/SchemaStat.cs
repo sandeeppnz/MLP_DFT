@@ -8,222 +8,164 @@ namespace Algorithms
 {
     public class SchemaStat
     {
-        public string SchemaInstance { get; set; }
         public string ClusterPattern { get; set; }
-        public int ClassLabelClassifiedByMLP { get; set; }
-        public int ClassLabelCalculatedByInvDft { get; set; }
-        //public int TotalClass0 { get; set; }
-        //public int TotalClass1 { get; set; }
+        public int TrainingClassValue { get; set; } //value from the MLP training
+        public int InvDftClassValue { get; set; }
 
-        //not used
-        //public int PrevMajorityClassInterval { get; set; }
-        //public int CurrMajorityClassInterval { get; set; }
+        public int CurrClassValue { get; set; } //new class value based on winner at each interval
+        public int PrevClassValue { get; set; } //new class value based on winner at each interval
+
+        public int CurrABBA { get; set; }
+        public int PrevABBA { get; set; }
+
+        public int Curr0A0B { get; set; }
+        public int Prev0A0B { get; set; }
 
 
-        public int AAChangeCurr { get; set; }
-        public int AAChangePrev { get; set; }
+        //public int AAChangeCurr { get; set; }
+        //public int AAChangePrev { get; set; }
 
 
         //used
-        public int PrevClassA { get; set; }
-        public int PrevClassB { get; set; }
+        //public int PrevClassA { get; set; }
+        //public int PrevClassB { get; set; }
 
-        public int CurrClassA { get; set; }
-        public int CurrClassB { get; set; }
+        //public int CurrClassA { get; set; }
+        //public int CurrClassB { get; set; }
 
-        public int CurrClass0A { get; set; }
-        public int CurrClass0B { get; set; }
-
-
-
-        //public int CumulativeCurrClassChange { get; set; }
-        //public int CumulativePrevClassChange { get; set; }
-
-
-
-        //public int CurrChangeA { get; set; }
-        //public int CurrChangeB { get; set; }
-
-        //public int CurrNoChangeA { get; set; }
-        //public int CurrNoChangeB { get; set; }
-
-
-        //public int PrevChangeA { get; set; }
-        //public int PrevChangeB { get; set; }
-
-        //public int PrevNoChangeA { get; set; }
-        //public int PrevNoChangeB { get; set; }
-
-
+        //public int CurrClass0A { get; set; }
+        //public int CurrClass0B { get; set; }
 
         //public SchemaStat(string schemaInstance, string clusterPattern, string classLabelClassifiedByMLP, string classLabelCalculatedByInvDft, int prevMajorityClassInterval, int currMajorityClassInterval)
-        public SchemaStat(string schemaInstance, string clusterPattern, int classLabelClassifiedByMLP, int classLabelCalculatedByInvDft)
+        public SchemaStat(string clusterPattern, int classLabelClassifiedByMLP, int classLabelCalculatedByInvDft)
         {
-            SchemaInstance = schemaInstance;
             ClusterPattern = clusterPattern;
-            ClassLabelClassifiedByMLP = classLabelClassifiedByMLP;
-            ClassLabelCalculatedByInvDft = classLabelCalculatedByInvDft;
+            TrainingClassValue = classLabelClassifiedByMLP;
+            InvDftClassValue = classLabelCalculatedByInvDft;
+
+            CurrClassValue = classLabelClassifiedByMLP; //initialze with MLP class value
+            PrevClassValue = classLabelClassifiedByMLP; //initialze with MLP class value
+
+            CurrABBA = 0;
+            PrevABBA = 0;
+
+            Curr0A0B = 0;
+            Prev0A0B = 0;
+
             //PrevMajorityClassInterval = prevMajorityClassInterval;
             //CurrMajorityClassInterval = currMajorityClassInterval;
         }
 
-        public bool IsAtoBChange()
+        public void ABChange()
         {
-            //if (AAChangePrev <= 0 && AAChangeCurr > 0)
-            //if (AAChangeCurr > 0)
-            if (AAChangeCurr > 0 && (AAChangeCurr != AAChangePrev))
-            {
-                return true;
-            }
+            CurrABBA += 1;
+        }
 
-            return false;
+        public void BAChange()
+        {
+            CurrABBA -= 1;
         }
 
 
-        public bool IsOtoAChange()
+        public void _0AChange()
         {
-            if (CurrClass0A > 0)
-            {
-                return true;
-            }
-
-            return false;
+            Curr0A0B -= 1;
         }
-        public bool IsOtoBChange()
-        {
-            if (CurrClass0B > 0)
-            {
-                return true;
-            }
 
-            return false;
+        public void _0BChange()
+        {
+            Curr0A0B += 1;
         }
 
 
-
-        public bool IsBtoAChange()
+        public int GetDirectionABBA()
         {
-            //if (AAChangePrev >= 0 && AAChangeCurr < 0)
-            if (AAChangeCurr < 0 && (AAChangeCurr != AAChangePrev))
-            {
-                return true;
-            }
+            if (CurrABBA == PrevABBA)
+                return 0;
 
-            return false;
+            if (CurrABBA == 0 && PrevABBA == 0)
+                return 0;
+
+            if (PrevABBA <= 0 && CurrABBA >= 0)
+                return 1;
+
+            if (PrevABBA >= 0 && CurrABBA <= 0)
+                return -1;
+
+            return 0;
         }
 
 
-
-        public void AToBChangeCurr()
-        {
-            AAChangeCurr += 1;
-        }
-        public void BToAChangeCurr()
-        {
-            AAChangeCurr += -1;
-        }
-
-        public void AddCurrClass0A()
-        {
-            CurrClass0A++;
-        }
-
-        public void AddCurrClass0B()
-        {
-            CurrClass0B++;
-        }
-
-
-        public void AddCurrClassA()
-        {
-            CurrClassA++;
-        }
-
-        public void AddCurrClassB()
-        {
-            CurrClassB++;
-        }
-
-        //public void CurrAddAToB()
-        //{
-        //    CurrChangeB += 1;
-        //}
-
-        //public void CurrAddBToA()
-        //{
-        //    CurrChangeA -= 1;
-        //}
-
-        //public void CurrNoAddA()
-        //{
-        //    CurrNoChangeB += 1;
-        //}
-
-        //public void CurrNoAddB()
-        //{
-        //    CurrNoChangeA -= 1;
-        //}
-
-
-
-        //public void PrevAddAToB()
-        //{
-        //    PrevChangeB += 1;
-        //}
-
-        //public void PrevAddBToA()
-        //{
-        //    PrevChangeA -= 1;
-        //}
-
-        //public void PrevNoAddA()
-        //{
-        //    PrevNoChangeB += 1;
-        //}
-
-        //public void PrevNoAddB()
-        //{
-        //    PrevNoChangeA -= 1;
-        //}
 
 
         public double GetCurrMajority()
         {
-            if (CurrClassA > CurrClassB)
-            {
-                return 0.0;
-            }
-            else
-            {
-                return 1.0;
-            }
+            //if (CurrClassA > CurrClassB)
+            //{
+            //    return 0.0;
+            //}
+            //else
+            //{
+            //    return 1.0;
+            //}
+            return 0;
         }
 
         public double GetPrevMajority()
         {
-            if (PrevClassA > PrevClassB)
-            {
-                return 0.0;
-            }
-            else
-            {
-                return 1.0;
-            }
+            //if (PrevClassA > PrevClassB)
+            //{
+            //    return 0.0;
+            //}
+            //else
+            //{
+            //    return 1.0;
+            //}
+
+            return 0;
         }
+
+        public void UpdateSchema()
+        {
+            int res = GetDirectionABBA();
+
+            if (res == -1)
+            {
+                TrainingClassValue = 0;
+                CurrClassValue = 0;
+            }
+            else if (res == 1)
+            {
+                TrainingClassValue = 1;
+                CurrClassValue = 1;
+            }
+
+            if (Curr0A0B < 0)
+            {
+                TrainingClassValue = 0;
+                CurrClassValue = 0;
+            }
+            else if (Curr0A0B > 0)
+            {
+                TrainingClassValue = 1;
+                CurrClassValue = 1;
+            }
+
+        }
+
+
+
 
         public void CopyCurrToPrev()
         {
-            PrevClassA = CurrClassA;
-            CurrClassA = 0;
+            Prev0A0B = Curr0A0B;
+            Curr0A0B = 0;
 
-            PrevClassB = CurrClassB;
-            CurrClassB = 0;
+            PrevABBA = CurrABBA;
+            CurrABBA = 0;
 
-            AAChangePrev = AAChangeCurr;
-            AAChangeCurr = 0;
-
-            CurrClass0B = 0;
-            CurrClass0A = 0;
+            PrevClassValue = CurrClassValue;
+            CurrClassValue = 0;
 
         }
 

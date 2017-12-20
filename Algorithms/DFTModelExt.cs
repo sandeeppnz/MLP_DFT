@@ -180,7 +180,7 @@ namespace Algorithms
                 if (pattern.Equals(xVector))
                 {
                     var o = schemaPatternList[xVector];
-                    return o.ClassLabelClassifiedByMLP.ToString();
+                    return o.TrainingClassValue.ToString();
                     //return true;
                     //return double.Parse(classLabel.ToString());
                 }
@@ -218,7 +218,7 @@ namespace Algorithms
                     if (isMatch)
                     {
                         var o = schemaPatternList[xVector];
-                        return o.ClassLabelClassifiedByMLP.ToString();
+                        return o.TrainingClassValue.ToString();
 
                         //return true;
                         //return double.Parse(classLabel.ToString());
@@ -303,7 +303,7 @@ namespace Algorithms
             {
                 if (list.ContainsKey(instanceSchema))
                 {
-                    return Double.Parse(list[instanceSchema].ClassLabelCalculatedByInvDft.ToString());
+                    return Double.Parse(list[instanceSchema].InvDftClassValue.ToString());
                 }
                 else
                 {
@@ -707,106 +707,59 @@ namespace Algorithms
             double correctionFactor = 0.0;
             double AveragedcorrectionFactor = 0.0;
             int distinctChangeSchemas = 0;
-
-
-
-
-            //foreach (string key in schemaPatterns.Keys)
-            //{
-            //    SchemaStat ss = schemaPatterns[key];
-            //    if (ss != null)
-            //    {
-
-            //        if (ss.IsAtoBChange())
-            //        {
-            //            distinctChangeSchemas++;
-            //        }
-            //        if (ss.IsBtoAChange())
-            //        {
-            //            distinctChangeSchemas++;
-            //        }
-
-            //        if (ss.IsOtoAChange())
-            //        {
-            //            distinctChangeSchemas++;
-            //        }
-            //        if (ss.IsOtoBChange())
-            //        {
-            //            distinctChangeSchemas++;
-            //        }
-
-            //        //if (ss.GetPrevMajority() == 0.0 && ss.GetCurrMajority() == 1.0)
-            //        //{
-            //        //    runRefine1 = true; //A->B
-            //        //    distinctChangeSchemas++;
-            //        //}
-            //        //else if (ss.GetPrevMajority() == 1.0 && ss.GetCurrMajority() == 0.0)
-            //        //{
-            //        //    runRefine2 = true; //B->A
-            //        //    distinctChangeSchemas++;
-            //        //}
-            //    }
-            //}
-
             distinctChangeSchemas = schemaPatterns.Keys.Count;
             double bracketVal = 0;
 
-
             foreach (string key in schemaPatterns.Keys)
             {
+                //reset contribution form set AB or BA class change schemas to refinemnet
+                double dCoefficientValue_Contribution_ABBA = 0.0;
 
-                double dCoefficientValue_Contribution_ABBA = 0.0;//reset contribution form set AB or BA class change schemas to refinemnet
-                double dCoefficientValue_Contribution_0A0B = 0.0; //reset contribution form set 0A or 0B class change schemas to refinemnet    
-
-                bool AtoBRefine = false;
-                bool BtoARefine = false;
-                bool OtoARefine = false;
-                bool OtoBRefine = false;
-
+                //reset contribution form set 0A or 0B class change schemas to refinemnet    
+                double dCoefficientValue_Contribution_0A0B = 0.0; 
+                
+                bool _AB_refine = false;
+                bool _BA_refine = false;
+                bool _0A_refine = false;
+                bool _0B_refine = false;
 
                 SchemaStat ss = schemaPatterns[key];
                 if (ss != null)
                 {
-                    if (ss.IsAtoBChange())
+                    int res = ss.GetDirectionABBA();
+
+                    if (res == -1)
                     {
-                        AtoBRefine = true; //A->B
+                        _BA_refine = true;
                     }
-                    if (ss.IsBtoAChange())
+                    else if (res == 1)
                     {
-                        BtoARefine = true; //A->B
+                        _AB_refine = true;
                     }
-                    if (ss.IsOtoAChange())
+                    else
                     {
-                        OtoARefine = true; //A->B
-                    }
-                    if (ss.IsOtoBChange())
-                    {
-                        OtoBRefine = true; //A->B
+                        _AB_refine = false;
+                        _BA_refine = false;
                     }
 
-
-                    //if (ss.GetPrevMajority() == 0.0 && ss.GetCurrMajority() == 1.0)
-                    //{
-                    //    AtoBRefine = true; //A->B
-                    //}
-                    //else if (ss.GetPrevMajority() == 1.0 && ss.GetCurrMajority() == 0.0)
-                    //{
-                    //    BtoARefine = true; //B->A
-                    //}
+                    if (ss.Curr0A0B < 0 && (!_AB_refine || !_AB_refine))
+                    {
+                        _0A_refine = true;
+                    }
+                    else if (ss.Curr0A0B > 0 && (!_AB_refine || !_AB_refine))
+                    {
+                        _0B_refine = true;
+                    }
                 }
 
-                if (AtoBRefine)
+                if (_AB_refine)
                 {
                     double dotProduct = Helper.RefineBasisFunction(j, key);
-                    //double fxValue = Double.Parse(schemaPatterns[key].ClassLabelClassifiedByMLP.ToString());
-                    double fxValue = 1;
-
-
+                    double fxDiff = 1;
 
                     if (dotProduct != 0)
                     {
-                        dCoefficientValue_Contribution_ABBA = dCoefficientValue_Contribution_ABBA + ((fxValue) * dotProduct);
-                        //sum over Xs of set ABBA
+                        dCoefficientValue_Contribution_ABBA = dCoefficientValue_Contribution_ABBA + ((fxDiff) * dotProduct);
                     }
                     if (dotProduct != -1.0 && dotProduct != 1.0)
                     {
@@ -814,36 +767,15 @@ namespace Algorithms
                     }
                 }
 
-                if (BtoARefine)
+                if (_BA_refine)
                 {
                     double dotProduct = Helper.RefineBasisFunction(j, key);
-                    //double fxValue = Double.Parse(schemaPatterns[key].ClassLabelClassifiedByMLP.ToString());
-                    double fxValue = -1;
-
-                    if (dotProduct != 0)
-                    {
-                        dCoefficientValue_Contribution_ABBA = dCoefficientValue_Contribution_ABBA + ((fxValue) * dotProduct);
-                    }
-
-                    if (dotProduct != -1.0 && dotProduct != 1.0)
-                    {
-
-                    }
-                }
-
-
-
-                if (OtoARefine)
-                {
-                    double dotProduct = Helper.RefineBasisFunction(j, key);
-                    //double fxValue = Double.Parse(schemaPatterns[key].ClassLabelClassifiedByMLP.ToString());
-                    double fxValue = -1;
-
+                    double fxDiff = -1;
 
 
                     if (dotProduct != 0)
                     {
-                        dCoefficientValue_Contribution_0A0B = dCoefficientValue_Contribution_0A0B + ((fxValue) * dotProduct); //sum over Xs of set 0A0B
+                        dCoefficientValue_Contribution_ABBA = dCoefficientValue_Contribution_ABBA + ((fxDiff) * dotProduct);
                     }
 
                     if (dotProduct != -1.0 && dotProduct != 1.0)
@@ -852,15 +784,16 @@ namespace Algorithms
                     }
                 }
 
-                if (OtoBRefine)
+
+
+                if (_0A_refine)
                 {
                     double dotProduct = Helper.RefineBasisFunction(j, key);
-                    //double fxValue = Double.Parse(schemaPatterns[key].ClassLabelClassifiedByMLP.ToString());
-                    double fxValue = 1;
+                    double fxDiff = -1;
 
                     if (dotProduct != 0)
                     {
-                        dCoefficientValue_Contribution_0A0B = dCoefficientValue_Contribution_0A0B + ((fxValue) * dotProduct); //sum over Xs of set 0A0B
+                        dCoefficientValue_Contribution_0A0B = dCoefficientValue_Contribution_0A0B + ((fxDiff) * dotProduct); //sum over Xs of set 0A0B
                     }
 
                     if (dotProduct != -1.0 && dotProduct != 1.0)
@@ -869,19 +802,42 @@ namespace Algorithms
                     }
                 }
 
-                if (distinctChangeSchemas != 0 && (OtoBRefine || OtoARefine || BtoARefine || AtoBRefine))
+                if (_0B_refine)
+                {
+                    double dotProduct = Helper.RefineBasisFunction(j, key);
+                    double fxDiff = 1;
+
+                    if (dotProduct != 0)
+                    {
+                        dCoefficientValue_Contribution_0A0B = dCoefficientValue_Contribution_0A0B + ((fxDiff) * dotProduct); //sum over Xs of set 0A0B
+                    }
+
+                    if (dotProduct != -1.0 && dotProduct != 1.0)
+                    {
+
+                    }
+                }
+
+                if (distinctChangeSchemas != 0 && (_0B_refine || _0A_refine || _BA_refine || _AB_refine))
                 {
 
                     correctionFactor = dCoefficientValue_Contribution_ABBA + dCoefficientValue_Contribution_0A0B;
 
                     AveragedcorrectionFactor = correctionFactor / distinctChangeSchemas;
-                    ss.ClassLabelClassifiedByMLP = ss.ClassLabelClassifiedByMLP + (int) AveragedcorrectionFactor;
+
+                    ss.CurrClassValue = ss.CurrClassValue + (int) AveragedcorrectionFactor;
+
+                    ss.TrainingClassValue = ss.TrainingClassValue + (int) AveragedcorrectionFactor;
+
+
+
                     bracketVal += AveragedcorrectionFactor;
+
+
                 }
             }
 
             w += bracketVal;
-            //return coefficientValue;
         }
 
 
@@ -1198,11 +1154,11 @@ namespace Algorithms
 
                     if (isClass0)
                     {
-                        clusterPoolDictionary.Add(instanceSchemas.ElementAt(i), new SchemaStat(instanceSchemas.ElementAt(i), instanceSchemas.ElementAt(i), 0, 0));
+                        clusterPoolDictionary.Add(instanceSchemas.ElementAt(i), new SchemaStat(instanceSchemas.ElementAt(i), 0, 0));
                     }
                     else
                     {
-                        clusterPoolDictionary.Add(instanceSchemas.ElementAt(i), new SchemaStat(instanceSchemas.ElementAt(i), instanceSchemas.ElementAt(i), 1, 0));
+                        clusterPoolDictionary.Add(instanceSchemas.ElementAt(i), new SchemaStat(instanceSchemas.ElementAt(i), 1, 0));
                     }
                 }
                 else
@@ -1244,11 +1200,11 @@ namespace Algorithms
 
                                 if (isClass0)
                                 {
-                                    clusterPoolDictionary.Add(s, new SchemaStat(s, s, 0, 0));
+                                    clusterPoolDictionary.Add(s, new SchemaStat(s, 0, 0));
                                 }
                                 else
                                 {
-                                    clusterPoolDictionary.Add(s, new SchemaStat(s, s, 1, 0));
+                                    clusterPoolDictionary.Add(s, new SchemaStat(s, 1, 0));
                                 }
 
 
@@ -1269,12 +1225,12 @@ namespace Algorithms
                                     if (isClass0)
                                     {
                                         clusterPoolDictionary.Remove(clusterLabel);
-                                        clusterPoolDictionary.Add(newLabel, new SchemaStat(s, newLabel, 0, 0));
+                                        clusterPoolDictionary.Add(newLabel, new SchemaStat(newLabel, 0, 0));
                                     }
                                     else
                                     {
                                         clusterPoolDictionary.Remove(clusterLabel);
-                                        clusterPoolDictionary.Add(newLabel, new SchemaStat(s, newLabel, 1, 0));
+                                        clusterPoolDictionary.Add(newLabel, new SchemaStat(newLabel, 1, 0));
                                     }
 
 
@@ -1291,11 +1247,11 @@ namespace Algorithms
 
                                     if (isClass0)
                                     {
-                                        clusterPoolDictionary.Add(s, new SchemaStat(s, s, 0, 0));
+                                        clusterPoolDictionary.Add(s, new SchemaStat(s, 0, 0));
                                     }
                                     else
                                     {
-                                        clusterPoolDictionary.Add(s, new SchemaStat(s, s, 1, 0));
+                                        clusterPoolDictionary.Add(s, new SchemaStat(s, 1, 0));
                                     }
 
 

@@ -380,9 +380,10 @@ namespace Algorithms
             {
                 sw.Write(s.ClusterPattern.ToString());
                 sw.Write(',');
-                sw.Write(s.ClassLabelClassifiedByMLP.ToString());
-//                sw.Write(',');
-//                sw.Write(s.ClassLabelCalculatedByInvDft.ToString());
+                //sw.Write(s.CurrClassValue.ToString());
+                sw.Write(s.TrainingClassValue.ToString());
+                //                sw.Write(',');
+                //                sw.Write(s.ClassLabelCalculatedByInvDft.ToString());
                 sw.Write("\r\n");
             }
             sw.Flush();

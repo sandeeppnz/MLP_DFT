@@ -229,18 +229,19 @@ namespace BackPropProgram
                         int testDataSize = FullTestSet.Length;
                         int intervalSize = 5;// FullTestSet.Length;
                         int numIterations = testDataSize / intervalSize;
-                        //numIterations++;
 
                         // 1.  get a batch size of test instances
                         for (int i = 0; i < numIterations; i++)
                         {
-                            // 2.  process each batch by
-                            double cachedFx = -1;
 
                             if (i == 1)
                             {
 
                             }
+
+                            // 2.  process each batch by
+                            double cachedFx = -1;
+
 
                             for (int k = 0; k < intervalSize; k++)
                             {
@@ -248,10 +249,10 @@ namespace BackPropProgram
                                 int index = (i * intervalSize) + k;
 
                                 string testInstance;
-                                double actualClassValue;
-                                double fxTestInstance;
+                                double actualTestFxValue;
+                                double calculatedTestFxValue;
 
-                                GetTestInstanceString(numAtt, FullTestSet, index, out testInstance, out actualClassValue);
+                                GetTestInstanceString(numAtt, FullTestSet, index, out testInstance, out actualTestFxValue);
 
                                 //Check with the cache
                                 // 2.1 get the f(x) using inverse or cache
@@ -264,7 +265,7 @@ namespace BackPropProgram
                                 int cachedFxString = -99;
                                 if (cachedSchemaStat != null)
                                 {
-                                    cachedFxString = cachedSchemaStat.ClassLabelClassifiedByMLP;
+                                    cachedFxString = cachedSchemaStat.TrainingClassValue;
                                 }
                                 else
                                 {
@@ -281,11 +282,11 @@ namespace BackPropProgram
 
                                 if (invFx != -99)
                                 {
-                                    fxTestInstance = invFx;
+                                    calculatedTestFxValue = invFx;
                                 }
                                 else
                                 {
-                                    fxTestInstance = cachedFx;
+                                    calculatedTestFxValue = cachedFx;
                                 }
 
                                 //2.2 update the stats of the curr
@@ -293,70 +294,62 @@ namespace BackPropProgram
                                 if (cachedSchemaStat != null)
                                 {
                                     //increase A or B
-                                    if (fxTestInstance == 0 && actualClassValue == 0)
+                                    if (calculatedTestFxValue == 0 && actualTestFxValue == 0)
                                     {
                                         //A->A
-                                        cachedSchemaStat.AddCurrClassA();
+                                        //no change to schema
                                     }
-                                    else if (fxTestInstance == 0 && actualClassValue == 1)
+                                    else if (calculatedTestFxValue == 0 && actualTestFxValue == 1)
                                     {
                                         //A->B 
-                                        cachedSchemaStat.AddCurrClassB();
-                                        cachedSchemaStat.AToBChangeCurr();
+                                        cachedSchemaStat.ABChange();
                                     }
-                                    else if (fxTestInstance == 1 && actualClassValue == 1)
+                                    else if (calculatedTestFxValue == 1 && actualTestFxValue == 1)
                                     {
                                         //B->B //same
-                                        cachedSchemaStat.AddCurrClassB();
+                                        //no change to schema
                                     }
-                                    else if (fxTestInstance == 1 && actualClassValue == 0)
+                                    else if (calculatedTestFxValue == 1 && actualTestFxValue == 0)
                                     {
                                         //B->A //same
-                                        cachedSchemaStat.AddCurrClassA();
-                                        cachedSchemaStat.BToAChangeCurr();
+                                        cachedSchemaStat.BAChange();
                                     }
                                 }
                                 else
                                 {
                                     //new instance appear
-                                    cachedSchemaStat = new SchemaStat(testInstance, testInstance, int.Parse(actualClassValue.ToString()), int.Parse(fxTestInstance.ToString()));
-                                    //if (fxTestInstance == 0)
-                                    if (actualClassValue == 0)
+                                    //TODO: schema instead of test instance
+                                    cachedSchemaStat = new SchemaStat(testInstance, int.Parse(actualTestFxValue.ToString()), int.Parse(calculatedTestFxValue.ToString()));
+                                    if (actualTestFxValue == 0)
                                     {
                                         //0->A
-                                        cachedSchemaStat.AddCurrClass0A();
+                                        cachedSchemaStat._0AChange();
                                     }
-                                    else if (actualClassValue == 1)
-                                    //else if (fxTestInstance == 1)
+                                    else if (actualTestFxValue == 1)
                                     {
                                         //0->B
-                                        cachedSchemaStat.AddCurrClass0B();
+                                        cachedSchemaStat._0BChange();
                                     }
-
-                                    //add the new pattern to reservior// TODO: add pattern instead
                                     currSchemaReservior.Add(testInstance, cachedSchemaStat);
 
                                 }
-
                                 fp.TestInstanceMatchingToCSV(testInstance, cachedSchemaStat.ClusterPattern, split, currPartitionSize + "_testInstanceMatchingToCSV_" + i, false);
-
                             }
 
                             // 3.  copy the change starts to previous and update the coefficient array
-                            //if (i != 0)
-                            //{
-                            bool triggerUpdate = CalculateTrigger(currSchemaReservior, triggeredInterval, intervalSize, cumulativeChanges);
+                            //bool triggerUpdate = CalculateTrigger(currSchemaReservior, triggeredInterval, intervalSize, cumulativeChanges);
+
+                            bool triggerUpdate = true;
+
                             if (triggerUpdate)
                             {
                                 triggeredInterval = 1;
                                 cumulativeChanges = 0;
-                                //if (i > 1)
-                                //{
                                 dftModel.EnergyCoeffsTrain = dftModel.RefineIterator(currSchemaReservior, coeff_a);
                                 coeff_a = dftModel.EnergyCoeffsTrain;
 
-                                //}
-                                CopyStatsCurrToPrev(currSchemaReservior);
+                                UpdateReservior(currSchemaReservior);
+
                                 fp.ReserviorToCSV(currSchemaReservior, split, currPartitionSize + "_currSchemaReservior_" + i);
                                 fp.OutputEnergyCoeffsToCSV(dftModel.EnergyCoeffsTrain, split, currPartitionSize + "_EnergyCoeffs_" + i);
                             }
@@ -368,8 +361,8 @@ namespace BackPropProgram
                             //bool triggerUpdate = CheckTriggerStatusCurrToPrev(currSchemaReservior, out triggeredInterval);
                             //}
 
+                            CopyStatsCurrToPrev(currSchemaReservior);
                         }
-
 
 
 
@@ -634,7 +627,7 @@ namespace BackPropProgram
             cumulativeCount = 0;
             foreach (var i in schemaPatternList.Values)
             {
-                cumulativeCount += i.AAChangeCurr;
+                cumulativeCount += i.CurrABBA;
             }
         }
 
@@ -647,14 +640,14 @@ namespace BackPropProgram
 
             foreach (var i in schemaPatternList.Values)
             {
-                totalNumber += i.AAChangeCurr;
+                totalNumber += i.CurrABBA;
             }
 
             totalNumber += cummulativeChanges;
 
             double ratio = (double) Math.Abs(totalNumber) / (double) (interval * intervalSize);
 
-            if (ratio >= (1 - 0.95))
+            if (ratio >= (1 - 0.99))
             {
                 trigger = true;
             }
@@ -691,6 +684,14 @@ namespace BackPropProgram
             foreach (var i in schemaPatternList.Values)
             {
                 i.CopyCurrToPrev();
+            }
+        }
+
+        private static void UpdateReservior(Dictionary<string, SchemaStat> schemaPatternList)
+        {
+            foreach (var i in schemaPatternList.Values)
+            {
+                i.UpdateSchema();
             }
         }
 
