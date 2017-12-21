@@ -298,21 +298,25 @@ namespace BackPropProgram
                                     {
                                         //A->A
                                         //no change to schema
+                                        cachedSchemaStat.Add_ACount();
                                     }
                                     else if (calculatedTestFxValue == 0 && actualTestFxValue == 1)
                                     {
                                         //A->B 
                                         cachedSchemaStat.ABChange();
+                                        cachedSchemaStat.Add_BCount();
                                     }
                                     else if (calculatedTestFxValue == 1 && actualTestFxValue == 1)
                                     {
                                         //B->B //same
                                         //no change to schema
+                                        cachedSchemaStat.Add_BCount();
                                     }
                                     else if (calculatedTestFxValue == 1 && actualTestFxValue == 0)
                                     {
                                         //B->A //same
                                         cachedSchemaStat.BAChange();
+                                        cachedSchemaStat.Add_ACount();
                                     }
                                 }
                                 else
@@ -337,9 +341,9 @@ namespace BackPropProgram
                             }
 
                             // 3.  copy the change starts to previous and update the coefficient array
-                            //bool triggerUpdate = CalculateTrigger(currSchemaReservior, triggeredInterval, intervalSize, cumulativeChanges);
+                            bool triggerUpdate = CalculateTrigger(currSchemaReservior, triggeredInterval, intervalSize, cumulativeChanges);
 
-                            bool triggerUpdate = true;
+                            //bool triggerUpdate = true;
 
                             if (triggerUpdate)
                             {

@@ -21,6 +21,9 @@ namespace Algorithms
         public int Curr0A0B { get; set; }
         public int Prev0A0B { get; set; }
 
+        public int ACount { get; set; }
+        public int BCount { get; set; }
+
 
         //public int AAChangeCurr { get; set; }
         //public int AAChangePrev { get; set; }
@@ -60,6 +63,16 @@ namespace Algorithms
         {
             CurrABBA += 1;
         }
+
+        public void Add_ACount()
+        {
+            ACount++;
+        }
+        public void Add_BCount()
+        {
+            BCount++;
+        }
+
 
         public void BAChange()
         {
@@ -129,27 +142,61 @@ namespace Algorithms
         {
             int res = GetDirectionABBA();
 
-            if (res == -1)
+
+            if (ACount != 0 && BCount != 0)
             {
-                TrainingClassValue = 0;
-                CurrClassValue = 0;
+                if (ACount != BCount)
+                {
+                    if (res == -1)
+                    {
+                        TrainingClassValue = 0;
+                        CurrClassValue = 0;
+                    }
+                    else if (res == 1)
+                    {
+                        TrainingClassValue = 1;
+                        CurrClassValue = 1;
+                    }
+
+                    if (Curr0A0B < 0)
+                    {
+                        TrainingClassValue = 0;
+                        CurrClassValue = 0;
+                    }
+                    else if (Curr0A0B > 0)
+                    {
+                        TrainingClassValue = 1;
+                        CurrClassValue = 1;
+                    }
+
+                }
             }
-            else if (res == 1)
+            else
             {
-                TrainingClassValue = 1;
-                CurrClassValue = 1;
+                if (res == -1)
+                {
+                    TrainingClassValue = 0;
+                    CurrClassValue = 0;
+                }
+                else if (res == 1)
+                {
+                    TrainingClassValue = 1;
+                    CurrClassValue = 1;
+                }
+
+                if (Curr0A0B < 0)
+                {
+                    TrainingClassValue = 0;
+                    CurrClassValue = 0;
+                }
+                else if (Curr0A0B > 0)
+                {
+                    TrainingClassValue = 1;
+                    CurrClassValue = 1;
+                }
+
             }
 
-            if (Curr0A0B < 0)
-            {
-                TrainingClassValue = 0;
-                CurrClassValue = 0;
-            }
-            else if (Curr0A0B > 0)
-            {
-                TrainingClassValue = 1;
-                CurrClassValue = 1;
-            }
 
         }
 
@@ -166,6 +213,9 @@ namespace Algorithms
 
             PrevClassValue = CurrClassValue;
             CurrClassValue = 0;
+
+            ACount = 0;
+            BCount = 0;
 
         }
 

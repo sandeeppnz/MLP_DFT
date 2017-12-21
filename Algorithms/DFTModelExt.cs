@@ -728,27 +728,60 @@ namespace Algorithms
                 {
                     int res = ss.GetDirectionABBA();
 
-                    if (res == -1)
+                    if (ss.ACount != 0 && ss.BCount != 0)
                     {
-                        _BA_refine = true;
-                    }
-                    else if (res == 1)
-                    {
-                        _AB_refine = true;
+                        if (ss.ACount != ss.BCount)
+                        {
+                            if (res == -1)
+                            {
+                                _BA_refine = true;
+                            }
+                            else if (res == 1)
+                            {
+                                _AB_refine = true;
+                            }
+                            else
+                            {
+                                _AB_refine = false;
+                                _BA_refine = false;
+                            }
+
+                            if (ss.Curr0A0B < 0 && (!_AB_refine || !_AB_refine))
+                            {
+                                _0A_refine = true;
+                            }
+                            else if (ss.Curr0A0B > 0 && (!_AB_refine || !_AB_refine))
+                            {
+                                _0B_refine = true;
+                            }
+
+                        }
                     }
                     else
                     {
-                        _AB_refine = false;
-                        _BA_refine = false;
-                    }
+                        if (res == -1)
+                        {
+                            _BA_refine = true;
+                        }
+                        else if (res == 1)
+                        {
+                            _AB_refine = true;
+                        }
+                        else
+                        {
+                            _AB_refine = false;
+                            _BA_refine = false;
+                        }
 
-                    if (ss.Curr0A0B < 0 && (!_AB_refine || !_AB_refine))
-                    {
-                        _0A_refine = true;
-                    }
-                    else if (ss.Curr0A0B > 0 && (!_AB_refine || !_AB_refine))
-                    {
-                        _0B_refine = true;
+                        if (ss.Curr0A0B < 0 && (!_AB_refine || !_AB_refine))
+                        {
+                            _0A_refine = true;
+                        }
+                        else if (ss.Curr0A0B > 0 && (!_AB_refine || !_AB_refine))
+                        {
+                            _0B_refine = true;
+                        }
+
                     }
                 }
 
